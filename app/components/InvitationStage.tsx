@@ -10,10 +10,11 @@ type StageProps = {
   mapsUrl: string;
   ctaText: string;
   guestName: string;
+  shortName: string;
 };
 
-// Pausa entre reproducciones (no es loop continuo): el video corre una vez,
-// termina, espera 3 s y vuelve a empezar.
+// Pausa entre reproducciones (no es loop continuo): corre una vez, termina,
+// espera 3 s y reinicia, solo si la pagina esta visible y ya se abrio.
 const REPLAY_DELAY_MS = 3000;
 
 export default function InvitationStage({
@@ -23,13 +24,52 @@ export default function InvitationStage({
   mapsUrl,
   ctaText,
   guestName,
+  shortName,
 }: StageProps) {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const replayTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const openedRef = useRef(false);
+
+  const [opened, setOpened] = useState(false);
   const [videoReady, setVideoReady] = useState(false);
   const [soundOn, setSoundOn] = useState(false);
+  const [showSoundFallback, setShowSoundFallback] = useState(false);
 
-  // Intenta activar el audio (los moviles bloquean autoplay con sonido).
+  const clearReplay = useCallback(() => {
+    if (replayTimer.current) {
+      clearTimeout(replayTimer.current);
+      replayTimer.current = null;
+    }
+  }, []);
+
+  // Abrir invitacion: gesto del usuario -> reproducir desde 0 CON sonido.
+  const openInvitation = useCallback(() => {
+    const v = videoRef.current;
+    openedRef.current = true;
+    setOpened(true);
+    if (!v) return;
+    v.currentTime = 0;
+    v.muted = false;
+    v.volume = 1;
+    const p = v.play();
+    if (p && typeof p.then === "function") {
+      p.then(() => {
+        setSoundOn(true);
+        setShowSoundFallback(false);
+      }).catch(() => {
+        // El navegador bloqueo el audio: fallback en silencio + boton secundario.
+        v.muted = true;
+        const p2 = v.play();
+        if (p2 && typeof p2.catch === "function") p2.catch(() => {});
+        setSoundOn(false);
+        setShowSoundFallback(true);
+      });
+    } else {
+      setSoundOn(true);
+    }
+  }, []);
+
+  // Boton secundario de sonido (solo si el autoplay con audio fue bloqueado).
   const enableSound = useCallback(() => {
     const v = videoRef.current;
     if (!v) return;
@@ -37,30 +77,48 @@ export default function InvitationStage({
     v.volume = 1;
     const p = v.play();
     if (p && typeof p.then === "function") {
-      p.then(() => setSoundOn(true)).catch(() => setSoundOn(false));
+      p.then(() => {
+        setSoundOn(true);
+        setShowSoundFallback(false);
+      }).catch(() => {});
     } else {
       setSoundOn(true);
+      setShowSoundFallback(false);
     }
   }, []);
 
-  // Al terminar: esperar 3 s y reiniciar desde el principio.
+  // Al terminar: esperar 3 s y reiniciar (solo si visible + abierto).
   const handleEnded = useCallback(() => {
-    if (replayTimer.current) clearTimeout(replayTimer.current);
+    clearReplay();
     replayTimer.current = setTimeout(() => {
       const v = videoRef.current;
-      if (!v) return;
+      if (!v || document.hidden || !openedRef.current) return;
       v.currentTime = 0;
       const p = v.play();
       if (p && typeof p.catch === "function") p.catch(() => {});
     }, REPLAY_DELAY_MS);
-  }, []);
+  }, [clearReplay]);
 
-  // Limpieza del timeout para evitar fugas de memoria.
+  // Pausar en background; reanudar al volver (nunca reproducir oculto).
   useEffect(() => {
-    return () => {
-      if (replayTimer.current) clearTimeout(replayTimer.current);
+    const onVisibility = () => {
+      const v = videoRef.current;
+      if (!v) return;
+      if (document.hidden) {
+        v.pause();
+        clearReplay();
+      } else if (openedRef.current) {
+        if (v.ended) v.currentTime = 0;
+        const p = v.play();
+        if (p && typeof p.catch === "function") p.catch(() => {});
+      }
     };
-  }, []);
+    document.addEventListener("visibilitychange", onVisibility);
+    return () => {
+      document.removeEventListener("visibilitychange", onVisibility);
+      clearReplay();
+    };
+  }, [clearReplay]);
 
   return (
     <main className="page">
@@ -74,9 +132,8 @@ export default function InvitationStage({
             className={`video ${videoReady ? "is-ready" : ""}`}
             poster={posterSrc}
             playsInline
-            muted
-            autoPlay
             preload="metadata"
+            onLoadedMetadata={() => setVideoReady(true)}
             onCanPlay={() => setVideoReady(true)}
             onEnded={handleEnded}
             onError={() => setVideoReady(false)}
@@ -84,27 +141,25 @@ export default function InvitationStage({
             <source src={videoSrc} type="video/mp4" />
           </video>
 
-          {/* Placeholder elegante mientras no exista el video final */}
+          {/* Placeholder mientras cargan los metadatos del video */}
           <div
             className={`video-placeholder ${videoReady ? "is-hidden" : ""}`}
             aria-hidden="true"
           >
             <span className="orb" />
-            <span className="ph-text">Video de invitación</span>
           </div>
 
-          {/* Boton de sonido, sobre el video, sin estorbar al banner */}
-          <button
-            type="button"
-            className={`sound-btn ${soundOn ? "is-on" : ""}`}
-            onClick={enableSound}
-            aria-label={soundOn ? "Sonido activado" : "Activar sonido"}
-          >
-            {soundOn ? "🔊" : "🔈"}
-            <span className="sound-label">
-              {soundOn ? "Sonido activado" : "Activar sonido"}
-            </span>
-          </button>
+          {/* Boton de sonido secundario (solo si el audio fue bloqueado) */}
+          {opened && showSoundFallback && !soundOn && (
+            <button
+              type="button"
+              className="sound-btn"
+              onClick={enableSound}
+              aria-label="Activar sonido"
+            >
+              🔈 Activar sonido
+            </button>
+          )}
         </div>
 
         {/* ---------- Banner clickeable (abajo) ---------- */}
@@ -128,6 +183,22 @@ export default function InvitationStage({
           />
         </a>
       </div>
+
+      {/* ---------- Overlay de apertura (con sonido) ---------- */}
+      {!opened && (
+        <button
+          type="button"
+          className="open-overlay"
+          onClick={openInvitation}
+          aria-label={`Abrir la invitación de ${shortName} con sonido`}
+        >
+          <span className="open-orb" aria-hidden="true" />
+          <span className="open-title">Toca para abrir la invitación de</span>
+          <span className="open-name">{shortName}</span>
+          <span className="open-sub">Activa la magia con sonido</span>
+          <span className="open-cta">✨ Abrir invitación</span>
+        </button>
+      )}
     </main>
   );
 }

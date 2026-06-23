@@ -17,6 +17,7 @@ export default function Home() {
       mapsUrl={MAPS_URL}
       ctaText="📍 Pulsa aquí para ver la ubicación"
       guestName="Mia Isabella Rangel Cárdenas"
+      shortName="Mia Isabella"
     />
   );
 }
