@@ -59,6 +59,7 @@ body {
 .video-wrap {
   position: relative;
   width: 100%;
+  aspect-ratio: 9 / 16; /* alto estable aun con preload="none" (sin metadata) */
   border-radius: 16px;
   overflow: hidden;
   background: #04161f;
@@ -66,34 +67,25 @@ body {
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
 }
 
+/* El poster (atributo del video) se ve desde el inicio; el video llena el wrap 9:16 */
 .video {
-  display: block;
+  position: absolute;
+  inset: 0;
   width: 100%;
-  height: auto;
-  object-fit: contain; /* no recorta ni deforma */
-  opacity: 0;
-  transition: opacity 0.4s ease;
-}
-.video.is-ready {
-  opacity: 1;
+  height: 100%;
+  object-fit: cover; /* fuente 9:16 = sin recorte real */
+  display: block;
 }
 
-/* Placeholder ligero (alto 9:16) mientras carga metadata */
+/* Placeholder de carga: overlay sobre el poster solo mientras el video carga tras el tap */
 .video-placeholder {
   position: absolute;
   inset: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  aspect-ratio: 9 / 16;
-  width: 100%;
   background: linear-gradient(180deg, #073142 0%, #04202c 60%, #03141d 100%);
   transition: opacity 0.4s ease;
-}
-.video-wrap:has(.video-placeholder:not(.is-hidden)) .video {
-  position: absolute;
-  inset: 0;
-  height: 100%;
 }
 .video-placeholder.is-hidden {
   opacity: 0;
@@ -143,7 +135,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(2, 12, 18, 0.55);
+  background: rgba(2, 12, 18, 0.64);
   backdrop-filter: blur(3px);
 }
 .replay-btn {

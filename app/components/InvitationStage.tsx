@@ -3,8 +3,14 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState } from "react";
 
+type VideoSources = {
+  q1080: string;
+  q720: string;
+  q540: string;
+};
+
 type StageProps = {
-  videoSrc: string;
+  sources: VideoSources;
   posterSrc: string;
   bannerSrc: string;
   mapsUrl: string;
@@ -13,12 +19,30 @@ type StageProps = {
   shortName: string;
 };
 
+// Conexion del navegador (API no estandar; degradacion segura si no existe).
+type NetworkInfo = { saveData?: boolean; effectiveType?: string };
+
+// Elige la calidad mas ligera razonable para ahorrar egress:
+// - saveData o conexion 2g/3g -> 540p (ultra ligera)
+// - desktop ancho (>=1024) con buena conexion -> 1080p (alta calidad)
+// - resto (movil/tablet) -> 720p (default)
+function pickQuality(s: VideoSources): string {
+  if (typeof window === "undefined") return s.q720;
+  const nav = navigator as Navigator & { connection?: NetworkInfo };
+  const net = nav.connection;
+  const et = net?.effectiveType;
+  if (net?.saveData || et === "slow-2g" || et === "2g" || et === "3g") return s.q540;
+  if (window.innerWidth >= 1024 && (et === "4g" || et === undefined)) return s.q1080;
+  return s.q720;
+}
+
 // El video se reproduce UNA sola vez tras el tap del usuario. No hay loop ni
 // replay automatico: al terminar se muestra el boton "Volver a ver" y solo se
 // reproduce de nuevo si el usuario lo decide (politica anti-consumo de transferencia).
+// preload="none": no se descarga video hasta el tap (poster representa la carga).
 
 export default function InvitationStage({
-  videoSrc,
+  sources,
   posterSrc,
   bannerSrc,
   mapsUrl,
@@ -34,6 +58,12 @@ export default function InvitationStage({
   const [soundOn, setSoundOn] = useState(false);
   const [showSoundFallback, setShowSoundFallback] = useState(false);
   const [ended, setEnded] = useState(false);
+  // SSR default 720p; se refina en cliente segun dispositivo/conexion (sin descargar).
+  const [videoSrc, setVideoSrc] = useState(sources.q720);
+
+  useEffect(() => {
+    setVideoSrc(pickQuality(sources));
+  }, [sources]);
 
   // Abrir invitacion: gesto del usuario -> reproducir desde 0 CON sonido.
   const openInvitation = useCallback(() => {
@@ -126,20 +156,20 @@ export default function InvitationStage({
           <video
             ref={videoRef}
             className={`video ${videoReady ? "is-ready" : ""}`}
+            src={videoSrc}
             poster={posterSrc}
             playsInline
-            preload="metadata"
+            preload="none"
             onLoadedMetadata={() => setVideoReady(true)}
             onCanPlay={() => setVideoReady(true)}
             onEnded={handleEnded}
             onError={() => setVideoReady(false)}
-          >
-            <source src={videoSrc} type="video/mp4" />
-          </video>
+          />
 
-          {/* Placeholder mientras cargan los metadatos del video */}
+          {/* Placeholder de carga: solo visible mientras el video carga tras el tap.
+              Antes del tap se muestra el poster (no se descarga video). */}
           <div
-            className={`video-placeholder ${videoReady ? "is-hidden" : ""}`}
+            className={`video-placeholder ${videoReady || !opened ? "is-hidden" : ""}`}
             aria-hidden="true"
           >
             <span className="orb" />
