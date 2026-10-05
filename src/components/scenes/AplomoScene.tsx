@@ -1,7 +1,7 @@
 import s from "./AplomoScene.module.css";
 import { Panel } from "./aplomo/Panel";
 import { Stage } from "./aplomo/Stage";
-import { CYCLE } from "./aplomo/yard";
+import { CYCLE, PREVIEW_CYCLE } from "./aplomo/yard";
 
 /*
  * Aplomo System · patio operativo (simulación).
@@ -13,18 +13,21 @@ export function AplomoScene() {
   return (
     <div aria-hidden="true" data-live data-cycle={CYCLE} className={s.scene}>
       <div className={s.wrap}>
-        <Stage />
+        <Stage cycle={CYCLE} />
       </div>
       <Panel />
     </div>
   );
 }
 
-/** Vista previa compacta (showcase e índice): llena su contenedor y solo usa animaciones CSS. */
+/**
+ * Vista previa compacta (showcase e índice): llena su contenedor y solo usa animaciones CSS.
+ * Su ciclo es más corto que el de la escena; el showcase dura una diapositiva por ciclo (data-cycle).
+ */
 export function AplomoPreview() {
   return (
-    <div aria-hidden="true" data-live className={s.preview}>
-      <Stage preview />
+    <div aria-hidden="true" data-live data-cycle={PREVIEW_CYCLE} className={s.preview}>
+      <Stage preview cycle={PREVIEW_CYCLE} />
     </div>
   );
 }

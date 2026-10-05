@@ -6,6 +6,8 @@ import { groundShadow, headingOf, hull, iso, mound, nearness, PAL, prism, ptsOf,
  */
 
 export const CYCLE = 18000;
+/** Ciclo de la vista previa: cabe en una diapositiva del showcase (máx. 12 s). */
+export const PREVIEW_CYCLE = 11600;
 
 /* ───────── Retícula ───────── */
 export const COLS = ["A", "B", "C", "D", "E", "F", "G"] as const;
@@ -285,11 +287,12 @@ function buildVolumes(detail: Detail): Volume[] {
     out.push(volume(prism(rect(bx0, y - 2, bx1, y + 2), 0, 12, PAL.concrete), [bx0, y - 2, bx1, y + 2]));
   }
   out.push(volume(prism(rect(bx1 - 4, ROW0 - 2, bx1, rowY(ROWS + 1) + 2), 0, 14, PAL.concrete), [bx1 - 4, ROW0, bx1, rowY(ROWS + 1)]));
-  const bHeights = [20, 26, 15, 24, 0, 22, 12, 26];
+  // B-07 (fila 07) empieza vacía: su material llega con la descarga de T-01.
+  const bHeights = [20, 26, 15, 24, 0, 22, 0, 26];
   bHeights.forEach((h, index) => {
     if (!h) return;
     const row = index + 1;
-    out.push(pile((bx0 + bx1) / 2 - 2, rowMid(row), 36, 21, h, row === 7 ? PAL.bulkGold : PAL.bulk, row * 1.7, sides));
+    out.push(pile((bx0 + bx1) / 2 - 2, rowMid(row), 36, 21, h, PAL.bulk, row * 1.7, sides));
   });
 
   // Zona C · perfiles (atados largos, tono frío).
@@ -441,11 +444,11 @@ export const STRIPS = { T01: stripFor(T01), T02: stripFor(T02) };
 
 /* ───────── Keyframes generados ───────── */
 
-type Props = Record<string, string>;
+export type Props = Record<string, string>;
 const pct = (t: number) => `${Math.min(100, Math.max(0, t * 100)).toFixed(3)}%`;
-const r2 = (n: number) => Math.round(n * 100) / 100;
+export const r2 = (n: number) => Math.round(n * 100) / 100;
 
-function keyframes(name: string, frames: [number, Props][]) {
+export function keyframes(name: string, frames: [number, Props][]) {
   const merged = new Map<string, Props>();
   frames
     .slice()
@@ -478,35 +481,7 @@ function truckFrames(plan: TruckPlan): [number, Props][] {
   ];
 }
 
-/** Cabeza del haz de B-07 (etiqueta fija) en pantalla: los chips móviles se ocultan al cruzarla. */
 export const BEAM_H = 205 * 0.8387;
-const [beamX, beamY] = iso(B07.x, B07.y, 0);
-const PIN_ZONE: [number, number, number, number] = [beamX - 80, beamY - BEAM_H - 170, beamX + 80, beamY - BEAM_H - 4];
-
-/** Igual que el camión, pero el chip se desvanece mientras su caja se encimaría con la etiqueta de B-07. */
-function chipFrames(plan: TruckPlan, width: number): [number, Props][] {
-  const frames = truckFrames(plan);
-  const samples = samplesOf(plan);
-  const hidden = (t: number) => {
-    const index = samples.findIndex((item) => item.t >= t);
-    if (index <= 0) return false;
-    const a = samples[index - 1];
-    const b = samples[index];
-    const k = b.t === a.t ? 0 : (t - a.t) / (b.t - a.t);
-    const [sx, sy] = iso(a.p[0] + (b.p[0] - a.p[0]) * k, a.p[1] + (b.p[1] - a.p[1]) * k, 0);
-    const [l, top, r, bottom] = PIN_ZONE;
-    return sx - 8 > l && sx - 8 - width < r && sy - 30 > top && sy - 66 < bottom;
-  };
-  let previous = false;
-  for (let t = plan.appear; t <= plan.vanish; t += 0.0015) {
-    const now = hidden(t);
-    if (now !== previous) {
-      frames.push([t - 0.006, { opacity: now ? "1" : "0" }], [t, { opacity: now ? "0" : "1" }]);
-      previous = now;
-    }
-  }
-  return frames;
-}
 
 function stripFrames(plan: TruckPlan, strip: Strip): [number, Props][] {
   const cellOf = (heading: Heading, t: number) =>
@@ -533,11 +508,15 @@ function stripFrames(plan: TruckPlan, strip: Strip): [number, Props][] {
 /** Traza iluminada: escala del tramo según el avance real de T-01. */
 function trailFrames(progress: (p: Pt) => number, axis: "X" | "Y"): [number, Props][] {
   const frames: [number, Props][] = [[0, { transform: `scale${axis}(0)`, opacity: "1" }]];
-  let previous = -1;
+  // Se emite también la última muestra de cada tramo constante, para que el trazo no "repte" durante una espera.
+  let previous: { t: number; value: number; emitted: boolean } | null = null;
   samplesOf(T01).forEach((item) => {
-    const value = r2(Math.min(1, Math.max(0, progress(item.p))) * 1000) / 1000;
-    if (value !== previous) frames.push([item.t, { transform: `scale${axis}(${value})` }]);
-    previous = value;
+    const value = Math.round(Math.min(1, Math.max(0, progress(item.p))) * 1000) / 1000;
+    if (previous && value !== previous.value) {
+      if (!previous.emitted) frames.push([previous.t, { transform: `scale${axis}(${previous.value})` }]);
+      frames.push([item.t, { transform: `scale${axis}(${value})` }]);
+      previous = { t: item.t, value, emitted: true };
+    } else previous = { t: item.t, value, emitted: !previous };
   });
   frames.push([0.95, { opacity: "1" }], [0.985, { opacity: "0" }], [1, { transform: `scale${axis}(1)`, opacity: "0" }]);
   return frames;
@@ -555,13 +534,13 @@ function barrierFrames(windows: [number, number][]): [number, Props][] {
 
 /** Partícula de material: viaja en arco de la caja de T-01 al montículo de B-07, varias veces. */
 function particleFrames(offset: number): [number, Props][] {
-  const from = iso(GATE_OUT.lane + 2, B07.y + 4, 17);
-  const peak = iso((GATE_OUT.lane + B07.x) / 2 + 4, B07.y - 2, 38);
+  const from = iso(GATE_OUT.lane + 4, B07.y + 6, 24);
+  const peak = iso((GATE_OUT.lane + B07.x) / 2 + 6, B07.y - 2, 46);
   const to = iso(B07.x - 6, B07.y, 22);
   const at = ([x, y]: Pt) => `translate(${r2(x)}%,${r2(y)}%)`;
   const frames: [number, Props][] = [[0, { transform: at(from), opacity: "0" }]];
-  const trip = 0.036;
-  for (let start = MOMENTS.unloadStart + offset; start + trip <= MOMENTS.unloadEnd + 0.002; start += trip + 0.008) {
+  const trip = 0.026;
+  for (let start = MOMENTS.unloadStart + offset; start + trip <= MOMENTS.unloadEnd + 0.002; start += trip + 0.006) {
     frames.push(
       [start, { transform: at(from), opacity: "0" }],
       [start + trip * 0.15, { opacity: "1" }],
@@ -587,20 +566,44 @@ function entryWindow(plan: TruckPlan) {
   return [plan.drives[0].t1 + 0.004, timeAt(drive, s + 46)] as [number, number];
 }
 
+/** Pulsos repartidos en el ciclo (una sola iteración por ciclo, sin bucles cortos). */
+function pulses(count: number, frame: (start: number, period: number) => [number, Props][]): [number, Props][] {
+  const period = 1 / count;
+  return Array.from({ length: count }, (_, index) => frame(index * period, period)).flat();
+}
+
+const ping = pulses(6, (start, period) => [
+  [start, { transform: "scale(0.35)", opacity: "0.85", "animation-timing-function": "cubic-bezier(0.2,0.7,0.3,1)" }],
+  [start + period * 0.8, { transform: "scale(1.25)", opacity: "0" }],
+  [start + period - 0.0002, { transform: "scale(1.25)", opacity: "0" }],
+]);
+
+const rise = pulses(7, (start, period) => [
+  [start, { transform: "translateY(0)", opacity: "0", "animation-timing-function": "cubic-bezier(0.5,0,0.6,1)" }],
+  [start + period * 0.12, { opacity: "1" }],
+  [start + period * 0.78, { opacity: "0.9" }],
+  [start + period - 0.0002, { transform: "translateY(-100%)", opacity: "0" }],
+]);
+
+/** Avance de T-01 en el tramo de acceso (de la línea de alto a la calle sur). */
+export const APPROACH = { from: 668, to: SOUTH_ROAD };
+/** Fracción del pasillo B iluminada al quedar T-01 en B-07 (vista estática). */
+export const AISLE_AT_B07 = (SOUTH_ROAD - B07.y) / SOUTH_ROAD;
+
 export function sceneKeyframes(prefix: string) {
   return [
     keyframes(`${prefix}-t01`, truckFrames(T01)),
     keyframes(`${prefix}-t02`, truckFrames(T02)),
-    keyframes(`${prefix}-c01`, chipFrames(T01, 190)),
-    keyframes(`${prefix}-c02`, chipFrames(T02, 90)),
     keyframes(`${prefix}-s01`, stripFrames(T01, STRIPS.T01)),
     keyframes(`${prefix}-s02`, stripFrames(T02, STRIPS.T02)),
+    keyframes(`${prefix}-approach`, trailFrames(([x, y]) => (x >= GATE_IN.lane - 1 ? (APPROACH.from - y) / (APPROACH.from - APPROACH.to) : 1), "Y")),
     keyframes(`${prefix}-road`, trailFrames(([x]) => (GATE_IN.lane - x) / (GATE_IN.lane - GATE_OUT.lane), "X")),
     keyframes(`${prefix}-aisle`, trailFrames(([x, y]) => (x <= GATE_OUT.lane + 1 ? (SOUTH_ROAD - y) / SOUTH_ROAD : 0), "Y")),
     keyframes(`${prefix}-gate-in`, barrierFrames([entryWindow(T01), entryWindow(T02)])),
     keyframes(`${prefix}-gate-out`, barrierFrames([exitWindow(T01), exitWindow(T02)])),
-    keyframes(`${prefix}-p1`, particleFrames(0)),
-    keyframes(`${prefix}-p2`, particleFrames(0.02)),
+    keyframes(`${prefix}-particle`, particleFrames(0)),
+    keyframes(`${prefix}-ping`, ping),
+    keyframes(`${prefix}-rise`, rise),
     keyframes(`${prefix}-fill`, [
       [0, { transform: "scale(0.62,0.2)", opacity: "0" }],
       [MOMENTS.unloadStart, { transform: "scale(0.62,0.2)", opacity: "0" }],

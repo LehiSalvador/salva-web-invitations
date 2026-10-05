@@ -126,7 +126,7 @@ function MobileColumn() {
     <Step
       at={[0.69, END]}
       fx="fade"
-      className="absolute inset-y-[3%] left-[32%] flex w-[36%] flex-col gap-[3.5%] overflow-hidden bg-ink-900 px-[3%] pt-[3%] pb-[3%] @lg:left-[38.5%] @lg:w-[23%] @lg:px-[1.6%]"
+      className="absolute inset-y-0 left-[32%] flex w-[36%] flex-col gap-[3.5%] overflow-hidden border-x border-signal/60 bg-ink-900 px-[3%] pt-[4%] pb-[4%] @lg:left-[38.5%] @lg:w-[23%] @lg:px-[1.6%]"
     >
       <Step at={[0.7, END]} fx="up" className="flex flex-col gap-[6px]">
         <span className="flex items-center justify-between border-b border-line pb-[5px]">

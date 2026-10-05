@@ -62,7 +62,7 @@ function Rail({ phases }: { phases: Phase[] }) {
   return (
     <div className="relative shrink-0">
       <div className="h-px bg-line-strong" />
-      <div className="grid @max-lg:grid-cols-1!" style={{ gridTemplateColumns: phases.map((phase) => `${((phase.at[1] - phase.at[0]) * 100).toFixed(2)}fr`).join(" ") }}>
+      <div className="grid @max-lg:grid-cols-1!" style={{ gridTemplateColumns: phases.map((phase) => `minmax(max-content, ${((phase.at[1] - phase.at[0]) * 100).toFixed(2)}fr)`).join(" ") }}>
         {phases.map((phase, index) => (
           <div key={phase.label} className="relative min-w-0 @max-lg:col-start-1 @max-lg:row-start-1">
             <span className={`${label} hidden pt-1.5 pr-2 text-fog/80 @lg:block`}>

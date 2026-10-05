@@ -137,7 +137,7 @@ function Model() {
   );
 }
 
-const CHIP = "h-[16px] items-center gap-1 rounded-[2px] border px-1.5 font-mono text-[10px] leading-none @lg:h-[20px] @lg:text-[10.5px]";
+const CHIP = "h-[16px] items-center gap-1 rounded-[2px] border px-1.5 whitespace-nowrap font-mono text-[10px] leading-none @lg:h-[20px] @lg:text-[10.5px]";
 const PORT = "absolute left-0 size-[7px] -translate-x-1/2 -translate-y-1/2 rounded-full border bg-ink-900";
 
 function Outputs() {
@@ -151,7 +151,7 @@ function Outputs() {
       </span>
       <span className="absolute right-0 left-3 flex flex-wrap gap-1 @lg:gap-1.5" style={{ top: `calc(${PORTS.labels}% + 9px)` }}>
         <Step as="span" at={[0.54, END]} fx="pop" className={`${CHIP} inline-flex border-signal/50 bg-signal/10 text-signal`}>
-          cambio de entrega
+          cambio<span className="hidden @lg:inline"> de</span> entrega
         </Step>
         <Step as="span" at={[0.57, END]} fx="pop" className={`${CHIP} inline-flex border-gold-400/50 bg-gold-400/10 text-gold-300`}>
           prioridad media
@@ -161,8 +161,8 @@ function Outputs() {
         </Step>
       </span>
 
-      <span className={`${MICRO} absolute left-3 -translate-y-1/2 text-fog`} style={{ top: `${PORTS.fields}%` }}>
-        campos extraídos
+      <span className={`${MICRO} absolute left-3 -translate-y-1/2 whitespace-nowrap text-fog`} style={{ top: `${PORTS.fields}%` }}>
+        campos<span className="hidden @lg:inline"> extraídos</span>
       </span>
       <span className="absolute right-0 left-3 flex flex-col" style={{ top: `calc(${PORTS.fields}% + 8px)` }}>
         {fields.map((field) => (

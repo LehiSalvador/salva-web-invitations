@@ -20,29 +20,20 @@
 
 .wrap {
   position: relative;
+  display: flex;
+  flex-direction: column;
   container-type: inline-size;
   min-width: 0;
 }
 
+/* --u, --cx, --cy y la altura mínima (cámara por ancho de contenedor) se generan en chips.ts. */
 .stage {
-  --u: calc(100cqw / 1290);
-  --cx: 24;
-  --cy: 2;
   position: relative;
-  height: calc(var(--u) * 712);
+  flex: 1;
   overflow: hidden;
   background:
     radial-gradient(60% 55% at 46% 52%, rgb(111 214 176 / 0.05), transparent 70%),
     radial-gradient(40% 40% at 30% 70%, rgb(220 197 154 / 0.035), transparent 70%);
-}
-
-@container (max-width: 600px) {
-  .stage {
-    --u: calc(100cqw / 700);
-    --cx: -190;
-    --cy: 66;
-    height: calc(var(--u) * 630);
-  }
 }
 
 .origin {
@@ -79,10 +70,6 @@
   stroke-width: 0.6;
 }
 
-.hair {
-  vector-effect: non-scaling-stroke;
-}
-
 /* Plano del piso en HTML (matriz afín): traza iluminada y anillo. */
 .plane {
   position: absolute;
@@ -108,53 +95,10 @@
   background: radial-gradient(closest-side, rgb(220 197 154 / 0.22), rgb(220 197 154 / 0.06) 60%, transparent);
 }
 
-.sweep {
-  background: linear-gradient(90deg, transparent, rgb(111 214 176 / 0.07) 70%, rgb(111 214 176 / 0.16) 97%, transparent);
-  animation: aplomo-sweep 9s linear infinite;
-}
-
-@keyframes aplomo-sweep {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0);
-  }
-  8% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(var(--sweep), 0, 0);
-  }
-}
-
-.target {
-  border-radius: 50%;
-  border: 1.5px dashed rgb(143 184 216 / 0.85);
-  background: rgb(143 184 216 / 0.08);
-}
-
 .ring {
   border-radius: 50%;
   border: 1.5px solid var(--color-gold-300);
-  animation: aplomo-ping 2.8s cubic-bezier(0.2, 0.7, 0.3, 1) infinite;
-}
-
-.ring2 {
-  animation-delay: -1.4s;
-}
-
-@keyframes aplomo-ping {
-  0% {
-    opacity: 0.85;
-    transform: scale(0.35);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1.25);
-  }
+  opacity: 0;
 }
 
 /* Camiones: caja de 100u × 100u (1 % = 1 unidad) trasladada por keyframes generados. */
@@ -223,31 +167,21 @@
   background: linear-gradient(0deg, rgb(220 197 154 / 0.95), rgb(220 197 154 / 0.5) 55%, rgb(220 197 154 / 0));
 }
 
-.beamPulse {
+.beamRise {
   left: -3px;
+  width: 6px;
+  opacity: 0;
+}
+
+.beamRise > span {
+  position: absolute;
+  left: 0;
+  bottom: 0;
   width: 6px;
   height: 6px;
   border-radius: 50%;
   background: var(--color-gold-300);
   box-shadow: 0 0 8px rgb(220 197 154 / 0.8);
-  animation: aplomo-rise 2.6s cubic-bezier(0.5, 0, 0.6, 1) infinite;
-}
-
-@keyframes aplomo-rise {
-  0% {
-    opacity: 0;
-    transform: translate3d(0, 0, 0);
-  }
-  15% {
-    opacity: 1;
-  }
-  80% {
-    opacity: 0.9;
-  }
-  100% {
-    opacity: 0;
-    transform: translate3d(0, var(--rise), 0);
-  }
 }
 
 .pin {
@@ -355,6 +289,7 @@
 .chipAnchor {
   position: absolute;
   left: 0;
+  top: 0;
   width: 0;
   height: 0;
 }
@@ -362,7 +297,8 @@
 .chip {
   position: absolute;
   bottom: 0;
-  right: 0;
+  left: 0;
+  translate: -50% 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -371,22 +307,11 @@
   border: 1px solid rgb(111 214 176 / 0.45);
   background: rgb(6 8 9 / 0.86);
   font-family: var(--font-mono);
-  font-size: clamp(10px, calc(var(--u) * 12.5), 11.5px);
+  font-size: 10px;
+  line-height: 14px;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   color: var(--color-bone);
-}
-
-.chip::after {
-  content: "";
-  position: absolute;
-  right: -1px;
-  top: 100%;
-  width: calc(var(--u) * 9);
-  height: calc(var(--u) * 12);
-  border-right: 1px solid rgb(238 235 228 / 0.45);
-  transform: skewX(34deg);
-  transform-origin: 0 0;
 }
 
 .chip em {
@@ -400,6 +325,20 @@
 
 .chipGold em {
   color: var(--color-gold-300);
+}
+
+.chipCool {
+  border-color: rgb(143 184 216 / 0.5);
+}
+
+.chipCool em {
+  color: var(--color-cool);
+}
+
+@container (max-width: 600px) {
+  .chip .bar {
+    display: none;
+  }
 }
 
 .bar {
@@ -466,12 +405,8 @@
 
 .chip.status {
   position: relative;
-  right: auto;
   bottom: auto;
-}
-
-.chip.status::after {
-  display: none;
+  translate: none;
 }
 
 /* ───────── Interacción: zonas ───────── */
@@ -480,6 +415,7 @@
   position: absolute;
   display: block;
   overflow: visible;
+  pointer-events: none;
 }
 
 .hit polygon {
@@ -488,18 +424,19 @@
   cursor: crosshair;
 }
 
-.zoneHl {
+.plane > .zoneHl {
+  border: 1.5px solid rgb(111 214 176 / 0.85);
+  background: rgb(111 214 176 / 0.07);
   opacity: 0;
   transition: opacity 0.35s ease;
 }
 
 .zoneTag {
   opacity: 0;
-  translate: -50% -100%;
-  transform: translate3d(0, 6px, 0);
+  translate: -50% calc(-100% + 6px);
   transition:
     opacity 0.3s ease,
-    transform 0.4s var(--ease-out-expo);
+    translate 0.4s var(--ease-out-expo);
   padding: 6px 9px;
   border: 1px solid rgb(111 214 176 / 0.5);
   background: rgb(6 8 9 / 0.9);
@@ -568,7 +505,7 @@
   height: 30px;
 }
 
-@container (max-width: 900px) {
+@container (max-width: 700px) {
   .hud {
     display: none;
   }
@@ -614,7 +551,7 @@
 
 .logSlot {
   position: relative;
-  min-height: 44px;
+  min-height: 41px;
 }
 
 .logSlot::before {
@@ -633,9 +570,9 @@
   grid-template-columns: 3.1rem 0.75rem minmax(0, 1fr);
   align-items: baseline;
   gap: 8px;
-  padding: 6px 8px;
+  padding: 5px 8px;
   font-size: 12.5px;
-  line-height: 1.35;
+  line-height: 1.3;
 }
 
 .logRow time {
@@ -773,12 +710,8 @@
 }
 
 .preview .stage {
-  --u: min(calc(100cqw / 1236), calc(100cqh / 680));
-  --cx: 22;
-  --cy: 6;
   position: absolute;
   inset: 0;
-  height: auto;
 }
 
 /* Vista estática (reduced motion): un camión estacionado en B-07 cuenta el final de la historia. */
@@ -793,9 +726,9 @@
 
   /* Las clases de este módulo fijan display: aquí se respeta la vista estática global. */
   .ring,
-  .sweep,
-  .beamPulse,
+  .beamRise,
   .scene [data-rm="hide"],
+  .logSlot:has(> [data-rm="hide"]),
   .scene :global(.motion-only) {
     display: none;
   }

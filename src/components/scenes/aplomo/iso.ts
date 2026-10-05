@@ -219,7 +219,7 @@ export function headingOf(dx: number, dy: number): Heading {
 }
 
 type Part = { l: [number, number]; w: [number, number]; z: [number, number] };
-const TRUCK_SCALE = 1.16;
+const TRUCK_SCALE = 1.5;
 
 /**
  * Camión de volteo en isometría: chasis, caja (con carga dorada o vacía) y cabina con ventanas.

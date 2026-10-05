@@ -40,7 +40,7 @@ function Requirements() {
         <Step
           key={item.need}
           at={[0.02 + index * 0.035, END]}
-          fx="left"
+          fx="fade"
           min={0.4}
           className={`${PANEL} absolute left-0 flex w-[32%] flex-col justify-center gap-1 overflow-hidden pr-6 pl-2 @lg:pr-7 @lg:pl-2.5`}
           style={{ top: `${CARD_Y[index] - 10.5}%`, height: "21%" }}

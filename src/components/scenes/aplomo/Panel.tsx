@@ -18,13 +18,15 @@ const SIGNAL = "var(--color-signal)";
 const GOLD = "var(--color-gold-300)";
 const COOL = "var(--color-cool)";
 
+/** Eventos en orden; los que ocurren después de "Material ubicado" no se muestran en la vista estática. */
 const events = [
   { t: MOMENTS.t01Gate, text: "T-01 ingresó por acceso", note: "op-214 · pluma A1", tone: SIGNAL },
   { t: MOMENTS.t01Road, text: "T-01 → Zona B · B-07", note: "op-215 · ruta asignada", tone: SIGNAL },
   { t: MOMENTS.unloadStart + 0.008, text: "Descarga registrada", note: "op-216 · T-01 en B-07", tone: GOLD },
   { t: MOMENTS.unloadEnd + 0.004, text: "Material ubicado · B-07", note: "op-217 · granel · zona B", tone: GOLD },
-  { t: MOMENTS.t02Gate, text: "T-02 ingresó por acceso", note: "op-218 · ruta → D-06", tone: COOL },
-  { t: MOMENTS.t01Exit, text: "T-01 salió del patio", note: "op-219 · salida N1", tone: SIGNAL },
+  { t: MOMENTS.t02Gate, text: "T-02 ingresó por acceso", note: "op-218 · ruta → D-06", tone: COOL, later: true },
+  { t: MOMENTS.t01Exit, text: "T-01 salió del patio", note: "op-219 · salida N1", tone: SIGNAL, later: true },
+  { t: MOMENTS.loadStart + 0.006, text: "Carga registrada · D-06", note: "op-220 · T-02 · granel", tone: COOL, later: true },
 ];
 
 export function Panel() {
@@ -41,7 +43,7 @@ export function Panel() {
         <ol className={s.log}>
           {events.map((event) => (
             <li key={event.text} className={s.logSlot}>
-              <Step at={[event.t, MOMENTS.reset]} fx="left" className={s.logRow}>
+              <Step at={[event.t, MOMENTS.reset]} fx="left" rm={event.later ? "hide" : undefined} className={s.logRow}>
                 <time>{clock(event.t)}</time>
                 <span className={s.logDot} style={{ color: event.tone }} />
                 <span className="text-bone">
