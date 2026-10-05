@@ -294,6 +294,14 @@
   }
 }
 
+.cap-scope {
+  scrollbar-width: none;
+}
+
+.cap-scope::-webkit-scrollbar {
+  display: none;
+}
+
 /* ───────── Showcase de proyectos ───────── */
 .showcase__progress {
   animation: cap-progress linear forwards;

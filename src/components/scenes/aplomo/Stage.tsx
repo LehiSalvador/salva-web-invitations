@@ -25,6 +25,7 @@ import {
   SOUTH_ROAD,
   STRIPS,
   type Strip,
+  T01,
   VOLUMES,
   VOLUMES_LITE,
   zoneHull,
@@ -216,7 +217,7 @@ export function Stage({ preview = false }: { preview?: boolean }) {
       <style dangerouslySetInnerHTML={{ __html: sceneKeyframes(prefix) + hoverCss }} />
       <div className={s.origin}>
         {/* Piso, cerca del fondo y volúmenes que nunca tapan a un camión */}
-        <svg viewBox={VIEWBOX} className={s.layer} style={LAYER} aria-hidden="true">
+        <svg viewBox={VIEWBOX} className={s.layer} style={LAYER}>
           <Ground id={id} />
           <Polys polys={fence.back} />
           {volumes.back.map((item, index) => (
@@ -405,7 +406,7 @@ function Labels({ preview, prefix, beamTop }: { preview: boolean; prefix: string
                   <span style={{ animation: anim(`${prefix}-progress`) }} />
                 </span>
               </Step>
-              <Step at={[MOMENTS.t01Leave, T01Vanish]} fx="up" className={s.chip}>
+              <Step at={[MOMENTS.t01Leave, T01.vanish - 0.014]} fx="up" className={s.chip}>
                 <span className={s.dot} style={{ color: "var(--color-mist)" }} />
                 T-01 · <em>Salida</em>
               </Step>
@@ -440,8 +441,6 @@ function Labels({ preview, prefix, beamTop }: { preview: boolean; prefix: string
     </>
   );
 }
-
-const T01Vanish = 0.6 - 0.014;
 
 function Hud() {
   const north = iso(0, -1, 0);

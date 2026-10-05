@@ -305,7 +305,13 @@ export function truck(heading: Heading, loaded: boolean, cabPal: Palette): Poly[
   const cargoPolys = loaded ? box(cargo, PAL.cargo) : [];
 
   const order = centerNear(cab) > centerNear(bed) ? [...bedPolys, ...cargoPolys, ...cabPolys, ...windows] : [...cabPolys, ...windows, ...bedPolys, ...cargoPolys];
-  return [shadow, ...box(chassis, { dark: [6, 8, 9], light: [30, 34, 36] }), ...order];
+  // Luz de faros sobre el piso y faros en la cara frontal (si mira hacia el observador).
+  const light: Poly = { pts: ptsOf([local(22.5, -6, 0), local(22.5, 6, 0), local(54, 15, 0), local(54, -15, 0)]), fill: "rgb(238 235 228 / 0.07)" };
+  const lamps: Poly[] =
+    dot([f[0], f[1], 0], VIEW) > 0.05
+      ? [-5, 5].map((w) => ({ pts: ptsOf([local(22.1, w - 1.6, 7), local(22.1, w + 1.6, 7), local(22.1, w + 1.6, 9.2), local(22.1, w - 1.6, 9.2)]), fill: "rgb(255 247 222)" }))
+      : [];
+  return [shadow, light, ...box(chassis, { dark: [6, 8, 9], light: [30, 34, 36] }), ...order, ...lamps];
 }
 
 /** Envolvente convexa (cadena monótona). */

@@ -25,6 +25,15 @@ export function Capabilities() {
   const select = (id: CapabilityId, byUser: boolean) => {
     if (byUser) setManual(true);
     setActive(id);
+    // En mobile el visor queda arriba de la lista: si no está a la vista, se lleva a pantalla.
+    const visor = visorRef.current?.closest<HTMLElement>("#cap-visor");
+    if (byUser && visor && window.matchMedia("(max-width: 1023px)").matches) {
+      const rect = visor.getBoundingClientRect();
+      if (rect.top < 64 || rect.bottom > window.innerHeight) {
+        const smooth = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        window.scrollTo({ top: window.scrollY + rect.top - 80, behavior: smooth ? "smooth" : "auto" });
+      }
+    }
   };
 
   // Entrada del visual activo: barrido con recorte y leve profundidad.
@@ -129,11 +138,11 @@ export function Capabilities() {
               aria-labelledby={`cap-tab-${active}`}
               className="frame-marks surface flex h-full min-h-[22rem] flex-col sm:min-h-[26rem]"
             >
-              <div className="label flex items-center justify-between gap-4 border-b border-line px-4 py-3 text-fog">
-                <span className="truncate">
-                  capacidad / <span className="text-mist">{current.id}</span>
+              <div className="label flex items-center justify-between gap-4 border-b border-line px-4 py-3 whitespace-nowrap text-fog">
+                <span className="min-w-0 truncate">
+                  capacidad / <span className="text-mist">{current.tag}</span>
                 </span>
-                <span className="flex items-center gap-2 text-mist">
+                <span className="flex shrink-0 items-center gap-2 text-mist">
                   <span className="live-dot" aria-hidden="true" />
                   en ejecución
                 </span>
@@ -148,9 +157,9 @@ export function Capabilities() {
                   );
                 })}
               </div>
-              <ul className="flex flex-wrap gap-2 border-t border-line px-4 py-3" aria-label="Entregables">
+              <ul className="cap-scope flex gap-2 overflow-x-auto border-t border-line px-4 py-3" aria-label="Entregables">
                 {current.scope.map((item) => (
-                  <li key={item} className="chip">
+                  <li key={item} className="chip shrink-0">
                     {item}
                   </li>
                 ))}
