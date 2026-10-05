@@ -13,7 +13,7 @@ export function Hero() {
         <div className="relative z-[2] lg:col-span-6">
           <p className="rise label flex items-center gap-3 text-mist" style={delay(80)}>
             <span className="live-dot" aria-hidden="true" />
-            <span data-reveal="fade" data-scramble>
+            <span data-reveal="group" data-scramble>
               Salva Systems · Software, automatización e IA
             </span>
           </p>

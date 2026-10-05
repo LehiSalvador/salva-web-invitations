@@ -11,11 +11,9 @@
   animation-delay: var(--d, 0ms);
 }
 
+/* Líneas del titular: suben sin máscara ni opacidad, así el texto es visible (y medible como LCP) desde el primer pintado. */
 .rise-line {
   display: block;
-  overflow: hidden;
-  padding-bottom: 0.08em;
-  margin-bottom: -0.08em;
 }
 
 .rise-line > span {
@@ -45,7 +43,7 @@
 
 @keyframes line-in {
   from {
-    transform: translate3d(0, 105%, 0);
+    transform: translate3d(0, 0.45em, 0);
   }
 }
 

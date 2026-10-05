@@ -100,27 +100,80 @@
   opacity: 1;
 }
 
-/* Partículas: derivan lentamente y parpadean apenas. */
-.ambient__particle {
+/*
+ * Polvo: tres capas de partículas en mosaico que derivan a distinta velocidad.
+ * Cada capa es un solo elemento animado con transform (3 animaciones en total en lugar de una por partícula),
+ * y el desplazamiento es exactamente un mosaico por ciclo, así que el bucle no se nota.
+ */
+.ambient__dust {
   position: absolute;
-  width: var(--s);
-  height: var(--s);
-  border-radius: 50%;
-  background: var(--c);
-  opacity: var(--o);
-  animation: drift var(--t) ease-in-out infinite;
-  animation-delay: var(--delay);
+  will-change: transform;
 }
 
-@keyframes drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0);
-    opacity: var(--o);
+.ambient__dust--a {
+  inset: -520px 0 0 -620px;
+  background-image:
+    radial-gradient(circle at 394px 200px, rgb(226 236 232 / 0.35) 0, rgb(226 236 232 / 0.35) 0.9px, transparent 1.5px),
+    radial-gradient(circle at 282px 221px, rgb(111 214 176 / 0.45) 0, rgb(111 214 176 / 0.45) 0.7px, transparent 1.3px),
+    radial-gradient(circle at 398px 488px, rgb(111 214 176 / 0.55) 0, rgb(111 214 176 / 0.55) 0.7px, transparent 1.3px),
+    radial-gradient(circle at 44px 474px, rgb(226 236 232 / 0.55) 0, rgb(226 236 232 / 0.55) 0.7px, transparent 1.3px),
+    radial-gradient(circle at 401px 177px, rgb(143 200 216 / 0.45) 0, rgb(143 200 216 / 0.45) 0.7px, transparent 1.3px),
+    radial-gradient(circle at 197px 222px, rgb(111 214 176 / 0.55) 0, rgb(111 214 176 / 0.55) 0.7px, transparent 1.3px),
+    radial-gradient(circle at 224px 133px, rgb(226 236 232 / 0.55) 0, rgb(226 236 232 / 0.55) 0.7px, transparent 1.3px),
+    radial-gradient(circle at 223px 94px, rgb(226 236 232 / 0.35) 0, rgb(226 236 232 / 0.35) 0.9px, transparent 1.5px),
+    radial-gradient(circle at 55px 336px, rgb(143 200 216 / 0.35) 0, rgb(143 200 216 / 0.35) 0.9px, transparent 1.5px),
+    radial-gradient(circle at 174px 159px, rgb(111 214 176 / 0.55) 0, rgb(111 214 176 / 0.55) 0.9px, transparent 1.5px);
+  background-size: 620px 520px;
+  animation: dust-a 140s linear infinite;
+}
+
+.ambient__dust--b {
+  inset: 0 0 -700px -860px;
+  background-image:
+    radial-gradient(circle at 797px 108px, rgb(143 200 216 / 0.3) 0, rgb(143 200 216 / 0.3) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 475px 38px, rgb(111 214 176 / 0.4) 0, rgb(111 214 176 / 0.4) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 195px 104px, rgb(111 214 176 / 0.3) 0, rgb(111 214 176 / 0.3) 1.0px, transparent 1.6px),
+    radial-gradient(circle at 704px 278px, rgb(143 200 216 / 0.3) 0, rgb(143 200 216 / 0.3) 1.0px, transparent 1.6px),
+    radial-gradient(circle at 466px 591px, rgb(143 200 216 / 0.4) 0, rgb(143 200 216 / 0.4) 1.0px, transparent 1.6px),
+    radial-gradient(circle at 845px 11px, rgb(111 214 176 / 0.3) 0, rgb(111 214 176 / 0.3) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 203px 392px, rgb(111 214 176 / 0.3) 0, rgb(111 214 176 / 0.3) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 761px 669px, rgb(111 214 176 / 0.3) 0, rgb(111 214 176 / 0.3) 1.2px, transparent 1.8px),
+    radial-gradient(circle at 833px 412px, rgb(143 200 216 / 0.4) 0, rgb(143 200 216 / 0.4) 1.0px, transparent 1.6px);
+  background-size: 860px 700px;
+  opacity: 0.85;
+  animation: dust-b 190s linear infinite;
+}
+
+.ambient__dust--c {
+  inset: -940px -1180px 0 0;
+  background-image:
+    radial-gradient(circle at 988px 405px, rgb(111 214 176 / 0.28) 0, rgb(111 214 176 / 0.28) 1.6px, transparent 2.2px),
+    radial-gradient(circle at 240px 491px, rgb(111 214 176 / 0.38) 0, rgb(111 214 176 / 0.38) 1.6px, transparent 2.2px),
+    radial-gradient(circle at 696px 233px, rgb(111 214 176 / 0.28) 0, rgb(111 214 176 / 0.28) 1.3px, transparent 1.9px),
+    radial-gradient(circle at 678px 706px, rgb(143 200 216 / 0.38) 0, rgb(143 200 216 / 0.38) 1.6px, transparent 2.2px),
+    radial-gradient(circle at 711px 193px, rgb(143 200 216 / 0.28) 0, rgb(143 200 216 / 0.28) 1.3px, transparent 1.9px),
+    radial-gradient(circle at 1094px 733px, rgb(111 214 176 / 0.38) 0, rgb(111 214 176 / 0.38) 1.6px, transparent 2.2px),
+    radial-gradient(circle at 483px 829px, rgb(143 200 216 / 0.38) 0, rgb(143 200 216 / 0.38) 1.6px, transparent 2.2px);
+  background-size: 1180px 940px;
+  opacity: 0.7;
+  animation: dust-c 260s linear infinite;
+}
+
+@keyframes dust-a {
+  to {
+    transform: translate3d(620px, 520px, 0);
   }
-  50% {
-    transform: translate3d(var(--dx), var(--dy), 0);
-    opacity: calc(var(--o) * 0.3);
+}
+
+@keyframes dust-b {
+  to {
+    transform: translate3d(860px, -700px, 0);
+  }
+}
+
+@keyframes dust-c {
+  to {
+    transform: translate3d(-1180px, 940px, 0);
   }
 }
 
@@ -161,7 +214,7 @@
     display: none;
   }
 
-  .ambient__particle:nth-child(2n) {
+  .ambient__dust--c {
     display: none;
   }
 }

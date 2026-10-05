@@ -23,11 +23,11 @@ export default function ProjectsPage() {
           <div className="lg:col-span-7">
             <p className="rise label flex items-center gap-3 text-mist">
               <span className="font-mono text-signal">[03]</span>
-              <span data-reveal="fade" data-scramble>
+              <span data-reveal="group" data-scramble>
                 Proyectos
               </span>
             </p>
-            <h1 className="display rise mt-5 text-[clamp(2.6rem,7vw,5rem)] leading-[0.98] text-bone" style={{ "--d": "80ms" } as React.CSSProperties}>
+            <h1 className="display rise-soft mt-5 text-[clamp(2.6rem,7vw,5rem)] leading-[0.98] text-bone" style={{ "--d": "80ms" } as React.CSSProperties}>
               Sistemas en operación.
             </h1>
           </div>
