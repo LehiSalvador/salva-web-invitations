@@ -168,6 +168,7 @@ function countUp(element: HTMLElement) {
  * - [data-reveal]: entradas al hacer scroll; [data-scramble] y [data-count] dentro se animan al revelarse.
  * - [data-live]: escenas con movimiento continuo. Solo corren en pantalla (data-inview); sus pasos
  *   [data-step] y paquetes [data-route] se arman con Web Animations y se pausan fuera de pantalla.
+ *   Dentro de un ancestro [data-restart], al volver a pantalla la escena reinicia su ciclo.
  */
 export function MotionObserver() {
   const pathname = usePathname();
@@ -258,6 +259,8 @@ export function MotionObserver() {
           if (reduced) continue;
           const animations = running.get(element);
           if (animations) {
+            // Dentro de [data-restart] (diapositivas del showcase) la escena vuelve a empezar desde cero.
+            if (element.closest("[data-restart]")) animations.forEach((animation) => (animation.currentTime = 0));
             animations.forEach((animation) => animation.play());
             syncCss(element, animations[0]?.currentTime ?? null);
           } else {

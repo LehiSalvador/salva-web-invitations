@@ -45,7 +45,7 @@ const SUBS: Record<Key, Sub[]> = {
 type Edge = { from: Point; c1: Point; c2: Point; to: Point };
 
 const EDGES = {
-  indexContenido: { from: INDEX, c1: [72, 230], c2: [78, 170], to: MAIN.contenido.p },
+  indexContenido: { from: INDEX, c1: [40, 210], c2: [80, 160], to: MAIN.contenido.p },
   indexConocimiento: { from: INDEX, c1: [112, 230], c2: [150, 320], to: MAIN.conocimiento.p },
   contenidoHistorias: { from: MAIN.contenido.p, c1: [230, 170], c2: [280, 118], to: MAIN.historias.p },
   // Sale casi en horizontal hacia la izquierda para no cruzar el rótulo de Historias.

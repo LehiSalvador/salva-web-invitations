@@ -8,6 +8,9 @@ import { scenes } from "@/components/scenes";
 import { projectHref, type Project } from "@/data/projects";
 
 const AUTO_MS = 8000;
+/** Cada diapositiva dura el ciclo de su vista previa (data-cycle), dentro de estos límites. */
+const MIN_MS = 6500;
+const MAX_MS = 12000;
 const pad = (value: number) => String(value).padStart(2, "0");
 
 /**
@@ -17,6 +20,7 @@ const pad = (value: number) => String(value).padStart(2, "0");
  */
 export function Showcase({ projects }: { projects: Project[] }) {
   const [index, setIndex] = useState(0);
+  const [slideMs, setSlideMs] = useState(AUTO_MS);
   const [leaving, setLeaving] = useState<number | null>(null);
   const [direction, setDirection] = useState<1 | -1>(1);
   const [manual, setManual] = useState(false);
@@ -37,6 +41,13 @@ export function Showcase({ projects }: { projects: Project[] }) {
     setLeaving(window.matchMedia("(prefers-reduced-motion: reduce)").matches ? null : index);
     setIndex(target);
   };
+
+  // La barra de progreso dura un ciclo completo de la vista previa activa.
+  useEffect(() => {
+    const cycle = Number(stageRef.current?.querySelector<HTMLElement>(`[data-slide="${index}"] [data-cycle]`)?.dataset.cycle);
+    // Sincroniza la duración con el DOM de la vista previa (sistema externo a React).
+    setSlideMs(Number.isFinite(cycle) && cycle > 0 ? Math.min(MAX_MS, Math.max(MIN_MS, cycle + 400)) : AUTO_MS);
+  }, [index]);
 
   // Transición: la diapositiva nueva entra con un barrido en profundidad; la anterior se retira debajo.
   useEffect(() => {
@@ -123,7 +134,7 @@ export function Showcase({ projects }: { projects: Project[] }) {
               aria-labelledby={`showcase-tab-${project.id}`}
               aria-roledescription="diapositiva"
             >
-              <p data-line className="label flex items-center gap-3 text-signal">
+              <p data-line className="label flex flex-wrap items-center gap-x-3 gap-y-1 text-signal">
                 {pad(position + 1)} / {pad(projects.length)}
                 <span className="h-px w-8 bg-line-strong" />
                 <span className="text-mist">{project.category}</span>
@@ -192,6 +203,7 @@ export function Showcase({ projects }: { projects: Project[] }) {
                       href={projectHref(project)}
                       transitionTypes={["nav-forward"]}
                       data-slide={position}
+                    data-restart
                       hidden={!shown}
                       tabIndex={position === index ? 0 : -1}
                       aria-label={`Explorar ${project.name}`}
@@ -227,9 +239,9 @@ export function Showcase({ projects }: { projects: Project[] }) {
                 <span aria-hidden="true" className="relative block h-0.5 overflow-hidden bg-line-strong">
                   {selected && (
                     <span
-                      key={`${index}-${auto}`}
+                      key={`${index}-${auto}-${slideMs}`}
                       className={`absolute inset-0 origin-left bg-signal ${auto ? "showcase__progress" : ""}`}
-                      style={{ animationDuration: `${AUTO_MS}ms` }}
+                      style={{ animationDuration: `${slideMs}ms` }}
                       onAnimationEnd={auto ? () => go(index + 1) : undefined}
                     />
                   )}
