@@ -70,7 +70,7 @@ function StoreHeader() {
         </span>
         <span className="relative inline-flex">
           <Icon name="bag" />
-          <Step at={[T.flyEnd, T.out]} fx="pop" className={styles.badge} />
+          <Step at={[T.flyEnd, T.reset]} fx="pop" className={styles.badge} />
         </span>
       </span>
     </div>
@@ -113,7 +113,7 @@ function Catalog() {
 
 function Product() {
   return (
-    <Step at={[T.view2 - 0.008, T.out]} fx="right" className="absolute inset-0">
+    <Step at={[T.view2 - 0.008, T.reset]} fx="right" className="absolute inset-0">
       <div className={`${styles.box} ${styles.tl} flex items-center gap-2 text-fog`} style={box(L.crumb)}>
         Gorras <span className="text-line-strong">/</span> <span className="text-mist">Gorra {target.id}</span>
       </div>
@@ -153,13 +153,13 @@ function Product() {
           {talla}
         </span>
       ))}
-      <Step at={[T.click2, T.out]} fx="scale" className={`${styles.box} ${styles.chipSize} ${styles.chipSizeOn}`} style={box(L.talla(1))}>
+      <Step at={[T.click2, T.reset]} fx="scale" className={`${styles.box} ${styles.chipSize} ${styles.chipSizeOn}`} style={box(L.talla(1))}>
         M
       </Step>
       <div className={`${styles.box} ${styles.button}`} style={box(L.add)}>
         Agregar al carrito
       </div>
-      <Step at={[T.click3 + 0.004, T.out]} fx="fade" className={`${styles.box} ${styles.button} ${styles.buttonDone}`} style={box(L.add)}>
+      <Step at={[T.click3 + 0.004, T.reset]} fx="fade" className={`${styles.box} ${styles.button} ${styles.buttonDone}`} style={box(L.add)}>
         <Icon name="check" /> Agregado al carrito
       </Step>
       <div className={`${styles.box} ${styles.tl} hidden text-fog sm:block`} style={box(L.fine)}>

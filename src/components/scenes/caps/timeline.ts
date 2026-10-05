@@ -35,6 +35,8 @@ export const T = {
   rows: [0.676, 0.726, 0.776, 0.826],
   done: 0.88,
   out: 0.95,
+  /** La vista de producto sigue un momento mientras sale el cajón; luego vuelve el catálogo. */
+  reset: 0.975,
 } as const;
 
 export const RUN = 0.05;
@@ -384,7 +386,7 @@ export function sceneCss() {
     ["capsx-flyy", flyFrames("y")],
     ["capsx-drawer", drawerFrames()],
     ["capsx-print", printFrames()],
-    ["capsx-addr", tickerFrames([T.view2, T.drawer, T.confirmed], 4)],
+    ["capsx-addr", tickerFrames([T.view2, T.drawer, T.confirmed], 4, T.reset - 0.01)],
     ["capsx-stage", tickerFrames(STAGES.slice(1), 4)],
     ["capsx-fill", fillFrames()],
     ["capsx-mark", markFrames()],

@@ -115,7 +115,8 @@ export function CapsPreview() {
                 <span>G</span>
               </span>
               <span className={styles.pvButton}>
-                Agregar al carrito
+                <span className={styles.pvLong}>Agregar al carrito</span>
+                <span className={styles.pvShort}>Agregar</span>
                 <Step at={[P.add, P.out]} fx="fade" className={styles.pvButtonDone}>
                   ✓ Agregado
                 </Step>
@@ -127,7 +128,7 @@ export function CapsPreview() {
             <span className={styles.pvToastIcon}>✓</span>
             <span className="min-w-0">
               <span className="block text-bone">Pedido confirmado</span>
-              <span className={styles.pvToastSub}>Comprobante C-05 impreso</span>
+              <span className={styles.pvToastSub}>Comprobante C-05</span>
             </span>
           </Step>
         </div>
@@ -137,7 +138,9 @@ export function CapsPreview() {
         <span className={styles.pvTrigger}>
           <Step at={[P.toast, P.out]} fx="fade" className={styles.pvTriggerOn} />
           <span className={styles.pvTriggerLabel}>disparador</span>
-          pedido.confirmado
+          pedido.
+          <wbr />
+          confirmado
         </span>
         <span className={styles.pvRows}>
           {previewRows.map((row, index) => (

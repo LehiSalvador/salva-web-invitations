@@ -145,7 +145,12 @@ export function mound(cx: number, cy: number, rx: number, ry: number, h: number,
   };
   for (let index = 0; index < sides; index++) {
     const next = (index + 1) % sides;
-    add([ring[index], ring[next], shoulder[next], shoulder[index]].slice(0, 3));
+    // Con pocas caras (vista previa) basta un cono simple.
+    if (sides <= 10) {
+      add([ring[index], ring[next], apex]);
+      continue;
+    }
+    add([ring[index], ring[next], shoulder[next]]);
     add([ring[index], shoulder[next], shoulder[index]]);
     add([shoulder[index], shoulder[next], apex]);
   }

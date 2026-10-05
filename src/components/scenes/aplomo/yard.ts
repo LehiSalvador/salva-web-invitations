@@ -405,6 +405,11 @@ function fenceRun(from: Pt, to: Pt, gaps: [number, number][] = [], step = 50): P
   return polys;
 }
 
+export const FENCE_LITE = {
+  back: [...fenceRun([0, 0], [1050, 0], [[GATE_OUT.x0, GATE_OUT.x1]], 90), ...fenceRun([1050, 0], [1050, 640], [], 90)],
+  front: [...fenceRun([0, 0], [0, 640], [], 90), ...fenceRun([0, 640], [1050, 640], [[GATE_IN.x0 - 5, GATE_IN.x1 + 7]], 90)],
+};
+
 export const FENCE = {
   back: [
     ...fenceRun([0, 0], [1050, 0], [[GATE_OUT.x0, GATE_OUT.x1]]),

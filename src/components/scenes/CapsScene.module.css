@@ -1769,8 +1769,47 @@
   }
 }
 
-/* Sin JS: la composición estática (estado final) sin estados intermedios encimados. */
+/* Vista compacta de la vista previa (tarjetas en teléfono). */
+.pvShort {
+  display: none;
+}
+
+@container (width < 430px) {
+  .pvProduct {
+    grid-template-columns: minmax(0, 0.85fr) minmax(0, 1fr);
+    align-items: start;
+    gap: 6px;
+    padding-top: 10px;
+  }
+
+  .pvLong {
+    display: none;
+  }
+
+  .pvShort {
+    display: inline;
+  }
+
+  .pvToast {
+    right: 6px;
+    bottom: 6px;
+    left: 6px;
+    padding: 5px 8px;
+  }
+}
+
+/*
+ * Sin JS o con reduced motion: composición estática (estado final) sin estados intermedios encimados.
+ * Se repite aquí porque varias de estas capas fijan su propio display.
+ */
 @media (scripting: none) {
+  .scene [data-rm="hide"],
+  .preview [data-rm="hide"] {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
   .scene [data-rm="hide"],
   .preview [data-rm="hide"] {
     display: none;

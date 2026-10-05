@@ -11,6 +11,7 @@ import {
   colX,
   CYCLE,
   FENCE,
+  FENCE_LITE,
   GATE_IN,
   GATE_OUT,
   MOMENTS,
@@ -25,6 +26,7 @@ import {
   STRIPS,
   type Strip,
   VOLUMES,
+  VOLUMES_LITE,
   zoneHull,
   ZONES,
 } from "./yard";
@@ -44,13 +46,12 @@ const LAYER: CSSProperties = { left: u(VB.x), top: u(VB.y), width: u(VB.w), heig
 const anim = (name: string, timing = "linear") => `${name} ${CYCLE}ms ${timing} infinite`;
 
 function Polys({ polys }: { polys: Poly[] }) {
-  return polys.map((poly, index) =>
-    poly.fill === "none" ? (
-      <polyline key={index} points={poly.pts} fill="none" stroke={poly.stroke} strokeWidth={poly.sw ?? 0.8} />
-    ) : (
-      <polygon key={index} points={poly.pts} fill={poly.fill} stroke={poly.stroke} strokeWidth={poly.sw ?? 0.7} />
-    ),
-  );
+  return polys.map((poly, index) => {
+    const width = poly.sw ? { strokeWidth: poly.sw } : undefined;
+    if (poly.fill === "none") return <polyline key={index} points={poly.pts} stroke={poly.stroke} style={poly.sw === 0.8 ? undefined : width} />;
+    if (poly.facet) return <polygon key={index} points={poly.pts} color={poly.fill} className={s.facet} />;
+    return <polygon key={index} points={poly.pts} fill={poly.fill} stroke={poly.stroke} style={width} />;
+  });
 }
 
 const faint = "rgb(238 235 228 / 0.09)";
@@ -192,6 +193,8 @@ function Barrier({ pivot, dir, length, name }: { pivot: Pt; dir: Pt; length: num
 
 export function Stage({ preview = false }: { preview?: boolean }) {
   const prefix = preview ? "aplp" : "apls";
+  const volumes = preview ? VOLUMES_LITE : VOLUMES;
+  const fence = preview ? FENCE_LITE : FENCE;
   const id = preview ? "aplomo-p" : "aplomo-s";
   const plane: CSSProperties = {
     width: u(1050),
@@ -200,7 +203,7 @@ export function Stage({ preview = false }: { preview?: boolean }) {
   };
   const [bx, by] = iso(B07.x, B07.y, 0);
   const beamH = BEAM_H;
-  const fresh = mound(B07.x - 2, B07.y, 37, 22, 31, PAL.bulkGold, 7 * 1.7);
+  const fresh = mound(B07.x - 2, B07.y, 37, 22, 31, PAL.bulkGold, 7 * 1.7, preview ? 10 : 14);
   const hoverCss = preview
     ? ""
     : ZONES.map(
@@ -215,8 +218,8 @@ export function Stage({ preview = false }: { preview?: boolean }) {
         {/* Piso, cerca del fondo y volúmenes que nunca tapan a un camión */}
         <svg viewBox={VIEWBOX} className={s.layer} style={LAYER} aria-hidden="true">
           <Ground id={id} />
-          <Polys polys={FENCE.back} />
-          {VOLUMES.back.map((item, index) => (
+          <Polys polys={fence.back} />
+          {volumes.back.map((item, index) => (
             <g key={index}>
               <Polys polys={item.polys} />
             </g>
@@ -300,12 +303,12 @@ export function Stage({ preview = false }: { preview?: boolean }) {
 
         {/* Volúmenes y cerca del frente: tapan a los camiones que pasan detrás */}
         <svg viewBox={VIEWBOX} className={s.layer} style={LAYER}>
-          {VOLUMES.front.map((item, index) => (
+          {volumes.front.map((item, index) => (
             <g key={index}>
               <Polys polys={item.polys} />
             </g>
           ))}
-          <Polys polys={FENCE.front} />
+          <Polys polys={fence.front} />
         </svg>
 
         {/* Material nuevo en B-07: crece durante la descarga */}

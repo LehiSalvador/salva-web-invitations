@@ -60,10 +60,23 @@
   pointer-events: none;
 }
 
-.layer polygon,
-.layer polyline {
+.stage polygon,
+.stage polyline {
+  stroke-width: 0.7;
   stroke-linejoin: round;
   stroke-linecap: round;
+}
+
+.stage polyline {
+  fill: none;
+  stroke-width: 0.8;
+}
+
+/* Faceta sombreada: el trazo del mismo color tapa las juntas entre facetas. */
+.stage .facet {
+  fill: currentColor;
+  stroke: currentColor;
+  stroke-width: 0.6;
 }
 
 .hair {
