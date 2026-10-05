@@ -71,7 +71,7 @@ function Message() {
     </>,
   ];
   return (
-    <div className="relative w-[37%] shrink-0 @lg:w-[30%] @2xl:w-[28%]">
+    <div className="relative w-[37%] shrink-0 @lg:w-[30%] @2xl:w-[25%]">
       <div className={`${PANEL} absolute inset-x-0 top-[8%] bottom-[8%] flex flex-col overflow-hidden`}>
         <div className="flex h-[18px] shrink-0 items-center justify-between border-b border-line px-2 @lg:h-[26px] @lg:px-3">
           <span className={`${MICRO} text-fog`}>mensaje</span>

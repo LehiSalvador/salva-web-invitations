@@ -71,13 +71,13 @@ function Tree() {
           </Step>
         </div>
         <TreeRow depth={2} name="crear.ts" />
+        <TreeRow depth={1} name="inventario" folder />
+        <TreeRow depth={1} name="avisos" folder />
+        <TreeRow depth={1} name="pruebas" folder />
         <Step at={[0.46, END]} fx="left" className="relative">
           <TreeRow depth={2} name="cerrar.test.ts" className="text-bone" />
           <span className="absolute top-1/2 right-1.5 -translate-y-1/2 font-mono text-[10px] leading-none text-signal">+</span>
         </Step>
-        <TreeRow depth={1} name="inventario" folder />
-        <TreeRow depth={1} name="avisos" folder />
-        <TreeRow depth={1} name="reportes" folder />
       </div>
     </div>
   );

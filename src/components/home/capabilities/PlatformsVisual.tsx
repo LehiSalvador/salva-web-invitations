@@ -114,7 +114,7 @@ function Desktop() {
           at={[0.48, 0.72]}
           fx="down"
           rm="hide"
-          className="absolute -top-[9px] right-[24px] flex items-center gap-1 rounded-[2px] border border-cool/60 bg-ink-900 py-px pr-1.5 pl-[3px] font-mono text-[10px] leading-[1.35] text-cool [--av:12px] @lg:right-[32px] @lg:[--av:14px]"
+          className="absolute -top-[9px] left-[42px] flex items-center gap-1 rounded-[2px] border border-cool/60 bg-ink-900 py-px pr-1.5 pl-[3px] font-mono text-[10px] leading-[1.35] text-cool [--av:12px] @lg:left-[58px] @lg:[--av:14px]"
         >
           <Avatar tone="cool" />
           editando

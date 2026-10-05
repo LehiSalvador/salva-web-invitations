@@ -189,7 +189,7 @@ export function WebVisual() {
               </svg>
               escritorio
             </span>
-            <Step at={[0.64, END]} fx="up" className="absolute inset-y-0 right-0 flex items-center gap-1.5 bg-ink-900 pl-2 text-signal">
+            <Step at={[0.64, END]} fx="up" className="absolute inset-y-0 -left-1 right-0 flex items-center justify-end gap-1.5 bg-ink-900 text-signal">
               <svg viewBox="0 0 8 12" className="h-[10px] w-[7px]" fill="none" aria-hidden="true">
                 <rect x="0.5" y="0.5" width="7" height="11" rx="1.5" stroke="currentColor" />
               </svg>
