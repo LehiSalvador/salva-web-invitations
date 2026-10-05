@@ -1,49 +1,49 @@
 /*
  * Línea de tiempo compartida de la escena Archivo (fracciones del ciclo).
- * Los keyframes propios de ArchivoScene.module.css (capas que se separan, haz y documento que desciende)
- * usan los mismos porcentajes: si cambias un valor aquí, revisa también el CSS.
+ * Los keyframes propios de ArchivoScene.module.css (capas que se separan, haz, copia que desciende y
+ * escaneo) usan los mismos porcentajes: si cambias un valor aquí, revisa también el CSS.
  *
- *   0.04–0.15  la pila se separa
- *   0.02–0.29  01 Organizar: llega el documento y se le adhieren fecha, lugar y tema
- *   0.29–0.50  02 Relacionar: el documento baja a la historia y el grafo enlaza Historias
- *   0.50–0.68  03 Presentar: baja a la colección, que se publica; el grafo ilumina Conocimiento
- *   0.63–0.74  la pila se vuelve a ensamblar
- *   0.68–0.96  04 Preservar: sello, copia preservada e instantánea del grafo
+ *   0.00–0.10  la pila se separa
+ *   0.00–0.27  01 Organizar: llega el documento, se escanea y se le adhieren fecha, lugar y tema
+ *   0.27–0.47  02 Relacionar: la copia baja a la historia y el grafo enlaza Historias
+ *   0.47–0.66  03 Presentar: baja a la colección, que se publica; el grafo ilumina Conocimiento
+ *   0.62–0.71  la pila se vuelve a ensamblar
+ *   0.66–0.98  04 Preservar: sello, copia preservada, instantánea del grafo y verificación
  */
-export const CYCLE = 15000;
+export const CYCLE = 14000;
 
 /** Ciclo más corto para la vista previa (misma coreografía, menos piezas). */
 export const PREVIEW_CYCLE = 11000;
 
-export const OUT = 0.94;
+export const OUT = 0.97;
 
 export const T = {
-  doc: 0.07,
-  tags: [0.115, 0.15, 0.185] as const,
-  timelineDoc: 0.13,
-  packetIndex: [0.19, 0.27] as [number, number],
-  contenido: 0.265,
-  indexed: 0.225,
-  thread: 0.345,
-  storySlot: 0.355,
-  packetStory: [0.355, 0.43] as [number, number],
-  related: 0.39,
-  historias: 0.42,
-  timelineStory: 0.4,
-  coleccion: 0.555,
-  packetKnowledge: [0.52, 0.6] as [number, number],
-  published: 0.575,
-  conocimiento: 0.585,
-  timelineCollection: 0.57,
-  stamp: 0.75,
-  snapshot: 0.765,
-  preserved: 0.775,
-  timelineCopy: 0.78,
+  doc: 0.05,
+  tags: [0.1, 0.135, 0.17] as const,
+  index: 0.1,
+  timelineDoc: 0.115,
+  packetIndex: [0.17, 0.25] as [number, number],
+  indexed: 0.2,
+  contenido: 0.245,
+  story: 0.325,
+  packetStory: [0.33, 0.41] as [number, number],
+  related: 0.36,
+  timelineStory: 0.37,
+  historias: 0.4,
+  coleccion: 0.525,
+  packetKnowledge: [0.5, 0.58] as [number, number],
+  published: 0.545,
+  timelineCollection: 0.55,
+  conocimiento: 0.565,
+  stamp: 0.69,
+  snapshot: 0.71,
+  preserved: 0.72,
+  timelineCopy: 0.735,
 } as const;
 
 export const PHASES = [
-  { n: "01", name: "Organizar", at: [0.02, 0.29] as [number, number] },
-  { n: "02", name: "Relacionar", at: [0.29, 0.5] as [number, number] },
-  { n: "03", name: "Presentar", at: [0.5, 0.68] as [number, number] },
-  { n: "04", name: "Preservar", at: [0.68, 0.96] as [number, number] },
+  { n: "01", name: "Organizar", at: [0.005, 0.27] as [number, number] },
+  { n: "02", name: "Relacionar", at: [0.27, 0.47] as [number, number] },
+  { n: "03", name: "Presentar", at: [0.47, 0.66] as [number, number] },
+  { n: "04", name: "Preservar", at: [0.66, 0.985] as [number, number] },
 ];

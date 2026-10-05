@@ -481,7 +481,7 @@ function truckFrames(plan: TruckPlan): [number, Props][] {
 /** Cabeza del haz de B-07 (etiqueta fija) en pantalla: los chips móviles se ocultan al cruzarla. */
 export const BEAM_H = 205 * 0.8387;
 const [beamX, beamY] = iso(B07.x, B07.y, 0);
-const PIN_ZONE: [number, number, number, number] = [beamX - 62, beamY - BEAM_H - 112, beamX + 62, beamY - BEAM_H - 4];
+const PIN_ZONE: [number, number, number, number] = [beamX - 80, beamY - BEAM_H - 170, beamX + 80, beamY - BEAM_H - 4];
 
 /** Igual que el camión, pero el chip se desvanece mientras su caja se encimaría con la etiqueta de B-07. */
 function chipFrames(plan: TruckPlan, width: number): [number, Props][] {

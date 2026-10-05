@@ -427,11 +427,18 @@
 }
 
 /* Etiqueta de la ubicación destacada (cabeza del haz). */
-.pinTag {
+.pinStack {
   position: absolute;
   bottom: 0;
   left: 0;
   translate: -50% 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.pinTag {
   padding: 4px 8px 5px;
   border: 1px solid rgb(220 197 154 / 0.6);
   background: rgb(6 8 9 / 0.88);
@@ -457,19 +464,13 @@
   color: var(--color-mist);
 }
 
-.status {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-}
-
-.status .chip {
+.chip.status {
+  position: relative;
   right: auto;
-  left: 0;
-  translate: -50% 0;
+  bottom: auto;
 }
 
-.status .chip::after {
+.chip.status::after {
   display: none;
 }
 

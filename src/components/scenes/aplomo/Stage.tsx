@@ -346,20 +346,20 @@ function Labels({ preview, prefix, beamTop }: { preview: boolean; prefix: string
   const pinAt: Pt = [beamTop[0], beamTop[1] - 10];
   return (
     <>
-      {/* Etiqueta de B-07 en la cabeza del haz */}
+      {/* Etiqueta de B-07 en la cabeza del haz (el estado se apila encima, en flujo normal) */}
       <div className={s.chipAnchor} style={place(pinAt)}>
-        <div className={s.pinTag}>
-          <strong>B-07</strong>
-          <span>Granel</span>
-        </div>
-        {!preview && (
-          <Step at={[MOMENTS.unloadEnd, MOMENTS.reset]} fx="up" className={s.status} style={{ bottom: u(52) }}>
-            <span className={`${s.chip} ${s.chipGold}`}>
+        <div className={s.pinStack}>
+          {!preview && (
+            <Step at={[MOMENTS.unloadEnd, MOMENTS.reset]} fx="up" className={`${s.chip} ${s.chipGold} ${s.status}`}>
               <span className={s.dot} style={{ color: "var(--color-gold-300)" }} />
               <em>Ubicado</em>
-            </span>
-          </Step>
-        )}
+            </Step>
+          )}
+          <div className={s.pinTag}>
+            <strong>B-07</strong>
+            <span>Granel</span>
+          </div>
+        </div>
       </div>
 
       {!preview && (
