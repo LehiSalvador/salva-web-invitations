@@ -1,4 +1,5 @@
 import type { CapabilityId } from "@/data/capabilities";
+import { WebVisual } from "./WebVisual";
 
 /*
  * Visuales animados de cada capacidad (visor de "Qué hacemos").
@@ -14,7 +15,7 @@ function Placeholder({ label }: { label: string }) {
 }
 
 export const capabilityVisuals: Record<CapabilityId, () => React.JSX.Element> = {
-  web: () => <Placeholder label="web" />,
+  web: WebVisual,
   software: () => <Placeholder label="software" />,
   automatizacion: () => <Placeholder label="automatización" />,
   plataformas: () => <Placeholder label="plataformas" />,

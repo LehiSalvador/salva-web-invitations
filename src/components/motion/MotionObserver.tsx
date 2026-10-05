@@ -110,8 +110,10 @@ function animateStep(step: HTMLElement): Animation[] {
   const window = timelineOf(step);
   if (!window) return [];
   const { cycle, start, end, edge } = window;
-  const hidden = { opacity: num(step.dataset.min, 0), transform: ENTER[step.dataset.fx ?? "up"] ?? ENTER.up };
-  const shown = { opacity: 1, transform: "none" };
+  // La curva va en cada tramo (no en el timing): así las ventanas del ciclo se respetan en tiempo lineal.
+  const ease = "cubic-bezier(0.16, 1, 0.3, 1)";
+  const hidden = { opacity: num(step.dataset.min, 0), transform: ENTER[step.dataset.fx ?? "up"] ?? ENTER.up, easing: ease };
+  const shown = { opacity: 1, transform: "none", easing: ease };
   const frames: Keyframe[] = [
     { ...hidden, offset: 0 },
     ...(start > 0 ? [{ ...hidden, offset: start }] : []),
@@ -120,7 +122,7 @@ function animateStep(step: HTMLElement): Animation[] {
     { ...hidden, offset: end },
     ...(end < 1 ? [{ ...hidden, offset: 1 }] : []),
   ];
-  return [step.animate(frames, { duration: cycle, iterations: Infinity, easing: "cubic-bezier(0.16, 1, 0.3, 1)" })];
+  return [step.animate(frames, { duration: cycle, iterations: Infinity, easing: "linear" })];
 }
 
 /** Texto que se "decodifica" al aparecer (solo etiquetas monoespaciadas cortas). */

@@ -1,0 +1,834 @@
+/*
+ * Archivo System: pila 3D de capas, grafo de conocimiento, registro y línea de tiempo.
+ * Solo se animan transform y opacity. Los porcentajes de los keyframes siguen archivo/timeline.ts.
+ */
+
+/* ───────── Pila 3D ───────── */
+.stackBox {
+  position: relative;
+  container: archivo-stack / inline-size;
+  aspect-ratio: 1 / 0.84;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  perspective: 260cqw;
+  perspective-origin: 50% 22%;
+}
+
+.tilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.rig {
+  --P: 44cqw;
+  --g: 12.5cqw;
+  --ag: 0.22;
+  --a: calc(var(--g) * var(--ag));
+  position: absolute;
+  left: var(--cx, 57%);
+  top: var(--cy, 55%);
+  width: var(--P);
+  height: var(--P);
+  margin: calc(var(--P) / -2) 0 0 calc(var(--P) / -2);
+  transform-style: preserve-3d;
+  transform: rotateX(56deg) rotateZ(-42deg);
+}
+
+@container archivo-stack (max-width: 460px) {
+  .rig {
+    --cx: 60%;
+    --P: 41cqw;
+    --g: 12cqw;
+  }
+}
+
+.ground {
+  position: absolute;
+  inset: -28%;
+  transform: translate3d(0, 0, calc(var(--g) * -1 - 7cqw));
+  background:
+    radial-gradient(closest-side, rgb(111 214 176 / 0.11), transparent 78%),
+    repeating-linear-gradient(90deg, rgb(226 236 232 / 0.05) 0 1px, transparent 1px 8%),
+    repeating-linear-gradient(0deg, rgb(226 236 232 / 0.05) 0 1px, transparent 1px 8%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 92%);
+  mask-image: radial-gradient(closest-side, #000 30%, transparent 92%);
+}
+
+.plane {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  border: 1px solid rgb(226 236 232 / 0.2);
+  transform: translate3d(0, 0, calc(var(--g) * var(--dir)));
+}
+
+.planeDoc {
+  --dir: 1;
+  background: rgb(11 15 16 / 0.76);
+  border-color: rgb(226 236 232 / 0.3);
+}
+
+.planeStory {
+  --dir: 0;
+  background:
+    radial-gradient(rgb(111 214 176 / 0.16) 1px, transparent 1.4px) 0 0 / 6cqw 6cqw,
+    rgb(8 15 14 / 0.8);
+  border-color: rgb(111 214 176 / 0.4);
+}
+
+.planeCol {
+  --dir: -1;
+  background: rgb(12 14 14 / 0.72);
+  border-color: rgb(220 197 154 / 0.3);
+}
+
+.planeDoc,
+.planeCol {
+  animation: layer var(--cycle, 15s) linear infinite;
+}
+
+/* Separar (4–15 %), sostener mientras el documento baja, ensamblar (63–74 %). */
+@keyframes layer {
+  0%,
+  4% {
+    transform: translate3d(0, 0, calc(var(--a) * var(--dir)));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  15%,
+  63% {
+    transform: translate3d(0, 0, calc(var(--g) * var(--dir)));
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+  74%,
+  100% {
+    transform: translate3d(0, 0, calc(var(--a) * var(--dir)));
+  }
+}
+
+.planeText {
+  font-family: var(--font-mono);
+  font-size: 2.05cqw;
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-signal);
+}
+
+/* Documentos */
+.docGrid {
+  position: absolute;
+  inset: 7%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6%;
+}
+
+.thumb {
+  position: relative;
+  border: 1px solid rgb(226 236 232 / 0.18);
+}
+
+.thumbText {
+  background:
+    linear-gradient(rgb(226 236 232 / 0.3), rgb(226 236 232 / 0.3)) 18% 20% / 46% 7% no-repeat,
+    repeating-linear-gradient(180deg, rgb(226 236 232 / 0.14) 0 6%, transparent 6% 15%) 18% 44% / 64% 44% no-repeat,
+    rgb(14 18 20 / 0.92);
+}
+
+.thumbPhoto {
+  background:
+    linear-gradient(160deg, rgb(143 184 216 / 0.3), rgb(111 214 176 / 0.08)) 14% 14% / 72% 56% no-repeat,
+    linear-gradient(rgb(226 236 232 / 0.22), rgb(226 236 232 / 0.22)) 14% 84% / 48% 6% no-repeat,
+    rgb(14 18 20 / 0.92);
+}
+
+.thumbAudio {
+  background:
+    repeating-linear-gradient(90deg, rgb(220 197 154 / 0.45) 0 5%, transparent 5% 11%) 16% 50% / 68% 30% no-repeat,
+    linear-gradient(rgb(226 236 232 / 0.22), rgb(226 236 232 / 0.22)) 16% 84% / 40% 6% no-repeat,
+    rgb(14 18 20 / 0.92);
+}
+
+.slot {
+  position: relative;
+  border: 1px dashed rgb(226 236 232 / 0.32);
+}
+
+.docNew {
+  position: absolute;
+  inset: -1px;
+  display: flex;
+  align-items: flex-end;
+  padding: 9%;
+  border: 1px solid var(--color-signal);
+  background:
+    linear-gradient(var(--color-signal), var(--color-signal)) 12% 14% / 40% 7% no-repeat,
+    repeating-linear-gradient(180deg, rgb(111 214 176 / 0.32) 0 6%, transparent 6% 15%) 12% 32% / 72% 32% no-repeat,
+    rgb(14 30 26 / 0.95);
+}
+
+/* Rótulos y etiquetas de frente a la cámara: deshacen la rotación de .rig. */
+.billboard {
+  position: absolute;
+  width: 0;
+  height: 0;
+  transform: rotateZ(42deg) rotateX(-56deg);
+}
+
+.layerLabel {
+  position: absolute;
+  right: 2cqw;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  transform: translateY(-0.6em);
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.layerName {
+  position: relative;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-bone);
+}
+
+.layerName b {
+  font-weight: 500;
+  color: var(--color-signal);
+  margin-right: 0.35em;
+}
+
+.layerName::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 4px);
+  top: 50%;
+  width: 1.4cqw;
+  height: 1px;
+  background: rgb(226 236 232 / 0.4);
+}
+
+.layerState {
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--color-fog);
+}
+
+.tags {
+  position: absolute;
+  left: -1px;
+  bottom: 0;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 4px;
+  padding-bottom: 3.6cqw;
+}
+
+.tagStem {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 3.6cqw;
+  background: linear-gradient(to top, var(--color-signal), rgb(111 214 176 / 0.25));
+}
+
+.tagStem::before {
+  content: "";
+  position: absolute;
+  left: -2.5px;
+  bottom: -2.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 6px;
+  border: 1px solid rgb(111 214 176 / 0.45);
+  border-radius: 2px;
+  background: rgb(6 8 9 / 0.9);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-bone);
+}
+
+.tagPin {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-gold-300);
+}
+
+.tagKey {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-signal);
+}
+
+/* Historia */
+.storyTitle {
+  position: absolute;
+  left: 8%;
+  top: 9%;
+}
+
+.thread {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 50%;
+  border-top: 1px dashed rgb(226 236 232 / 0.32);
+}
+
+.threadLit {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: 50%;
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(90deg, rgb(111 214 176 / 0.4), var(--color-signal));
+  transform-origin: left center;
+}
+
+.storyCard {
+  position: absolute;
+  top: 37.5%;
+  left: calc(7% + var(--i) * 31.25%);
+  width: 24.5%;
+  height: 25%;
+  border: 1px solid rgb(226 236 232 / 0.22);
+  background:
+    linear-gradient(rgb(226 236 232 / 0.2), rgb(226 236 232 / 0.2)) 16% 22% / 52% 8% no-repeat,
+    repeating-linear-gradient(180deg, rgb(226 236 232 / 0.12) 0 7%, transparent 7% 17%) 16% 52% / 66% 36% no-repeat,
+    rgb(11 15 16 / 0.92);
+}
+
+.storyCardLit {
+  position: absolute;
+  top: 37.5%;
+  left: 38.25%;
+  width: 24.5%;
+  height: 25%;
+  border: 1px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.2);
+}
+
+.storyNotes {
+  position: absolute;
+  left: 8%;
+  right: 36%;
+  bottom: 9%;
+  height: 12%;
+  background: repeating-linear-gradient(180deg, rgb(226 236 232 / 0.12) 0 10%, transparent 10% 30%);
+}
+
+/* Colección */
+.folder {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 39%;
+  height: 20%;
+  border: 1px solid rgb(220 197 154 / 0.22);
+  background:
+    linear-gradient(rgb(220 197 154 / 0.24), rgb(220 197 154 / 0.24)) 10% 50% / 44% 12% no-repeat,
+    rgb(16 17 15 / 0.9);
+}
+
+.folderMain {
+  position: absolute;
+  left: 7%;
+  top: 33%;
+  width: 86%;
+  height: 34%;
+  display: flex;
+  align-items: flex-end;
+  padding: 3% 4%;
+  border: 1px solid rgb(220 197 154 / 0.4);
+  background:
+    repeating-linear-gradient(90deg, rgb(220 197 154 / 0.14) 0 1px, transparent 1px 12.5%) 0 0 / 100% 62% no-repeat,
+    rgb(20 19 15 / 0.92);
+}
+
+.folderMain .planeText {
+  color: var(--color-gold-300);
+}
+
+.folderLit {
+  position: absolute;
+  left: 7%;
+  top: 33%;
+  width: 86%;
+  height: 34%;
+  border: 1.5px solid var(--color-gold-300);
+  background: rgb(220 197 154 / 0.14);
+}
+
+/* Haz vertical que une el documento con sus capas y copia que desciende. */
+.beam {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1px;
+  height: calc(var(--g) * 2);
+  transform-origin: 0 0;
+  transform: translate3d(0, 0, var(--g)) rotateX(-90deg);
+  background: linear-gradient(180deg, var(--color-signal), rgb(111 214 176 / 0.15));
+  animation: beam var(--cycle, 15s) linear infinite;
+}
+
+@keyframes beam {
+  0%,
+  4% {
+    opacity: 0;
+    transform: translate3d(0, 0, var(--a)) rotateX(-90deg) scaleY(var(--ag));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  15%,
+  63% {
+    opacity: 1;
+    transform: translate3d(0, 0, var(--g)) rotateX(-90deg) scaleY(1);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+  74%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, var(--a)) rotateX(-90deg) scaleY(var(--ag));
+  }
+}
+
+.drop {
+  position: absolute;
+  left: 38%;
+  top: 38%;
+  width: 24%;
+  height: 24%;
+  border: 1px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.12);
+  opacity: 0;
+  animation: drop var(--cycle, 15s) linear infinite;
+}
+
+/* Documento → Historia (29–35 %) y Historia → Colección (50,5–56 %). */
+@keyframes drop {
+  0%,
+  28.5% {
+    opacity: 0;
+    transform: translate3d(0, 0, calc(var(--g) * 0.96));
+  }
+  30% {
+    opacity: 1;
+    transform: translate3d(0, 0, calc(var(--g) * 0.96));
+    animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+  }
+  35% {
+    opacity: 1;
+    transform: translate3d(0, 0, 1px);
+  }
+  37%,
+  49% {
+    opacity: 0;
+    transform: translate3d(0, 0, 1px);
+  }
+  50.5% {
+    opacity: 1;
+    transform: translate3d(0, 0, -1px);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+  }
+  55.5% {
+    opacity: 1;
+    transform: translate3d(0, 0, calc(var(--g) * -0.96));
+  }
+  57.5%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, calc(var(--g) * -0.96));
+  }
+}
+
+/* Conector hacia el grafo (cuando están lado a lado). */
+.connector {
+  display: none;
+  position: absolute;
+  left: 90%;
+  right: -1.5rem;
+  top: var(--cy, 55%);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(226 236 232 / 0.3));
+}
+
+@media (min-width: 48rem) {
+  .connector {
+    display: block;
+  }
+}
+
+/* Sello */
+.stampWrap {
+  position: absolute;
+  right: 3%;
+  bottom: 5%;
+  transform: rotate(-6deg);
+}
+
+.stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px 7px;
+  border: 1.5px solid var(--color-gold-300);
+  border-radius: 3px;
+  outline: 1px solid rgb(220 197 154 / 0.32);
+  outline-offset: 3px;
+  background: rgb(6 8 9 / 0.86);
+  color: var(--color-gold-300);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.stampTitle {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.stampMeta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgb(220 197 154 / 0.78);
+}
+
+/* Vista previa: la pila llena su columna. */
+.stackCompact {
+  aspect-ratio: auto;
+  height: 100%;
+}
+
+.stackCompact .rig {
+  --cx: 52%;
+  --cy: 54%;
+  --P: 46cqw;
+  --g: 13cqw;
+}
+
+.stackCompact .stampWrap {
+  right: 2%;
+  bottom: 6%;
+}
+
+/* ───────── Grafo ───────── */
+.graphBox {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 480 / 460;
+}
+
+.gLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.gNode {
+  fill: var(--color-ink-900);
+  stroke: rgb(226 236 232 / 0.5);
+  stroke-width: var(--dg-stroke);
+}
+
+.gCore {
+  fill: rgb(226 236 232 / 0.55);
+}
+
+.gNodeLit {
+  fill: rgb(17 38 32);
+  stroke: var(--color-signal);
+  stroke-width: calc(var(--dg-stroke) * 1.3);
+}
+
+.gHalo {
+  fill: none;
+  stroke: rgb(111 214 176 / 0.32);
+  stroke-width: var(--dg-stroke);
+}
+
+.gSub {
+  fill: var(--color-ink-900);
+  stroke: rgb(226 236 232 / 0.42);
+  stroke-width: var(--dg-stroke);
+}
+
+.gSubLit {
+  fill: var(--color-signal);
+}
+
+.gEdgeLit {
+  stroke: var(--color-signal);
+  stroke-width: calc(var(--dg-stroke) * 1.3);
+}
+
+.gEdgeGold {
+  stroke: var(--color-gold-300);
+  stroke-width: calc(var(--dg-stroke) * 1.3);
+}
+
+.gIndex {
+  fill: rgb(220 197 154 / 0.22);
+  stroke: var(--color-gold-300);
+  stroke-width: var(--dg-stroke);
+}
+
+.gLabel {
+  position: absolute;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.gLabel_above,
+.gLabel_below,
+.gLabel_center {
+  transform: translate(-50%, -50%);
+}
+
+.gLabel_right {
+  transform: translate(0, -50%);
+}
+
+.gMain,
+.gMainLit {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+
+.gMainLit {
+  color: var(--color-signal);
+}
+
+.gIndexLabel {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold-300);
+  transform: translate(0, -50%);
+}
+
+.gSubLabel,
+.gSubLabelLit {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-fog);
+}
+
+.gSubLabelLit {
+  color: var(--color-bone);
+}
+
+.gValue {
+  position: absolute;
+  transform: translate(0, -50%);
+  padding: 2px 4px;
+  border: 1px solid rgb(220 197 154 / 0.4);
+  border-radius: 2px;
+  background: rgb(6 8 9 / 0.9);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-gold-300);
+}
+
+.gBadge {
+  border-color: rgb(111 214 176 / 0.4);
+  color: var(--color-signal);
+}
+
+.snapshot {
+  --c: rgb(220 197 154 / 0.85);
+  --l: 16px;
+  position: absolute;
+  inset: 0 0 -2% 0;
+  background:
+    linear-gradient(var(--c), var(--c)) left top / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) left top / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) right top / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) right top / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) left bottom / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) left bottom / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) right bottom / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) right bottom / 1px var(--l);
+  background-repeat: no-repeat;
+}
+
+.snapshotLabel {
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateY(-140%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-gold-300);
+}
+
+/* ───────── Línea de tiempo ───────── */
+.track {
+  position: relative;
+  height: 84px;
+}
+
+.axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 26px;
+  height: 1px;
+  background: rgb(226 236 232 / 0.28);
+}
+
+.era {
+  position: absolute;
+  top: 26px;
+  width: 1px;
+  height: 7px;
+  margin-top: -3px;
+  background: rgb(226 236 232 / 0.4);
+}
+
+.eraLabel {
+  position: absolute;
+  bottom: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--color-fog);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.eraLabel:first-of-type {
+  transform: none;
+}
+
+.mark {
+  position: absolute;
+  top: 26px;
+  width: 1px;
+  height: 11px;
+  margin-top: -5px;
+  background: rgb(226 236 232 / 0.32);
+}
+
+.event {
+  position: absolute;
+  top: 26px;
+}
+
+.eventDot {
+  position: absolute;
+  left: -4.5px;
+  top: -4.5px;
+  width: 9px;
+  height: 9px;
+  rotate: 45deg;
+  border: 1px solid var(--color-gold-300);
+  background: rgb(220 197 154 / 0.35);
+}
+
+.eventLabel {
+  position: absolute;
+  bottom: 11px;
+  left: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--color-gold-300);
+}
+
+.span {
+  position: absolute;
+  height: 5px;
+  transform-origin: left center;
+}
+
+.spanStory {
+  top: 37px;
+  border: 1px solid var(--color-signal);
+  border-top: 0;
+  background: rgb(111 214 176 / 0.16);
+}
+
+.spanCollection {
+  top: 48px;
+  border: 1px solid rgb(220 197 154 / 0.55);
+  border-top: 0;
+  background: rgb(220 197 154 / 0.1);
+}
+
+.spanLabel {
+  position: absolute;
+  left: calc(100% + 6px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.eventLabelEnd {
+  left: 5px;
+  transform: translateX(-100%);
+}
+
+/* ───────── Vista previa ───────── */
+.preview {
+  container: archivo-preview / size;
+}
+
+@container archivo-preview (max-width: 520px) {
+  .gMain,
+  .gMainLit,
+  .gIndexLabel {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planeDoc,
+  .planeCol,
+  .beam {
+    animation: none;
+  }
+}
