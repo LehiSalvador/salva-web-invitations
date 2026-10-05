@@ -50,8 +50,8 @@ public/brand/, public/projects/  logos
 
 ## Sistema de motion
 
-- **Ambiente** (`Ambient.tsx` y `styles/ambient.css`): base obsidiana con auroras lentas, retícula de puntos, partículas y estelas verdes.
-  La lente verde que sigue al puntero revela la retícula iluminada. Todo va en una capa fija y se anima solo con `transform` y `opacity`.
+- **Ambiente** (`Ambient.tsx` y `styles/ambient.css`): base obsidiana con halos de luz, retícula de puntos, partículas y estelas verdes.
+  La lente verde que sigue al puntero revela la retícula iluminada. Todo va en una capa fija y se anima solo con `transform` y `opacity`, sin capas grandes en movimiento continuo.
 - **Interacción** (`InteractionEngine.tsx`): un solo listener delegado de puntero.
   - `data-spotlight` ilumina superficies y bordes bajo el cursor.
   - `data-magnetic` desplaza botones hacia el puntero.
@@ -65,6 +65,13 @@ public/brand/, public/projects/  logos
 - **Scroll**: `data-reveal` (fade, mask, scale, group) para entradas. Proceso usa `animation-timeline: view()` donde hay soporte.
 - **Navegación**: `ViewTransition` de React para el cambio entre páginas y el morph del nombre del proyecto entre showcase, índice y case study.
 - **Reduced motion**: sin animaciones continuas. Las escenas se muestran completas y estáticas y el ambiente queda fijo.
+
+## Reglas de performance del motion
+
+- Solo `transform` y `opacity`. Nada de atributos SVG, `stroke-dashoffset` en bucle, `filter` ni `box-shadow` animados.
+- No animar pseudo-elementos ni puntos diminutos en bucle infinito: no se componen en GPU y fuerzan recálculos de estilo en cada frame.
+- Keyframes CSS propios de una escena con la misma duración que su `data-cycle`. MotionObserver los alinea con la línea de tiempo al volver a pantalla y al redimensionar.
+- Lo que el diseño responsive oculta (`display: none`) se pausa solo.
 
 ## Proyectos y escenas
 
