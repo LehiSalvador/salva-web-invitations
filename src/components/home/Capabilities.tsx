@@ -63,7 +63,8 @@ export function Capabilities() {
   }, [active]);
 
   // El avance automático lo marca la barra de progreso: al terminar su animación pasa a la siguiente.
-  // Como vive dentro de [data-live], se pausa fuera de pantalla; también se pausa con el puntero encima.
+  // La consola completa es un bloque [data-live]: la barra se pausa si la consola sale de pantalla
+  // o con el puntero sobre la lista.
   const advance = () => {
     setActive((currentId) => {
       const index = capabilities.findIndex((item) => item.id === currentId);
@@ -91,8 +92,8 @@ export function Capabilities() {
           intro="Combinamos desarrollo, diseño de procesos y tecnología según lo que cada problema necesita."
         />
 
-        <Reveal variant="scale" className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
-          <div data-live role="tablist" aria-label="Capacidades" aria-orientation="vertical" className="cap-list order-2 lg:order-1 lg:col-span-5">
+        <Reveal data-live variant="scale" className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
+          <div role="tablist" aria-label="Capacidades" aria-orientation="vertical" className="cap-list order-2 lg:order-1 lg:col-span-5">
             {capabilities.map((capability, index) => {
               const selected = capability.id === active;
               return (
