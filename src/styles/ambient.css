@@ -1,0 +1,141 @@
+/*
+ * Ambiente global: base obsidiana con luz muy tenue, retícula de puntos, partículas que derivan
+ * lentamente y una lente verde que sigue al puntero y revela la retícula iluminada.
+ * Todo vive en una capa fija detrás del contenido y se anima solo con transform/opacity.
+ */
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  overflow: hidden;
+  pointer-events: none;
+  contain: strict;
+  background:
+    radial-gradient(110% 70% at 12% -12%, rgb(46 127 103 / 0.16), transparent 58%),
+    radial-gradient(90% 70% at 105% 110%, rgb(79 119 149 / 0.11), transparent 62%),
+    linear-gradient(180deg, #070a0b 0%, #060809 55%, #07090a 100%);
+}
+
+/* Auroras: halos grandes y estáticos (moverlos de forma continua cuesta composición en cada frame). */
+.ambient__aurora {
+  position: absolute;
+  width: 70vmax;
+  height: 70vmax;
+  border-radius: 50%;
+  opacity: 0.9;
+}
+
+.ambient__aurora--a {
+  left: -22vmax;
+  top: -26vmax;
+  background: radial-gradient(closest-side, rgb(64 170 136 / 0.12), transparent 72%);
+}
+
+.ambient__aurora--b {
+  right: -26vmax;
+  bottom: -30vmax;
+  background: radial-gradient(closest-side, rgb(96 150 190 / 0.1), transparent 72%);
+}
+
+/* Retícula de medición: puntos muy tenues que se desvanecen hacia los bordes. */
+.ambient__grid {
+  position: absolute;
+  inset: 0;
+  background-image: radial-gradient(rgb(214 232 226 / 0.075) 1px, transparent 1.3px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(120% 90% at 50% 40%, #000 30%, transparent 85%);
+  mask-image: radial-gradient(120% 90% at 50% 40%, #000 30%, transparent 85%);
+}
+
+/* Lente que sigue al puntero: revela la misma retícula en verde. */
+.ambient__lens {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 520px;
+  height: 520px;
+  border-radius: 50%;
+  overflow: hidden;
+  opacity: 0;
+  transition: opacity 0.8s ease;
+  -webkit-mask-image: radial-gradient(closest-side, #000 0%, rgb(0 0 0 / 0.5) 42%, transparent 100%);
+  mask-image: radial-gradient(closest-side, #000 0%, rgb(0 0 0 / 0.5) 42%, transparent 100%);
+  will-change: transform;
+}
+
+.ambient__lens::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(closest-side, rgb(111 214 176 / 0.13), transparent 80%);
+}
+
+.ambient__lens-grid {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100vw;
+  height: 100vh;
+  background-image: radial-gradient(rgb(111 214 176 / 0.7) 1.1px, transparent 1.5px);
+  background-size: 28px 28px;
+  will-change: transform;
+}
+
+.ambient[data-pointer] .ambient__lens {
+  opacity: 1;
+}
+
+/* Partículas: posición, tamaño y keyframes vienen del componente (valores literales). */
+.ambient__particle {
+  position: absolute;
+  border-radius: 50%;
+}
+
+/* Estelas: trazos verdes que cruzan la pantalla de vez en cuando. */
+.ambient__streak {
+  position: absolute;
+  left: 0;
+  top: var(--y);
+  width: 140px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(111 214 176 / 0.55));
+  opacity: 0;
+  transform: translate3d(-160px, 0, 0) rotate(var(--r));
+  animation: streak var(--t) linear infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes streak {
+  0% {
+    opacity: 0;
+    transform: translate3d(-160px, 0, 0) rotate(var(--r));
+  }
+  4% {
+    opacity: 1;
+  }
+  22% {
+    opacity: 0;
+    transform: translate3d(110vw, var(--fall), 0) rotate(var(--r));
+  }
+  100% {
+    opacity: 0;
+    transform: translate3d(110vw, var(--fall), 0) rotate(var(--r));
+  }
+}
+
+@media (hover: none), (pointer: coarse) {
+  .ambient__lens {
+    display: none;
+  }
+
+  .ambient__particle:nth-of-type(2n) {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .ambient__lens,
+  .ambient__streak {
+    display: none;
+  }
+}

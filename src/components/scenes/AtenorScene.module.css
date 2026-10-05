@@ -1,0 +1,1343 @@
+/*
+ * Atenor · bandeja inteligente.
+ * Mobile: columnas apiladas · md: hilos y carriles en filas de tres · lg: escenario de tres columnas con coordenadas
+ * fijas (x en %, y en px) compartidas por las conexiones SVG y la capa de paquetes.
+ * Solo se anima transform y opacity (Step, Packet y los keyframes generados en atenor/timeline.ts).
+ * Las tiras (chat, estado, tarjeta en proceso, registro) llevan su posición final en --final: es la vista estática.
+ */
+
+.scene {
+  --ink: #0b0f10;
+  --ink-2: #10151a;
+  --ink-3: #161c20;
+  --line: rgb(226 236 232 / 0.09);
+  --line-strong: rgb(226 236 232 / 0.18);
+  --signal: #6fd6b0;
+  --gold: #dcc59a;
+  --cool: #8fb8d8;
+  --bone: #eeebe4;
+  --mist: #a3a9ab;
+  --fog: #7a8285;
+  position: relative;
+  padding: 14px;
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  color: var(--bone);
+}
+
+@media (min-width: 40rem) {
+  .scene {
+    padding: 20px;
+  }
+}
+
+@media (min-width: 64rem) {
+  .scene {
+    padding: 22px 24px 24px;
+  }
+}
+
+.colHead,
+.status,
+.sent,
+.laneName,
+.laneSub,
+.badge,
+.laneCardMeta,
+.laneOld,
+.coreHead,
+.cardTop,
+.cardMeta,
+.cardIdle,
+.nodeLabel,
+.nodeDot,
+.returnLabel,
+.blockLabel,
+.chip,
+.dataLine,
+.busLabel,
+.mlinkLabel,
+.panelHead,
+.logLine,
+.systemList,
+.legend {
+  font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+}
+
+/* ───────── Escenario ───────── */
+.stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 64rem) {
+  .stage {
+    display: block;
+    height: 420px;
+  }
+
+  .col {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+  }
+
+  .colInbox {
+    left: 0;
+    width: 28%;
+  }
+
+  .colCore {
+    left: 36.5%;
+    width: 29%;
+  }
+
+  .colLanes {
+    left: 74%;
+    width: 26%;
+  }
+}
+
+.colHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 22px;
+  margin-bottom: 8px;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+@media (min-width: 64rem) {
+  .colHead {
+    height: 24px;
+    margin-bottom: 12px;
+  }
+}
+
+.colIndex {
+  color: var(--signal);
+}
+
+.colTitle {
+  color: var(--bone);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.colNote {
+  margin-left: auto;
+  color: var(--fog);
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+.rows {
+  display: grid;
+  gap: 8px;
+}
+
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .rows {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
+  }
+}
+
+@media (min-width: 64rem) {
+  .rows {
+    grid-template-rows: repeat(3, 121px);
+    gap: 10px;
+  }
+}
+
+/* ───────── Hilos de chat ───────── */
+.thread,
+.lane {
+  position: relative;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgb(11 15 16 / 0.74);
+  overflow: hidden;
+}
+
+.threadHead,
+.laneHead {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 28px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--line);
+  background: rgb(226 236 232 / 0.02);
+  white-space: nowrap;
+}
+
+.avatar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid var(--line-strong);
+  background: var(--ink-3);
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--bone);
+}
+
+.threadName {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12px;
+  color: var(--mist);
+}
+
+.nameLong,
+.nameShort {
+  color: var(--mist);
+}
+
+.nameBiz {
+  color: var(--bone);
+}
+
+.nameShort {
+  display: none;
+}
+
+/* Hilos angostos (lg hasta 1280 y mobile muy chico): "N01 · Cafetería". En md solo el negocio. */
+@media (max-width: 25rem), (min-width: 64rem) and (max-width: 79.99rem) {
+  .nameLong {
+    display: none;
+  }
+
+  .nameShort {
+    display: inline;
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .nameLong,
+  .nameShort {
+    display: none;
+  }
+}
+
+/* Estado de la conversación: en línea → escribiendo → procesando → respondido (tira vertical). */
+.status {
+  position: relative;
+  flex: none;
+  height: 14px;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.statusList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  transform: translate3d(0, var(--final), 0);
+}
+
+.statusList > span {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  height: 14px;
+  color: var(--fog);
+  white-space: nowrap;
+}
+
+.statusTyping,
+.statusBusy {
+  color: var(--signal) !important;
+}
+
+.statusDone {
+  color: var(--mist) !important;
+}
+
+.statusDone .ticks {
+  color: var(--signal);
+}
+
+.onlineDot,
+.busyDot {
+  display: block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--signal);
+  opacity: 0.8;
+}
+
+.busyDot {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgb(111 214 176 / 0.18);
+}
+
+.dots {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.dots i,
+.dots b {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.dots i {
+  background: rgb(111 214 176 / 0.35);
+}
+
+.dots b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--signal);
+  opacity: 0;
+}
+
+/* Hilo cuyo mensaje está en curso: contorno. */
+.threadLive {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  border: 1px solid rgb(111 214 176 / 0.5);
+  border-radius: 6px;
+  pointer-events: none;
+}
+
+/* Conversación: ventana de 76 px; la tira sube como en un chat real (historial → mensaje → respuesta). */
+.chat {
+  height: 76px;
+  margin: 7px 10px 8px;
+  overflow: hidden;
+}
+
+.chatList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transform: translate3d(0, var(--final), 0);
+}
+
+.bubbleIn {
+  align-self: flex-start;
+  display: block;
+  flex: none;
+  max-width: 100%;
+  height: 28px;
+  padding: 0 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px 10px 10px 2px;
+  background: var(--ink-3);
+  font-size: 12.5px;
+  line-height: 26px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--bone);
+}
+
+.bubbleOut {
+  align-self: flex-end;
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  max-width: 100%;
+  min-width: 0;
+  height: 42px;
+  padding: 0 10px;
+  border: 1px solid rgb(111 214 176 / 0.3);
+  border-radius: 10px 10px 2px 10px;
+  background: rgb(18 44 37 / 0.92);
+}
+
+.old {
+  opacity: 0.5;
+}
+
+.bubbleText {
+  font-size: 12.5px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--bone);
+}
+
+.sent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0.04em;
+  color: var(--signal);
+  white-space: nowrap;
+}
+
+.sentOld {
+  color: var(--mist);
+}
+
+.ticks {
+  flex: none;
+  width: 14px;
+  height: 9px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .bubbleIn,
+  .bubbleText {
+    font-size: 12px;
+  }
+}
+
+/* ───────── Carriles ───────── */
+.laneName {
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--bone);
+}
+
+.laneSub {
+  margin-left: auto;
+  font-size: 10px;
+  color: var(--fog);
+}
+
+.laneBody {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  padding: 8px 10px 7px;
+}
+
+.laneSlot {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 44px;
+  border: 1px dashed rgb(226 236 232 / 0.14);
+  border-radius: 5px;
+}
+
+.laneCard {
+  position: absolute;
+  inset: -1px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  padding: 0 10px;
+  overflow: hidden;
+  border: 1px solid rgb(220 197 154 / 0.38);
+  border-left: 2px solid var(--gold);
+  border-radius: 5px;
+  background: #131512;
+}
+
+.laneCardTop {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.laneCardTitle {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-size: 12.5px;
+  line-height: 16px;
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.badge {
+  margin-left: auto;
+  padding: 0 5px;
+  border: 1px solid rgb(220 197 154 / 0.45);
+  border-radius: 3px;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--gold);
+}
+
+.laneCardMeta {
+  font-size: 10px;
+  line-height: 13px;
+  color: var(--mist);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.laneOld {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 26px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  font-size: 10px;
+  color: var(--fog);
+  white-space: nowrap;
+}
+
+.laneOldText {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.laneOldState {
+  margin-left: auto;
+  opacity: 0.75;
+}
+
+/* Mobile: cada carril es una fila compacta (nombre a la izquierda, tarjeta a la derecha). */
+@media (max-width: 47.99rem) {
+  .lane {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr);
+  }
+
+  .laneHead {
+    height: auto;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    padding: 0 8px 0 10px;
+  }
+
+  .laneName {
+    letter-spacing: 0.08em;
+  }
+
+  .laneSub,
+  .laneOld,
+  .badge {
+    display: none;
+  }
+
+  .laneBody {
+    padding: 6px 8px;
+  }
+
+  .laneSlot {
+    height: 40px;
+  }
+}
+
+/* ───────── Núcleo ───────── */
+.core {
+  position: relative;
+  border: 1px solid rgb(111 214 176 / 0.3);
+  border-radius: 8px;
+  background:
+    radial-gradient(rgb(111 214 176 / 0.09) 1px, transparent 1.3px) 0 0 / 16px 16px,
+    linear-gradient(180deg, rgb(10 20 18 / 0.9), rgb(8 12 13 / 0.92));
+  box-shadow:
+    6px 6px 0 -1px rgb(6 8 9 / 0.9),
+    6px 6px 0 0 rgb(111 214 176 / 0.12),
+    12px 12px 0 -1px rgb(6 8 9 / 0.9),
+    12px 12px 0 0 rgb(111 214 176 / 0.06);
+}
+
+/* Tablet: el núcleo conserva la escala del escritorio (~1.4 px por unidad) para que la órbita siga circular. */
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .core {
+    max-width: 420px;
+    width: 100%;
+    margin: 0 auto;
+  }
+}
+
+@media (min-width: 64rem) {
+  .core {
+    height: 384px;
+  }
+}
+
+.coreHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  height: 32px;
+  padding: 0 12px;
+  border-bottom: 1px solid rgb(111 214 176 / 0.18);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.coreTitle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--signal);
+}
+
+.coreGlyph {
+  width: 7px;
+  height: 7px;
+  border: 1px solid var(--signal);
+  transform: rotate(45deg);
+}
+
+.coreHeadNote {
+  color: var(--fog);
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+/* Tarjeta en proceso: ventana de --card px; la tira avanza --pitch px por mensaje (tarjeta + 12 px). */
+.core {
+  --card: 76px;
+  --pitch: 88px;
+}
+
+.cardSlot {
+  position: relative;
+  height: var(--card);
+  margin: 12px 12px 11px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.cardStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translate3d(0, var(--final), 0);
+}
+
+.cardIdle,
+.card {
+  flex: none;
+  height: var(--card);
+  border-radius: 6px;
+}
+
+.cardIdle {
+  display: grid;
+  place-items: center;
+  border: 1px dashed rgb(111 214 176 / 0.22);
+  font-size: 10px;
+  color: var(--fog);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 12px;
+  border: 1px solid rgb(111 214 176 / 0.45);
+  background: #0c1614;
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  font-size: 10px;
+  line-height: 14px;
+  color: var(--mist);
+  white-space: nowrap;
+}
+
+.cardTop > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardTime {
+  color: var(--fog);
+}
+
+.cardText {
+  font-size: 13.5px;
+  line-height: 18px;
+  color: var(--bone);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cardMeta {
+  font-size: 10px;
+  line-height: 13px;
+  color: var(--fog);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Banda del pipeline: ancho completo del panel para que sus nodos compartan coordenadas con el escenario. */
+.band {
+  position: relative;
+  height: 112px;
+}
+
+.bandLines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.mainLine,
+.returnLine,
+.wire {
+  fill: none;
+  vector-effect: non-scaling-stroke;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mainLine {
+  stroke: rgb(111 214 176 / 0.45);
+  stroke-width: 1.3;
+}
+
+.returnLine {
+  stroke: rgb(220 197 154 / 0.38);
+  stroke-width: 1.1;
+  stroke-dasharray: 4 4;
+}
+
+.node {
+  position: absolute;
+  left: var(--x);
+  top: 0;
+  width: 0;
+  height: 100%;
+}
+
+.nodeLabel {
+  position: absolute;
+  left: 0;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  transform: translateX(-50%);
+  font-size: 10px;
+  line-height: 13px;
+  letter-spacing: 0;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.nodeIndex {
+  color: var(--fog);
+}
+
+.nodeName {
+  color: var(--mist);
+}
+
+.nodeDot {
+  position: absolute;
+  left: 0;
+  top: 59px;
+  display: grid;
+  place-items: center;
+  width: 11px;
+  height: 11px;
+  margin: -5.5px 0 0 -5.5px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(238 235 228 / 0.55);
+  background: var(--ink);
+}
+
+.nodeIa .nodeDot {
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-color: rgb(111 214 176 / 0.75);
+  background: #0d1a17;
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--signal);
+}
+
+.nodeLit {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+}
+
+.nodeLit .nodeIndex,
+.nodeLit .nodeName {
+  color: var(--signal);
+}
+
+.nodeLit .nodeDot {
+  border-color: var(--signal);
+  background: var(--signal);
+  box-shadow: 0 0 0 4px rgb(111 214 176 / 0.16);
+}
+
+.nodeIa .nodeLit .nodeDot {
+  background: #15362d;
+  color: var(--bone);
+  box-shadow: 0 0 0 5px rgb(111 214 176 / 0.12);
+}
+
+.iaGlow {
+  position: absolute;
+  left: var(--x);
+  top: 59px;
+  width: 130px;
+  height: 130px;
+  margin: -65px 0 0 -65px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(111 214 176 / 0.14), transparent);
+  pointer-events: none;
+}
+
+/* Anillo punteado: el mensaje lo recorre mientras la IA lo interpreta. */
+.iaRing {
+  position: absolute;
+  left: var(--x);
+  top: 59px;
+  width: 52px;
+  height: 52px;
+  margin: -26px 0 0 -26px;
+  border-radius: 50%;
+  border: 1px dashed rgb(111 214 176 / 0.5);
+}
+
+.returnLabel {
+  position: absolute;
+  left: 12px;
+  top: 99px;
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
+  color: rgb(220 197 154 / 0.8);
+}
+
+.bandPackets {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+
+@media (min-width: 64rem) {
+  .bandPackets {
+    display: none;
+  }
+}
+
+/* Intención y datos: la rejilla base queda fija y el resultado de la IA se superpone por mensaje. */
+.intents {
+  position: relative;
+  margin: 12px 12px 0;
+  padding-bottom: 12px;
+}
+
+.blockLabel {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 10px;
+  line-height: 14px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--fog);
+}
+
+.dataLabel {
+  margin-top: 9px;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: 22px;
+  gap: 6px;
+}
+
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .chips {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.chip {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line-strong);
+  border-radius: 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--fog);
+}
+
+.chipOn {
+  border-color: var(--signal);
+  background: #12302a;
+  color: var(--signal);
+  box-shadow: 0 0 0 3px rgb(111 214 176 / 0.1);
+}
+
+/* Campo que la IA llena: línea punteada vacía, luego los datos extraídos encima. */
+.dataLine {
+  display: block;
+  height: 18px;
+  border-bottom: 1px dashed rgb(226 236 232 / 0.16);
+  font-size: 10.5px;
+  line-height: 16px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--bone);
+}
+
+.dataOn {
+  border-bottom-color: transparent;
+}
+
+.intentsLit {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 20px;
+}
+
+/* ───────── Conexiones de escritorio ───────── */
+.wires,
+.desktopOnly,
+.stagePackets {
+  display: none;
+}
+
+@media (min-width: 64rem) {
+  .wires {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+  }
+
+  .desktopOnly {
+    position: absolute;
+    inset: 0;
+    display: block;
+    pointer-events: none;
+    z-index: 1;
+  }
+
+  .stagePackets {
+    position: absolute;
+    inset: 0;
+    display: block;
+    z-index: 3;
+  }
+}
+
+.wire {
+  stroke: rgb(226 236 232 / 0.24);
+  stroke-width: 1.1;
+}
+
+.wireReply {
+  stroke: rgb(220 197 154 / 0.32);
+  stroke-dasharray: 4 4;
+}
+
+.port,
+.joint {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+}
+
+.port {
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border: 1px solid rgb(238 235 228 / 0.45);
+  background: var(--ink);
+}
+
+.portSignal {
+  border-color: var(--signal);
+}
+
+.portGold {
+  border-color: rgb(220 197 154 / 0.7);
+}
+
+.joint {
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: rgb(238 235 228 / 0.6);
+}
+
+.busLabel {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--fog);
+}
+
+.busLabelLeft {
+  transform: translate(-100%, -50%) rotate(-90deg) translate(50%, -17px);
+  transform-origin: 100% 50%;
+}
+
+.busLabelRight {
+  transform: translate(0, -50%) rotate(90deg) translate(-50%, -17px);
+  transform-origin: 0 50%;
+}
+
+/* Paquete principal: una pequeña tarjeta de mensaje. */
+.pkMain:global(.packet) :global(.packet__body) {
+  width: 18px;
+  height: 12px;
+  border-radius: 3px 3px 3px 1px;
+  background:
+    linear-gradient(var(--ink), var(--ink)) 4px 3px / 9px 1.5px no-repeat,
+    linear-gradient(var(--ink), var(--ink)) 4px 7px / 6px 1.5px no-repeat,
+    var(--signal);
+  box-shadow: 0 0 0 3px rgb(6 8 9 / 0.85);
+}
+
+/* ───────── Conexiones apiladas (mobile y tablet) ───────── */
+.mlink {
+  position: relative;
+  display: grid;
+  place-items: center;
+  height: 30px;
+}
+
+@media (min-width: 48rem) {
+  .mlink {
+    height: 40px;
+  }
+}
+
+@media (min-width: 64rem) {
+  .mlink {
+    display: none;
+  }
+}
+
+.mlinkLine {
+  position: absolute;
+  left: 50%;
+  top: 2px;
+  bottom: 2px;
+  width: 1px;
+  background: linear-gradient(180deg, rgb(111 214 176 / 0.1), rgb(111 214 176 / 0.6), rgb(111 214 176 / 0.1));
+}
+
+.mlinkLabel {
+  position: relative;
+  padding: 1px 8px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--ink);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--mist);
+}
+
+/* ───────── Registro y sistema ───────── */
+.bottom {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+@media (min-width: 48rem) {
+  .bottom {
+    grid-template-columns: minmax(0, 1fr) 280px;
+    margin-top: 18px;
+  }
+}
+
+@media (min-width: 64rem) {
+  .bottom {
+    grid-template-columns: minmax(0, 1fr) 340px;
+    margin-top: 20px;
+  }
+}
+
+.log,
+.system {
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  background: rgb(6 8 9 / 0.66);
+}
+
+.panelHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  padding: 0 12px;
+  border-bottom: 1px solid var(--line);
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--mist);
+  white-space: nowrap;
+}
+
+.panelHeadNote {
+  color: var(--fog);
+  letter-spacing: 0.08em;
+  text-transform: none;
+}
+
+/* Registro: la línea más nueva siempre ocupa la última fila (resaltada). */
+.logView {
+  position: relative;
+  height: 120px;
+  margin: 6px 0 8px;
+  overflow: hidden;
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 45%);
+  mask-image: linear-gradient(180deg, transparent, #000 45%);
+}
+
+.logCursor {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 20px;
+  border-left: 2px solid var(--signal);
+  background: rgb(111 214 176 / 0.07);
+}
+
+.logList {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(100% - 120px);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  transform: translate3d(0, var(--final), 0);
+}
+
+.logLine {
+  display: grid;
+  grid-template-columns: 62px 76px minmax(0, 1fr);
+  align-items: center;
+  height: 20px;
+  padding: 0 12px;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.logTime {
+  color: var(--fog);
+}
+
+.logText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--mist);
+}
+
+.tMist {
+  color: var(--mist);
+}
+
+.tSignal {
+  color: var(--signal);
+}
+
+.tCool {
+  color: var(--cool);
+}
+
+.tGold {
+  color: var(--gold);
+}
+
+@media (max-width: 47.99rem) {
+  .logView {
+    height: 100px;
+    margin: 4px 0 6px;
+  }
+
+  .logLine {
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 25rem) {
+  .logLine {
+    grid-template-columns: 52px 62px minmax(0, 1fr);
+    padding: 0 10px;
+  }
+}
+
+.system {
+  display: none;
+}
+
+@media (min-width: 48rem) {
+  .system {
+    display: flex;
+    flex-direction: column;
+  }
+}
+
+.systemList {
+  display: grid;
+  margin: 0;
+  padding: 6px 12px 0;
+  font-size: 10.5px;
+}
+
+.systemRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px dashed var(--line);
+  white-space: nowrap;
+}
+
+.systemRow dt {
+  color: var(--fog);
+}
+
+.systemRow dd {
+  margin: 0;
+  color: var(--bone);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: auto;
+  padding: 8px 12px 10px;
+  font-size: 10px;
+  color: var(--mist);
+}
+
+.legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend i {
+  display: inline-block;
+}
+
+.legendMsg {
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--signal);
+}
+
+.legendReply {
+  width: 12px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--gold);
+}
+
+.legendCard {
+  width: 12px;
+  height: 9px;
+  border: 1px solid rgb(220 197 154 / 0.6);
+  border-left: 2px solid var(--gold);
+  border-radius: 2px;
+}
+
+/* Mobile: núcleo compacto (sin cabecera ni datos extraídos), tarjeta de dos líneas y registro de cuatro. */
+@media (max-width: 47.99rem) {
+  .core {
+    --card: 60px;
+    --pitch: 72px;
+  }
+
+  .coreHead,
+  .cardMeta,
+  .dataLabel,
+  .dataLine {
+    display: none;
+  }
+
+  .chat {
+    margin: 6px 10px 7px;
+  }
+
+  .mlink {
+    height: 26px;
+  }
+
+  .logView {
+    height: 80px;
+  }
+}
+
+/* Vista estática (sin JS o con movimiento reducido): solo el estado final, sin estados intermedios encimados. */
+@media (prefers-reduced-motion: reduce) {
+  .nodeLit,
+  .scene [data-rm="hide"] {
+    display: none;
+  }
+}
+
+@media (scripting: none) {
+  .nodeLit,
+  .scene [data-rm="hide"] {
+    display: none;
+  }
+}

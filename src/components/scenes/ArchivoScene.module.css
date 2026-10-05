@@ -1,0 +1,1085 @@
+/*
+ * Archivo System: pila 3D de capas, grafo de conocimiento, registro y línea de tiempo.
+ * Solo se animan transform y opacity. Los porcentajes de los keyframes siguen archivo/timeline.ts.
+ */
+
+/* ───────── Pila 3D ───────── */
+.stackBox {
+  position: relative;
+  container: archivo-stack / inline-size;
+  aspect-ratio: 1 / 0.84;
+}
+
+@media (width < 48rem) {
+  .stackBox {
+    aspect-ratio: 1 / 0.8;
+  }
+}
+
+/* Geometría compartida por la pila y el conector (todo en cqw del contenedor). */
+.rig,
+.connector {
+  --P: 55cqw;
+  --g: 15cqw;
+  --ag: 0.25;
+  --cx: 60%;
+  --cy: 48%;
+}
+
+/* Pila angosta (mobile, 1024 con tres columnas): más grande y con más aire entre capas ensambladas. */
+@container archivo-stack (max-width: 460px) {
+  .rig,
+  .connector {
+    --P: 50cqw;
+    --g: 14cqw;
+    --ag: 0.42;
+    --cx: 64.5%;
+    --cy: 50%;
+  }
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  perspective: 260cqw;
+  perspective-origin: 50% 22%;
+}
+
+.tilt {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.rig {
+  --a: calc(var(--g) * var(--ag));
+  /* Celda activa (frente de la pila): el documento, su historia y su colección quedan alineados. */
+  --ax: 7%;
+  --ay: 67.7%;
+  --as: 25.2%;
+  position: absolute;
+  left: var(--cx);
+  top: var(--cy);
+  width: var(--P);
+  height: var(--P);
+  margin: calc(var(--P) / -2) 0 0 calc(var(--P) / -2);
+  transform-style: preserve-3d;
+  transform: rotateX(56deg) rotateZ(-42deg);
+}
+
+.ground {
+  position: absolute;
+  inset: -28%;
+  transform: translate3d(0, 0, calc(var(--g) * -1 - 7cqw));
+  background:
+    radial-gradient(closest-side, rgb(111 214 176 / 0.11), transparent 78%),
+    repeating-linear-gradient(90deg, rgb(226 236 232 / 0.05) 0 1px, transparent 1px 8%),
+    repeating-linear-gradient(0deg, rgb(226 236 232 / 0.05) 0 1px, transparent 1px 8%);
+  -webkit-mask-image: radial-gradient(closest-side, #000 30%, transparent 92%);
+  mask-image: radial-gradient(closest-side, #000 30%, transparent 92%);
+}
+
+.plane {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  border: 1px solid rgb(226 236 232 / 0.2);
+  transform: translate3d(0, 0, calc(var(--g) * var(--dir)));
+}
+
+.planeDoc {
+  --dir: 1;
+  background: rgb(11 15 16 / 0.58);
+  border-color: rgb(226 236 232 / 0.3);
+}
+
+.planeStory {
+  --dir: 0;
+  background:
+    radial-gradient(rgb(111 214 176 / 0.16) 1px, transparent 1.4px) 0 0 / 6cqw 6cqw,
+    rgb(8 15 14 / 0.62);
+  border-color: rgb(111 214 176 / 0.4);
+}
+
+.planeCol {
+  --dir: -1;
+  background: rgb(12 14 14 / 0.66);
+  border-color: rgb(220 197 154 / 0.3);
+}
+
+.planeDoc,
+.planeCol {
+  animation: layer var(--cycle, 14s) linear infinite;
+}
+
+/* Separar (0–10 %), sostener mientras la copia baja, ensamblar (62–71 %). */
+@keyframes layer {
+  0% {
+    transform: translate3d(0, 0, calc(var(--a) * var(--dir)));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  10%,
+  62% {
+    transform: translate3d(0, 0, calc(var(--g) * var(--dir)));
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+  71%,
+  100% {
+    transform: translate3d(0, 0, calc(var(--a) * var(--dir)));
+  }
+}
+
+/* Texto sobre las capas: solo donde mide al menos 10 px; en anchos chicos quedan las barras. */
+.planeText {
+  font-family: var(--font-mono);
+  font-size: max(10px, 2.05cqw);
+  line-height: 1;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-signal);
+}
+
+@container archivo-stack (max-width: 460px) {
+  .planeText {
+    display: none;
+  }
+}
+
+.stackCompact .planeText {
+  display: none;
+}
+
+/* Documentos */
+.docGrid {
+  position: absolute;
+  inset: 7%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6%;
+}
+
+.thumb {
+  position: relative;
+  border: 1px solid rgb(226 236 232 / 0.18);
+}
+
+.thumbText {
+  background:
+    linear-gradient(rgb(226 236 232 / 0.3), rgb(226 236 232 / 0.3)) 18% 20% / 46% 7% no-repeat,
+    repeating-linear-gradient(180deg, rgb(226 236 232 / 0.14) 0 6%, transparent 6% 15%) 18% 44% / 64% 44% no-repeat,
+    rgb(14 18 20 / 0.92);
+}
+
+.thumbPhoto {
+  background:
+    linear-gradient(160deg, rgb(143 184 216 / 0.3), rgb(111 214 176 / 0.08)) 14% 14% / 72% 56% no-repeat,
+    linear-gradient(rgb(226 236 232 / 0.22), rgb(226 236 232 / 0.22)) 14% 84% / 48% 6% no-repeat,
+    rgb(14 18 20 / 0.92);
+}
+
+.thumbAudio {
+  background:
+    repeating-linear-gradient(90deg, rgb(220 197 154 / 0.45) 0 5%, transparent 5% 11%) 16% 50% / 68% 30% no-repeat,
+    linear-gradient(rgb(226 236 232 / 0.22), rgb(226 236 232 / 0.22)) 16% 84% / 40% 6% no-repeat,
+    rgb(14 18 20 / 0.92);
+}
+
+.slot {
+  position: relative;
+  border: 1px dashed rgb(226 236 232 / 0.32);
+}
+
+.docNew {
+  position: absolute;
+  inset: -1px;
+  display: flex;
+  align-items: flex-end;
+  padding: 9%;
+  border: 1px solid var(--color-signal);
+  background:
+    linear-gradient(var(--color-signal), var(--color-signal)) 12% 14% / 40% 7% no-repeat,
+    repeating-linear-gradient(180deg, rgb(111 214 176 / 0.32) 0 6%, transparent 6% 15%) 12% 32% / 72% 32% no-repeat,
+    rgb(14 30 26 / 0.95);
+}
+
+/* Escaneo del documento: dos pasadas al indexar (6–16 %) y una al verificar la copia (74–81 %). */
+.scan {
+  position: absolute;
+  left: var(--ax);
+  top: var(--ay);
+  width: var(--as);
+  height: var(--as);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* El haz es un elemento real: las animaciones en pseudo-elementos no se componen. */
+.scanBeam {
+  position: absolute;
+  display: block;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, rgb(111 214 176 / 0.55) 49%, rgb(226 236 232 / 0.9) 50%, transparent 52%);
+  opacity: 0;
+  transform: translateY(-60%);
+  animation: scan var(--cycle, 14s) linear infinite;
+}
+
+@keyframes scan {
+  0%,
+  5.5% {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+  6.5% {
+    opacity: 1;
+    transform: translateY(-60%);
+    animation-timing-function: ease-in-out;
+  }
+  11% {
+    opacity: 1;
+    transform: translateY(60%);
+    animation-timing-function: ease-in-out;
+  }
+  15.5% {
+    opacity: 1;
+    transform: translateY(-60%);
+  }
+  16.5%,
+  73% {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+  74% {
+    opacity: 1;
+    transform: translateY(-60%);
+    animation-timing-function: ease-in-out;
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(60%);
+  }
+  81%,
+  100% {
+    opacity: 0;
+    transform: translateY(60%);
+  }
+}
+
+/* Rótulos y etiquetas de frente a la cámara: deshacen la rotación de .rig y giran sobre su ancla. */
+.billboard {
+  position: absolute;
+  transform: rotateZ(42deg) rotateX(-56deg);
+}
+
+.billboardLeft {
+  translate: -100% -50%;
+  transform-origin: 100% 50%;
+  padding-right: 2.4cqw;
+}
+
+.billboardUp {
+  translate: 0 -100%;
+  transform-origin: 0 100%;
+}
+
+/* line-height holgado: el billboard recorta lo que sobresale de su caja (acentos incluidos). */
+.layerName {
+  position: relative;
+  display: block;
+  padding-block: 3px;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.3;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-bone);
+}
+
+.layerName b {
+  font-weight: 500;
+  color: var(--color-signal);
+  margin-right: 0.35em;
+}
+
+.layerName::after {
+  content: "";
+  position: absolute;
+  left: calc(100% + 0.6cqw);
+  top: 50%;
+  width: 1.6cqw;
+  height: 1px;
+  background: rgb(226 236 232 / 0.45);
+}
+
+@container archivo-stack (max-width: 460px) {
+  .billboardLeft {
+    padding-right: 1.4cqw;
+  }
+
+  .layerName {
+    font-size: 10px;
+    letter-spacing: 0.06em;
+  }
+
+  .layerName::after {
+    left: calc(100% + 0.3cqw);
+    width: 1.1cqw;
+  }
+}
+
+.tags {
+  position: relative;
+  display: flex;
+  flex-direction: column-reverse;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 14px 0 3.6cqw;
+}
+
+.tagStem {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 1px;
+  height: 3.6cqw;
+  background: linear-gradient(to top, var(--color-signal), rgb(111 214 176 / 0.25));
+}
+
+.tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px 4px 6px;
+  border: 1px solid rgb(111 214 176 / 0.45);
+  border-radius: 2px;
+  background: rgb(6 8 9 / 0.9);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.2;
+  white-space: nowrap;
+  color: var(--color-bone);
+}
+
+.tagPin {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-gold-300);
+}
+
+.tagKey {
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-signal);
+}
+
+/* Pila angosta: las tres etiquetas forman un solo chip "1962 · Oaxaca · Oficios" que crece. */
+@container archivo-stack (max-width: 460px) {
+  .tags {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 0 4cqw;
+  }
+
+  .billboardUp {
+    translate: -50% -100%;
+    transform-origin: 50% 100%;
+  }
+
+  .tagStem {
+    left: 50%;
+    height: 4cqw;
+  }
+
+  .tag {
+    gap: 5px;
+    padding: 4px 6px;
+    border-radius: 0;
+    font-size: 10px;
+  }
+
+  .tag + .tag {
+    margin-left: -1px;
+  }
+
+  .tag + .tag .tagPin {
+    width: 3px;
+    height: 3px;
+    background: var(--color-fog);
+  }
+
+  .tagKey {
+    display: none;
+  }
+}
+
+/* Historia */
+.storyTitle {
+  position: absolute;
+  left: 37%;
+  bottom: 1.6%;
+}
+
+.thread {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: calc(var(--ay) + var(--as) / 2);
+  border-top: 1px dashed rgb(226 236 232 / 0.32);
+}
+
+.storyLit {
+  position: absolute;
+  inset: 0;
+}
+
+.threadLit {
+  position: absolute;
+  left: 7%;
+  right: 7%;
+  top: calc(var(--ay) + var(--as) / 2);
+  height: 2px;
+  margin-top: -1px;
+  background: linear-gradient(90deg, var(--color-signal), rgb(111 214 176 / 0.35));
+}
+
+.storyCard {
+  position: absolute;
+  top: var(--ay);
+  left: calc(7% + var(--i) * 30.4%);
+  width: var(--as);
+  height: var(--as);
+  border: 1px solid rgb(226 236 232 / 0.22);
+  background:
+    linear-gradient(rgb(226 236 232 / 0.2), rgb(226 236 232 / 0.2)) 16% 22% / 52% 8% no-repeat,
+    repeating-linear-gradient(180deg, rgb(226 236 232 / 0.12) 0 7%, transparent 7% 17%) 16% 52% / 66% 36% no-repeat,
+    rgb(11 15 16 / 0.92);
+}
+
+.storyCardLit {
+  position: absolute;
+  top: var(--ay);
+  left: var(--ax);
+  width: var(--as);
+  height: var(--as);
+  border: 1px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.2);
+}
+
+.storyNotes {
+  position: absolute;
+  left: 8%;
+  right: 30%;
+  top: 22%;
+  height: 32%;
+  background: repeating-linear-gradient(180deg, rgb(226 236 232 / 0.13) 0 4%, transparent 4% 13%);
+}
+
+/* Colección */
+.folder {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  border: 1px solid rgb(220 197 154 / 0.22);
+  background:
+    linear-gradient(rgb(220 197 154 / 0.24), rgb(220 197 154 / 0.24)) 10% 50% / 44% 12% no-repeat,
+    rgb(16 17 15 / 0.9);
+}
+
+.folderMain {
+  position: absolute;
+  left: 7%;
+  top: 53%;
+  width: 55%;
+  height: 40%;
+  display: flex;
+  align-items: flex-end;
+  padding: 3% 4%;
+  border: 1px solid rgb(220 197 154 / 0.4);
+  background:
+    repeating-linear-gradient(90deg, rgb(220 197 154 / 0.14) 0 1px, transparent 1px 16%) 0 0 / 100% 58% no-repeat,
+    rgb(20 19 15 / 0.92);
+}
+
+/* Barra que reemplaza al texto C-07 donde este se oculta. */
+.folderMain::after {
+  content: "";
+  display: none;
+  width: 45%;
+  height: 6%;
+  min-height: 2px;
+  background: rgb(220 197 154 / 0.55);
+}
+
+.stackCompact .folderMain::after {
+  display: block;
+}
+
+@container archivo-stack (max-width: 460px) {
+  .folderMain::after {
+    display: block;
+  }
+}
+
+.folderMain .planeText {
+  padding: 0.2em 0.3em;
+  background: rgb(20 19 15);
+  color: var(--color-gold-300);
+}
+
+.folderLit {
+  position: absolute;
+  left: 7%;
+  top: 53%;
+  width: 55%;
+  height: 40%;
+  border: 1.5px solid var(--color-gold-300);
+  background: rgb(220 197 154 / 0.14);
+}
+
+/* Haz vertical que une el documento con sus capas y copia que desciende. */
+.beam {
+  position: absolute;
+  left: calc(var(--ax) + var(--as) / 2);
+  top: calc(var(--ay) + var(--as) / 2);
+  width: 1.5px;
+  height: calc(var(--g) * 2);
+  transform-origin: 0 0;
+  transform: translate3d(0, 0, var(--g)) rotateX(-90deg);
+  background: linear-gradient(180deg, var(--color-signal), rgb(111 214 176 / 0.15));
+  animation: beam var(--cycle, 14s) linear infinite;
+}
+
+@keyframes beam {
+  0% {
+    opacity: 0;
+    transform: translate3d(0, 0, var(--a)) rotateX(-90deg) scaleY(var(--ag));
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  10%,
+  62% {
+    opacity: 1;
+    transform: translate3d(0, 0, var(--g)) rotateX(-90deg) scaleY(1);
+    animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
+  }
+  71%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, var(--a)) rotateX(-90deg) scaleY(var(--ag));
+  }
+}
+
+.drop {
+  position: absolute;
+  left: var(--ax);
+  top: var(--ay);
+  width: var(--as);
+  height: var(--as);
+  border: 1.5px solid var(--color-signal);
+  background:
+    repeating-linear-gradient(180deg, rgb(111 214 176 / 0.5) 0 6%, transparent 6% 15%) 14% 30% / 70% 40% no-repeat,
+    rgb(111 214 176 / 0.24);
+  opacity: 0;
+  animation: drop var(--cycle, 14s) linear infinite;
+}
+
+/* Documento → Historia (27,5–32,5 %) e Historia → Colección (47,5–52,5 %). */
+@keyframes drop {
+  0%,
+  26.5% {
+    opacity: 0;
+    transform: translate3d(0, 0, calc(var(--g) * 0.96));
+  }
+  27.5% {
+    opacity: 1;
+    transform: translate3d(0, 0, calc(var(--g) * 0.96));
+    animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+  }
+  32.5% {
+    opacity: 1;
+    transform: translate3d(0, 0, 1px);
+  }
+  34.5%,
+  46.5% {
+    opacity: 0;
+    transform: translate3d(0, 0, 1px);
+  }
+  47.5% {
+    opacity: 1;
+    transform: translate3d(0, 0, -1px);
+    animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
+  }
+  52.5% {
+    opacity: 1;
+    transform: translate3d(0, 0, calc(var(--g) * -0.96));
+  }
+  54.5%,
+  100% {
+    opacity: 0;
+    transform: translate3d(0, 0, calc(var(--g) * -0.96));
+  }
+}
+
+/* Conector hacia el grafo: sale de la esquina derecha de la capa Historia (solo con columnas). */
+.connector {
+  display: none;
+  position: absolute;
+  left: calc(var(--cx) + var(--P) * 0.72);
+  right: -1.5rem;
+  top: 50%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(226 236 232 / 0.3));
+}
+
+@media (min-width: 64rem) {
+  .connector {
+    display: block;
+  }
+}
+
+@media (min-width: 80rem) {
+  .connector {
+    right: -2rem;
+  }
+}
+
+/* Sello: en el hueco libre de la esquina superior izquierda (pila separada o ensamblada). */
+.stampWrap {
+  position: absolute;
+  left: 5%;
+  top: 6%;
+  transform: rotate(-5deg);
+}
+
+.stamp {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 13px 7px;
+  border: 1.5px solid var(--color-gold-300);
+  border-radius: 3px;
+  outline: 1px solid rgb(220 197 154 / 0.32);
+  outline-offset: 3px;
+  background: rgb(6 8 9 / 0.86);
+  color: var(--color-gold-300);
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.stampTitle {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+}
+
+.stampMeta {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  color: rgb(220 197 154 / 0.78);
+}
+
+@container archivo-stack (max-width: 460px) {
+  .stampWrap {
+    left: 3%;
+    top: 3%;
+  }
+
+  .stamp {
+    gap: 4px;
+    padding: 6px 10px 5px;
+  }
+
+  .stampTitle {
+    font-size: 11px;
+  }
+}
+
+/* Vista previa: la pila llena su columna; el sello va arriba a la derecha, lejos de la leyenda. */
+.stackCompact {
+  aspect-ratio: auto;
+  height: 100%;
+}
+
+.stackCompact .rig {
+  --cx: 50%;
+  --cy: 55%;
+  --P: 56cqw;
+  --g: 14cqw;
+  --ag: 0.25;
+}
+
+.stackCompact .stampWrap {
+  left: auto;
+  right: 0;
+  top: 12%;
+}
+
+/* ───────── Grafo ───────── */
+.graphBox {
+  position: relative;
+  container: archivo-graph / inline-size;
+  width: 100%;
+  aspect-ratio: 480 / 460;
+}
+
+/* En anchos chicos los distintivos D-0418 / H-112 chocarían con los rótulos vecinos. */
+@container archivo-graph (max-width: 420px) {
+  .gBadge {
+    display: none;
+  }
+}
+
+.gLayer {
+  position: absolute;
+  inset: 0;
+}
+
+.gNode {
+  fill: var(--color-ink-900);
+  stroke: rgb(226 236 232 / 0.5);
+  stroke-width: var(--dg-stroke);
+}
+
+.gCore {
+  fill: rgb(226 236 232 / 0.55);
+}
+
+.gNodeLit {
+  fill: rgb(17 38 32);
+  stroke: var(--color-signal);
+  stroke-width: calc(var(--dg-stroke) * 1.3);
+}
+
+.gHalo {
+  fill: none;
+  stroke: rgb(111 214 176 / 0.32);
+  stroke-width: var(--dg-stroke);
+}
+
+.gSub {
+  fill: var(--color-ink-900);
+  stroke: rgb(226 236 232 / 0.42);
+  stroke-width: var(--dg-stroke);
+}
+
+.gSubLit {
+  fill: var(--color-signal);
+}
+
+.gEdgeLit {
+  stroke: var(--color-signal);
+  stroke-width: calc(var(--dg-stroke) * 1.3);
+}
+
+.gEdgeGold {
+  stroke: var(--color-gold-300);
+  stroke-width: calc(var(--dg-stroke) * 1.3);
+}
+
+.gIndex {
+  fill: rgb(220 197 154 / 0.22);
+  stroke: var(--color-gold-300);
+  stroke-width: var(--dg-stroke);
+}
+
+.gIndexLit {
+  fill: var(--color-gold-300);
+  stroke: var(--color-gold-300);
+  stroke-width: var(--dg-stroke);
+}
+
+.gIndexHalo {
+  fill: none;
+  stroke: rgb(220 197 154 / 0.45);
+  stroke-width: var(--dg-stroke);
+}
+
+.gLabel {
+  position: absolute;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  line-height: 1;
+}
+
+.gLabel_above {
+  transform: translate(-50%, calc(-100% - 9px));
+}
+
+.gLabel_below {
+  transform: translate(-50%, 9px);
+}
+
+.gLabel_mainBelow {
+  transform: translate(-50%, 19px);
+}
+
+.gLabel_right {
+  transform: translate(20px, -50%);
+}
+
+.gLabel_index {
+  transform: translate(-8px, 13px);
+}
+
+.gMain,
+.gMainLit {
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+
+.gMainLit {
+  color: var(--color-signal);
+}
+
+.gIndexLabel,
+.gIndexLabelLit {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--color-gold-300);
+}
+
+.gIndexLabelLit {
+  color: var(--color-bone);
+}
+
+.gSubLabel,
+.gSubLabelLit {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-fog);
+}
+
+.gSubLabelLit {
+  color: var(--color-bone);
+}
+
+.gValue {
+  position: absolute;
+  transform: translate(9px, -50%);
+  padding: 2px 4px;
+  border: 1px solid rgb(220 197 154 / 0.4);
+  border-radius: 2px;
+  background: rgb(6 8 9 / 0.9);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1;
+  white-space: nowrap;
+  color: var(--color-gold-300);
+}
+
+.gValueBelow {
+  transform: translate(-50%, 24px);
+}
+
+.gBadge {
+  border-color: rgb(111 214 176 / 0.4);
+  color: var(--color-signal);
+}
+
+.snapshot {
+  --c: rgb(220 197 154 / 0.85);
+  --l: 16px;
+  position: absolute;
+  inset: 0 0 -2% 0;
+  background:
+    linear-gradient(var(--c), var(--c)) left top / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) left top / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) right top / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) right top / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) left bottom / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) left bottom / 1px var(--l),
+    linear-gradient(var(--c), var(--c)) right bottom / var(--l) 1px,
+    linear-gradient(var(--c), var(--c)) right bottom / 1px var(--l);
+  background-repeat: no-repeat;
+}
+
+.snapshotLabel {
+  position: absolute;
+  right: 22px;
+  top: 0;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--color-gold-300);
+}
+
+/* ───────── Línea de tiempo ───────── */
+.track {
+  position: relative;
+  height: 92px;
+}
+
+.axis {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 26px;
+  height: 1px;
+  background: rgb(226 236 232 / 0.28);
+}
+
+.era {
+  position: absolute;
+  top: 26px;
+  width: 1px;
+  height: 7px;
+  margin-top: -3px;
+  background: rgb(226 236 232 / 0.4);
+}
+
+.eraLabel {
+  position: absolute;
+  bottom: 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  color: var(--color-fog);
+  transform: translateX(-50%);
+  white-space: nowrap;
+}
+
+.mark {
+  position: absolute;
+  top: 26px;
+  width: 1px;
+  height: 11px;
+  margin-top: -5px;
+  background: rgb(226 236 232 / 0.32);
+}
+
+.event {
+  position: absolute;
+  top: 26px;
+}
+
+.eventDot {
+  position: absolute;
+  left: -4.5px;
+  top: -4.5px;
+  width: 9px;
+  height: 9px;
+  rotate: 45deg;
+  border: 1px solid var(--color-gold-300);
+  background: rgb(220 197 154 / 0.35);
+}
+
+.eventLabel {
+  position: absolute;
+  bottom: 11px;
+  left: 0;
+  transform: translateX(-50%);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  color: var(--color-gold-300);
+}
+
+.eventLabelEnd {
+  left: 5px;
+  transform: translateX(-100%);
+}
+
+.span {
+  position: absolute;
+  height: 5px;
+}
+
+.spanStory {
+  top: 37px;
+  border: 1px solid var(--color-signal);
+  border-top: 0;
+  background: rgb(111 214 176 / 0.16);
+}
+
+.spanCollection {
+  top: 50px;
+  border: 1px solid rgb(220 197 154 / 0.55);
+  border-top: 0;
+  background: rgb(220 197 154 / 0.1);
+}
+
+.spanLabel {
+  position: absolute;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  line-height: 1;
+}
+
+.spanStory .spanLabel {
+  left: calc(100% + 6px);
+  top: -3px;
+}
+
+.spanCollection .spanLabel {
+  left: -1px;
+  top: 10px;
+}
+
+/* ───────── Vista previa ───────── */
+.preview {
+  container: archivo-preview / size;
+}
+
+.previewLegend {
+  letter-spacing: 0.14em;
+}
+
+@container archivo-preview (max-width: 520px) {
+  .previewLegend {
+    letter-spacing: 0.06em;
+  }
+
+  .stackCompact .stampWrap {
+    top: 16%;
+  }
+
+  .stackCompact .stamp {
+    padding: 4px 8px;
+    outline-offset: 2px;
+  }
+
+  .stackCompact .stampTitle {
+    font-size: 10px;
+    letter-spacing: 0.18em;
+  }
+
+  .stackCompact .stampMeta {
+    display: none;
+  }
+
+  .gMain,
+  .gMainLit,
+  .gIndexLabel,
+  .gIndexLabelLit {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .planeDoc,
+  .planeCol,
+  .beam {
+    animation: none;
+  }
+}

@@ -1,0 +1,472 @@
+/* ───────── Hero: pila del sistema en 3D ───────── */
+.stack {
+  position: relative;
+  height: 400px;
+  perspective: 1700px;
+  perspective-origin: 50% 40%;
+}
+
+.stack__parallax {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.stack__rig {
+  --k: 0.68;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 360px;
+  height: 360px;
+  margin: -180px 0 0 -180px;
+  transform-style: preserve-3d;
+  transform: scale(var(--k)) rotateX(56deg) rotateZ(-42deg);
+}
+
+@media (min-width: 40rem) {
+  .stack {
+    height: 500px;
+  }
+
+  .stack__rig {
+    --k: 0.9;
+  }
+}
+
+@media (min-width: 64rem) {
+  .stack {
+    height: 560px;
+  }
+
+  .stack__rig {
+    --k: 0.92;
+  }
+}
+
+@media (min-width: 80rem) {
+  .stack {
+    height: 600px;
+  }
+
+  .stack__rig {
+    --k: 1.08;
+  }
+}
+
+.stack__shadow {
+  position: absolute;
+  inset: -35%;
+  transform: translateZ(-200px);
+  background: radial-gradient(closest-side, rgb(111 214 176 / 0.13), transparent 75%);
+}
+
+.stack__plane {
+  position: absolute;
+  inset: 0;
+  transform: translateZ(var(--z));
+  border: 1px solid var(--color-line-strong);
+}
+
+.stack__plane--ui {
+  background: rgb(11 15 16 / 0.62);
+  box-shadow: 0 0 0 1px rgb(220 197 154 / 0.08);
+}
+
+.stack__plane--logic {
+  background:
+    radial-gradient(rgb(111 214 176 / 0.16) 1px, transparent 1.4px) 0 0 / 18px 18px,
+    rgb(8 15 14 / 0.78);
+  border-color: rgb(111 214 176 / 0.4);
+}
+
+.stack__plane--data {
+  background: rgb(10 13 14 / 0.6);
+}
+
+.stack__label {
+  position: absolute;
+  left: 14px;
+  top: 10px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+
+.stack__plane--logic .stack__label {
+  color: var(--color-signal);
+}
+
+.stack__stroke {
+  stroke: rgb(226 236 232 / 0.38);
+  stroke-width: 1.2;
+}
+
+.stack__stroke-faint {
+  stroke: rgb(226 236 232 / 0.14);
+  stroke-width: 1;
+}
+
+.stack__fill {
+  fill: rgb(226 236 232 / 0.14);
+}
+
+.stack__fill-signal {
+  fill: rgb(111 214 176 / 0.7);
+}
+
+.stack__line-gold {
+  stroke: var(--color-gold-300);
+  stroke-width: 1.6;
+  stroke-linejoin: round;
+}
+
+.stack__node {
+  fill: var(--color-ink-900);
+  stroke: rgb(226 236 232 / 0.7);
+  stroke-width: 1.2;
+}
+
+.stack__node-ia {
+  fill: rgb(111 214 176 / 0.2);
+  stroke: var(--color-signal);
+  stroke-width: 1.4;
+}
+
+.stack__text {
+  fill: var(--color-mist);
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.12em;
+}
+
+.stack__ia-ring {
+  position: absolute;
+  width: 48px;
+  height: 48px;
+  margin: -24px 0 0 -24px;
+  border-radius: 50%;
+  border: 1px dashed rgb(111 214 176 / 0.7);
+}
+
+.stack__focus {
+  position: absolute;
+  border: 1px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.08);
+  border-radius: 4px;
+}
+
+.stack__cells {
+  position: absolute;
+  inset: 34px 22px 22px;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 7px;
+}
+
+.stack__cell {
+  border: 1px solid rgb(226 236 232 / 0.1);
+  background: rgb(226 236 232 / 0.035);
+}
+
+.stack__cell--lit {
+  border-color: rgb(111 214 176 / 0.6);
+  background: rgb(111 214 176 / 0.32);
+}
+
+.stack__beam {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: 1px;
+  height: 280px;
+  transform-origin: 0 0;
+  transform: translate3d(0, 0, 140px) rotateX(-90deg);
+  background: linear-gradient(180deg, rgb(111 214 176 / 0.65), rgb(111 214 176 / 0.06));
+}
+
+.stack__beam-pulse {
+  position: absolute;
+  left: -2.5px;
+  top: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-signal);
+  opacity: 0;
+  animation: beam-up 3.6s linear infinite;
+  animation-delay: var(--delay);
+}
+
+@keyframes beam-up {
+  0% {
+    opacity: 0;
+    transform: translateY(280px);
+  }
+  10% {
+    opacity: 1;
+  }
+  85% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(0);
+  }
+}
+
+/* Leyenda de capas (solo desktop): anota la pila como un diagrama de arquitectura. */
+.stack__legend {
+  display: none;
+}
+
+@media (min-width: 80rem) {
+  .stack__rig {
+    left: 41%;
+  }
+
+  .stack__legend {
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    display: block;
+    width: 10rem;
+    pointer-events: none;
+  }
+
+  .stack__legend li {
+    position: absolute;
+    right: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+    font-family: var(--font-mono);
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--color-mist);
+  }
+
+  .stack__legend li::before {
+    content: "";
+    position: absolute;
+    right: calc(100% + 10px);
+    top: 0.55em;
+    width: 46px;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--color-line-strong));
+  }
+}
+
+.stack__legend-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--color-fog);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .stack__beam-pulse {
+    display: none;
+  }
+}
+
+/* ───────── Qué hacemos: consola de capacidades ───────── */
+.cap-progress {
+  animation: cap-progress linear forwards;
+}
+
+.cap-list:hover .cap-progress,
+.cap-list:focus-within .cap-progress {
+  animation-play-state: paused;
+}
+
+@keyframes cap-progress {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.cap-scope {
+  scrollbar-width: none;
+}
+
+.cap-scope::-webkit-scrollbar {
+  display: none;
+}
+
+/* ───────── Showcase de proyectos ───────── */
+.showcase__progress {
+  animation: cap-progress linear forwards;
+}
+
+.showcase:hover .showcase__progress,
+.showcase:focus-within .showcase__progress {
+  animation-play-state: paused;
+}
+
+/* ───────── Proceso: el riel se llena con el scroll y enciende cada etapa ───────── */
+.process {
+  position: relative;
+  view-timeline: --process block;
+}
+
+.process__rail {
+  position: absolute;
+  left: 13px;
+  top: 14px;
+  bottom: 0;
+  width: 1px;
+  background: var(--color-line-strong);
+}
+
+.process__fill {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, var(--color-signal), var(--color-gold-300));
+  transform-origin: top;
+}
+
+.process__node {
+  position: absolute;
+  left: 0;
+  top: 2px;
+  display: grid;
+  place-items: center;
+  width: 27px;
+  height: 27px;
+  border-radius: 50%;
+  border: 1px solid rgb(111 214 176 / 0.55);
+  background: var(--color-ink-950);
+}
+
+.process__node-core {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+
+.process__glyph {
+  color: var(--color-signal);
+}
+
+@media (min-width: 64rem) {
+  .process__rail {
+    left: 0;
+    right: 0;
+    top: 13px;
+    bottom: auto;
+    width: auto;
+    height: 1px;
+  }
+
+  .process__fill {
+    background: linear-gradient(90deg, var(--color-signal), var(--color-gold-300));
+    transform-origin: left;
+  }
+
+  .process__node {
+    top: 0;
+  }
+}
+
+/* Con soporte de animaciones ligadas al scroll: el riel se llena y las etapas se encienden en orden. */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .process__fill {
+      animation: process-fill-y linear both;
+      animation-timeline: --process;
+      animation-range: entry 35% cover 62%;
+    }
+
+    .process__stage {
+      animation: process-stage linear both;
+      animation-timeline: --process;
+      animation-range: entry calc(30% + var(--n) * 14%) entry calc(52% + var(--n) * 14%);
+    }
+
+    .process__node-core {
+      animation: process-core linear both;
+      animation-timeline: --process;
+      animation-range: entry calc(38% + var(--n) * 14%) entry calc(52% + var(--n) * 14%);
+    }
+
+    @media (min-width: 64rem) {
+      .process__fill {
+        animation-name: process-fill-x;
+      }
+
+      .process__stage {
+        animation-range: cover calc(18% + var(--n) * 7%) cover calc(30% + var(--n) * 7%);
+      }
+
+      .process__node-core {
+        animation-range: cover calc(22% + var(--n) * 7%) cover calc(30% + var(--n) * 7%);
+      }
+
+      .process__fill {
+        animation-range: cover 18% cover 48%;
+      }
+    }
+  }
+}
+
+@keyframes process-fill-y {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+@keyframes process-fill-x {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+@keyframes process-stage {
+  from {
+    opacity: 0.28;
+  }
+}
+
+@keyframes process-core {
+  from {
+    transform: scale(0);
+  }
+}
+
+/* ───────── Contacto ───────── */
+.contact-cta[data-spotlight]::before {
+  z-index: 0;
+  background: radial-gradient(460px circle at var(--sx) var(--sy), rgb(255 255 255 / 0.3), transparent 60%);
+}
+
+.contact-cta[data-spotlight]::after {
+  display: none;
+}
+
+.contact-cta > * {
+  position: relative;
+  z-index: 1;
+}
+
+.contact-cta__arrow {
+  transition:
+    transform 0.6s var(--ease-out-expo),
+    background-color 0.3s ease,
+    color 0.3s ease;
+}
+
+.contact-cta:hover .contact-cta__arrow {
+  transform: translate(4px, -4px) rotate(45deg);
+  background: var(--color-ink-950);
+  color: var(--color-gold-300);
+}
