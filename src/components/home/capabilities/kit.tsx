@@ -48,7 +48,7 @@ function Rail({ phases }: { phases: Phase[] }) {
         {phases.map((phase, index) => (
           <Step key={phase.label} at={phase.at} fx="fade" min={0.34} className="relative min-w-0 pt-2 pr-2">
             <span className="absolute inset-x-0 -top-px h-px bg-signal" />
-            <span className={`${MICRO} block truncate text-bone`}>
+            <span className="block truncate font-mono text-[10px] leading-none tracking-[0.06em] text-bone uppercase">
               <span className="text-signal">0{index + 1}</span> {phase.label}
             </span>
           </Step>

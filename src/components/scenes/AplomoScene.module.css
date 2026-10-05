@@ -294,7 +294,6 @@
   padding: 2px 6px;
   border: 1px solid var(--color-line);
   background: rgb(6 8 9 / 0.6);
-  transition: opacity 0.3s ease;
 }
 
 .colTag b {
@@ -760,9 +759,9 @@
 }
 
 .preview .stage {
-  --u: min(calc(100cqw / 1180), calc(100cqh / 690));
-  --cx: -6;
-  --cy: 8;
+  --u: min(calc(100cqw / 1236), calc(100cqh / 680));
+  --cx: 22;
+  --cy: 6;
   position: absolute;
   inset: 0;
   height: auto;
@@ -778,8 +777,12 @@
     display: block;
   }
 
+  /* Las clases de este módulo fijan display: aquí se respeta la vista estática global. */
   .ring,
-  .beamPulse {
+  .sweep,
+  .beamPulse,
+  .scene [data-rm="hide"],
+  .scene :global(.motion-only) {
     display: none;
   }
 

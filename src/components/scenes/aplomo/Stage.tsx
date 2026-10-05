@@ -4,6 +4,7 @@ import s from "../AplomoScene.module.css";
 import { GROUND, groundMatrix, iso, mound, PAL, wallMatrix, type Poly, type Pt } from "./iso";
 import {
   B07,
+  BEAM_H,
   COL_W,
   D06,
   COLS,
@@ -198,7 +199,7 @@ export function Stage({ preview = false }: { preview?: boolean }) {
     transform: `translate(${u(GROUND.e)}, ${u(GROUND.f)}) matrix(${[GROUND.a, GROUND.b, GROUND.c, GROUND.d].map((n) => n.toFixed(5)).join(", ")}, 0, 0)`,
   };
   const [bx, by] = iso(B07.x, B07.y, 0);
-  const beamH = 205 * 0.8387;
+  const beamH = BEAM_H;
   const fresh = mound(B07.x - 2, B07.y, 37, 22, 31, PAL.bulkGold, 7 * 1.7);
   const hoverCss = preview
     ? ""
@@ -271,7 +272,7 @@ export function Stage({ preview = false }: { preview?: boolean }) {
           <span className={`${s.ring} motion-only`} style={{ left: u(B07.x - 62), top: u(B07.y - 62), width: u(124), height: u(124) }} />
           <span className={`${s.sweep} motion-only`} style={{ left: u(-80), top: 0, width: u(80), height: u(640), "--sweep": u(1210) } as CSSProperties} />
           {!preview && (
-            <Step as="span" at={[MOMENTS.t02Road, MOMENTS.t02Leave]} fx="pop" className={s.target} style={{ left: u(D06.x - 40), top: u(D06.y - 26), width: u(80), height: u(52) }} />
+            <Step as="span" at={[MOMENTS.t02Road, MOMENTS.t02Leave]} fx="pop" rm="hide" className={s.target} style={{ left: u(D06.x - 40), top: u(D06.y - 26), width: u(80), height: u(52) }} />
           )}
         </div>
 
@@ -389,7 +390,7 @@ function Labels({ preview, prefix, beamTop }: { preview: boolean; prefix: string
           </span>
 
           {/* Chips que viajan con cada camión (misma animación que su camión) */}
-          <div className={`${s.mover} motion-only`} style={{ animation: anim(`${prefix}-t01`) }}>
+          <div className={`${s.mover} motion-only`} style={{ animation: anim(`${prefix}-c01`) }}>
             <div className={s.chipAnchor} style={{ top: u(-30), left: u(-8) }}>
               <Step at={[0.004, MOMENTS.t01Arrive]} fx="up" className={s.chip}>
                 <span className={s.dot} style={{ color: "var(--color-signal)" }} />
@@ -407,7 +408,7 @@ function Labels({ preview, prefix, beamTop }: { preview: boolean; prefix: string
               </Step>
             </div>
           </div>
-          <div className={`${s.mover} motion-only`} style={{ animation: anim(`${prefix}-t02`) }}>
+          <div className={`${s.mover} motion-only`} style={{ animation: anim(`${prefix}-c02`) }}>
             <div className={s.chipAnchor} style={{ top: u(-30), left: u(-8) }}>
               <span className={s.chip} style={{ borderColor: "rgb(143 184 216 / 0.5)" }}>
                 <span className={s.dot} style={{ color: "var(--color-cool)" }} />

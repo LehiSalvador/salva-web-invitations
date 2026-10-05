@@ -109,6 +109,11 @@
   }
 }
 
+/* Ancho según el contenido (etiquetas que no deben recortarse en escenarios estrechos). */
+.at.fit {
+  width: max-content;
+}
+
 .layer {
   position: absolute;
   inset: 0;
@@ -218,10 +223,6 @@
   border: 1px solid rgb(111 214 176 / 0.35);
   border-radius: 5px;
   color: var(--color-signal);
-}
-
-.dim {
-  color: var(--color-fog);
 }
 
 .provider {
@@ -506,7 +507,11 @@
 @media (width < 48rem) {
   .card .op :global(.packet__body) {
     font-size: 10px;
-    padding: 2px 6px 2px 5px;
+    padding: 2px 6px;
+  }
+
+  .card .op :global(.packet__body)::before {
+    display: none;
   }
 }
 
@@ -743,7 +748,8 @@
 
 /* Vista previa: detalles que solo caben cuando la tarjeta es ancha. */
 .pWide,
-.pWideRow {
+.pWideRow,
+.pWideFlex {
   display: none;
 }
 
@@ -754,5 +760,9 @@
 
   .pWideRow {
     display: grid;
+  }
+
+  .pWideFlex {
+    display: flex;
   }
 }

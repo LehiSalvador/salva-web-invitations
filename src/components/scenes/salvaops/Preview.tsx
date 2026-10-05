@@ -39,7 +39,7 @@ const nodes = {
 };
 
 /** Zona del inspector (sobre el canal) y de las lámparas (bajo el canal). */
-const inspect: Box = [230, 94, 160, 34];
+const inspect: Box = [230, 98, 160, 30];
 const lamps: Box = [230, 164, 160, 44];
 
 const port = { a: [152, 99] as Point, b: [152, 183] as Point };
@@ -107,10 +107,10 @@ const lampBox = cx(s.pCap, "flex flex-col justify-between !normal-case !tracking
 
 export function Preview() {
   return (
-    <div className={s.preview} aria-hidden="true">
-      <div data-live data-cycle={CYCLE} className={s.pStage}>
+    <div className={s.preview} aria-hidden="true" data-live data-cycle={CYCLE}>
+      <div className={s.pStage}>
         <Svg>
-          <rect x="6" y="50" width="430" height="180" rx="10" className={s.boundary} />
+          <rect x="6" y="48" width="430" height="180" rx="10" className={s.boundary} />
           {wires.map((d) => (
             <path key={d} d={d} className={s.wire} />
           ))}
@@ -126,7 +126,7 @@ export function Preview() {
         <At b={[440, 10, 180, 26]} className={cap("flex items-center justify-end")}>
           <span className={s.pWide}>broker activo</span>
         </At>
-        <At b={[18, 40, 260, 20]} className="flex items-center">
+        <At b={[18, 37, 260, 20]} className="flex items-center">
           <span className={cx(s.boundaryChip, s.pCap, "h-full")}>
             local-first<span className={s.pWide}> · en tu equipo</span>
           </span>
@@ -168,7 +168,7 @@ export function Preview() {
             <Svg>
               <path d={open[index]} className={index === 0 ? s.laneSignal : s.laneCool} />
             </Svg>
-            <At b={inspect} className={cx(s.pCap, s.cover, "flex items-center gap-[0.6em] !normal-case !tracking-normal")}>
+            <At b={inspect} className={cx(s.pCap, s.cover, s.pWideFlex, "items-center gap-[0.6em] !normal-case !tracking-normal")}>
               <span className={cx(s.mono, "text-gold-300")}>{item.id}</span>
               <span className={index === 0 ? "text-signal" : "text-cool"}>→ IA {index + 1}</span>
             </At>
@@ -182,7 +182,7 @@ export function Preview() {
           <Svg>
             <path d={`M${GATE} ${Y - 11}V${Y + 11}`} className={s.barrier} />
           </Svg>
-          <At b={inspect} className={cx(s.pCap, s.cover, "flex items-center gap-[0.6em] !normal-case !tracking-normal")}>
+          <At b={inspect} className={cx(s.pCap, s.cover, s.pWideFlex, "items-center gap-[0.6em] !normal-case !tracking-normal")}>
             <span className={cx(s.mono, "text-gold-300")}>op-015</span>
             <span className="text-rose">bloqueada</span>
           </At>
@@ -192,12 +192,12 @@ export function Preview() {
           </At>
         </Step>
 
-        <At b={[20, 244, 600, 146]} className={cx(s.pane, "overflow-hidden")}>
+        <At b={[20, 238, 600, 156]} className={cx(s.pane, "overflow-hidden")}>
           <div className="flex items-center justify-between border-b border-line px-[2.5%] py-[1.4%]">
             <span className={cap("text-bone")}>Libro de evidencia</span>
             <span className={cap()}>solo agregar</span>
           </div>
-          <ol className="flex flex-col gap-[0.45em] px-[2.5%] py-[1.8%]">
+          <ol className="flex flex-col gap-[0.4em] px-[2.5%] py-[1.6%]">
             <li className={cx(s.pRow, s.pWideRow, "opacity-50")}>
               <span className={s.chain} />
               <span className="text-gold-400">op-011</span>

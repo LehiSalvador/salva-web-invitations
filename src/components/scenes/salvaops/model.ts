@@ -54,7 +54,7 @@ export const layout = {
   broker: { d: [296, 36, 236, 372] as Box, m: [12, 204, 336, 150] as Box },
   /** Inspector del broker: zona superior (operación) e inferior (ruta y alcance). */
   inspectTop: { d: [308, 80, 212, 118] as Box, m: [22, 232, 126, 114] as Box },
-  inspectLow: { d: [308, 246, 212, 92] as Box, m: [206, 232, 136, 114] as Box },
+  inspectLow: { d: [308, 246, 212, 92] as Box, m: [214, 232, 128, 114] as Box },
   /** Disponibilidad de proveedores (pie del broker, solo desde md). */
   brokerFoot: { d: [308, 344, 212, 54] as Box, m: [0, 0, 0, 0] as Box },
   gate: { d: [548, 36, 136, 372] as Box, m: [12, 366, 336, 88] as Box },
@@ -184,8 +184,10 @@ export const inspectWindow = (op: Op, index: number): [number, number] => {
 };
 
 /** Veredicto de la compuerta (lámparas, carril abierto o barrera). */
-export const verdictWindow = (op: Op): [number, number] =>
-  op.to === "bloqueada" ? [op.gate - 0.004, op.out + 0.01] : [op.gate - 0.004, Number((op.end + 0.006).toFixed(3))];
+export const verdictWindow = (op: Op): [number, number] => [
+  Number((op.gate - 0.004).toFixed(3)),
+  Number((op.to === "bloqueada" ? op.out + 0.01 : op.end + 0.03).toFixed(3)),
+];
 
 /** Proveedor recibiendo la operación. */
 export const receiveWindow = (op: Op): [number, number] => [Number((op.end - 0.004).toFixed(3)), Number(Math.min(op.end + 0.09, 0.985).toFixed(3))];

@@ -298,7 +298,8 @@ function Inspector({ op, index }: { op: Op; index: number }) {
         </p>
         <p className={cx(s.mono, s.fsL, "mt-1.5 font-medium text-gold-300")}>{op.id}</p>
         <p className={cx(s.mono, s.fsS, "mt-1.5 text-mist")}>
-          proyecto {agent.project} · {agent.name}
+          <span className="max-md:hidden">proyecto {agent.project} · </span>
+          {agent.name}
         </p>
         <p className={cx(s.mono, s.fsS, "text-fog")}>tarea · {op.task}</p>
       </At>
@@ -308,7 +309,9 @@ function Inspector({ op, index }: { op: Op; index: number }) {
         <p className={cap("mt-3")}>alcance</p>
         <p className={cx(s.mono, s.fsS, "mt-1", blocked ? "text-rose" : "text-bone")}>{op.scope}</p>
         {blocked ? (
-          <p className={cx(s.mono, s.fsS, "text-rose/80")}>fuera de proyecto {agent.project}</p>
+          <p className={cx(s.mono, s.fsS, "text-rose/80")}>
+            ≠ proyecto {agent.project}
+          </p>
         ) : (
           <p className={cx(s.mono, s.fsS, "hidden text-fog md:block")}>dentro del proyecto</p>
         )}
@@ -414,7 +417,7 @@ export function Stage() {
     <div className={s.stage}>
       <WiresUnder />
 
-      <At d={layout.boundaryChip.d} m={layout.boundaryChip.m} className={cx(s.boundaryChip, cap("text-signal"))}>
+      <At d={layout.boundaryChip.d} m={layout.boundaryChip.m} className={cx(s.boundaryChip, s.fit, cap("text-signal"))}>
         <Laptop />
         local-first · en tu equipo
       </At>

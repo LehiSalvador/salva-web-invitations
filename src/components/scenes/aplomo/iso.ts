@@ -83,7 +83,8 @@ const mix = (p: Palette, k: number) => {
 
 const shadeOf = (n: V3, ambient = 0.16) => ambient + (1 - ambient) * Math.max(0, dot(n, LIGHT));
 
-export type Poly = { pts: string; fill: string; stroke?: string; sw?: number };
+/** facet: faceta sombreada sin borde visible (el trazo del mismo color tapa las juntas). */
+export type Poly = { pts: string; fill: string; stroke?: string; sw?: number; facet?: boolean };
 
 const r1 = (n: number) => Math.round(n * 10) / 10;
 export const ptsOf = (points: Pt[]) => points.map(([x, y]) => `${r1(x)},${r1(y)}`).join(" ");
@@ -121,7 +122,7 @@ export const rect = (x0: number, y0: number, x1: number, y1: number): Pt[] => [
 ];
 
 /** Montículo de material a granel: cono bajo de base elíptica, facetado (low-poly) y sombreado por faceta. */
-export function mound(cx: number, cy: number, rx: number, ry: number, h: number, pal: Palette, seed = 0, sides = 18): Poly[] {
+export function mound(cx: number, cy: number, rx: number, ry: number, h: number, pal: Palette, seed = 0, sides = 14): Poly[] {
   const apex: V3 = [cx + Math.sin(seed * 3.1) * rx * 0.08, cy + Math.cos(seed * 2.3) * ry * 0.08, h];
   const ring: V3[] = Array.from({ length: sides }, (_, index) => {
     const angle = (index / sides) * Math.PI * 2 + seed;
@@ -140,7 +141,7 @@ export function mound(cx: number, cy: number, rx: number, ry: number, h: number,
     if (dot(n, VIEW) <= 0) return;
     const fill = mix(pal, shadeOf(n, 0.12));
     const depth = points.reduce((sum, p) => sum + dot(p, VIEW), 0) / points.length;
-    faces.push({ poly: { pts: ptsOf(points.map(([x, y, z]) => iso(x, y, z))), fill, stroke: fill, sw: 0.6 }, depth });
+    faces.push({ poly: { pts: ptsOf(points.map(([x, y, z]) => iso(x, y, z))), fill, facet: true }, depth });
   };
   for (let index = 0; index < sides; index++) {
     const next = (index + 1) % sides;
@@ -152,7 +153,7 @@ export function mound(cx: number, cy: number, rx: number, ry: number, h: number,
 }
 
 /** Silo: cilindro facetado con techo cónico y anillos de refuerzo en la cara visible. */
-export function silo(cx: number, cy: number, radius: number, h: number, pal: Palette, sides = 22): Poly[] {
+export function silo(cx: number, cy: number, radius: number, h: number, pal: Palette, sides = 18): Poly[] {
   const ring = (z: number, k = 1): V3[] =>
     Array.from({ length: sides }, (_, index) => {
       const angle = (index / sides) * Math.PI * 2;
@@ -169,7 +170,7 @@ export function silo(cx: number, cy: number, radius: number, h: number, pal: Pal
     if (dot(n, VIEW) <= 0) continue;
     visible.push(index);
     const fill = mix(pal, shadeOf(n, 0.14));
-    faces.push({ pts: ptsOf([base[index], base[next], top[next], top[index]].map(([x, y, z]) => iso(x, y, z))), fill, stroke: fill, sw: 0.6 });
+    faces.push({ pts: ptsOf([base[index], base[next], top[next], top[index]].map(([x, y, z]) => iso(x, y, z))), fill, facet: true });
   }
   const apex: V3 = [cx, cy, h + radius * 0.42];
   for (let index = 0; index < sides; index++) {
@@ -178,7 +179,7 @@ export function silo(cx: number, cy: number, radius: number, h: number, pal: Pal
     if (n[2] < 0) n = [-n[0], -n[1], -n[2]];
     if (dot(n, VIEW) <= 0) continue;
     const fill = mix(pal, shadeOf(n, 0.2) * 1.08);
-    faces.push({ pts: ptsOf([top[index], top[next], apex].map(([x, y, z]) => iso(x, y, z))), fill, stroke: fill, sw: 0.6 });
+    faces.push({ pts: ptsOf([top[index], top[next], apex].map(([x, y, z]) => iso(x, y, z))), fill, facet: true });
   }
   // Anillos de refuerzo sobre la cara visible (el arco visible puede cruzar el índice 0).
   const gap = visible.findIndex((value, index) => index > 0 && value - visible[index - 1] > 1);

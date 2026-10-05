@@ -223,19 +223,21 @@ function volume(polys: Poly[], box: Volume["box"]): Volume {
 }
 
 /** Pila de bloques con líneas de capa en las caras visibles. */
-function stack(x0: number, y0: number, x1: number, y1: number, layers: number, layerH: number, pal: Palette): Volume | null {
+type Detail = "full" | "lite";
+
+function stack(x0: number, y0: number, x1: number, y1: number, layers: number, layerH: number, pal: Palette, lines = true): Volume | null {
   if (!layers) return null;
   const top = layers * layerH;
   const polys = prism(rect(x0, y0, x1, y1), 0, top, pal);
-  for (let layer = 1; layer < layers; layer++) {
+  for (let layer = 1; lines && layer < layers; layer++) {
     const z = layer * layerH;
     polys.push({ pts: ptsOf([iso(x0, y0, z), iso(x0, y1, z), iso(x1, y1, z)]), fill: "none", stroke: "rgb(6 8 9 / 0.55)", sw: 0.8 });
   }
   return volume(polys, [x0, y0, x1, y1]);
 }
 
-function pile(cx: number, cy: number, rx: number, ry: number, h: number, pal: Palette, seed: number): Volume {
-  const polys: Poly[] = [{ pts: ptsOf(groundShadow(cx, cy, rx * 1.02, ry * 1.02, h * 0.35)), fill: "rgb(0 0 0 / 0.32)" }, ...mound(cx, cy, rx, ry, h, pal, seed)];
+function pile(cx: number, cy: number, rx: number, ry: number, h: number, pal: Palette, seed: number, sides = 14): Volume {
+  const polys: Poly[] = [{ pts: ptsOf(groundShadow(cx, cy, rx * 1.02, ry * 1.02, h * 0.35)), fill: "rgb(0 0 0 / 0.32)" }, ...mound(cx, cy, rx, ry, h, pal, seed, sides)];
   return volume(polys, [cx - rx, cy - ry, cx + rx, cy + ry]);
 }
 
@@ -254,8 +256,10 @@ function parked(x: number, y: number, heading: Heading, loaded: boolean, pal: Pa
   return volume(polys, [x - 22, y - 9, x + 22, y + 9]);
 }
 
-function buildVolumes(): Volume[] {
+function buildVolumes(detail: Detail): Volume[] {
   const out: (Volume | null)[] = [];
+  const lite = detail === "lite";
+  const sides = lite ? 10 : 14;
 
   // Zona A · bloques (dos pilas por ubicación; la fila 07 queda baja para no tapar a T-01).
   const aLayers = [
@@ -270,8 +274,8 @@ function buildVolumes(): Volume[] {
   ];
   aLayers.forEach(([west, east], index) => {
     const y = rowY(index + 1);
-    out.push(stack(56, y + 8, 97, y + 57, west, 11, PAL.block));
-    out.push(stack(101, y + 8, 142, y + 57, east, 11, PAL.block));
+    out.push(stack(56, y + 8, 97, y + 57, west, 11, PAL.block, !lite));
+    out.push(stack(101, y + 8, 142, y + 57, east, 11, PAL.block, !lite));
   });
 
   // Zona B · granel en bahías con muros bajos; B-07 es la ubicación destacada.
@@ -285,7 +289,7 @@ function buildVolumes(): Volume[] {
   bHeights.forEach((h, index) => {
     if (!h) return;
     const row = index + 1;
-    out.push(pile((bx0 + bx1) / 2 - 2, rowMid(row), 36, 21, h, row === 7 ? PAL.bulkGold : PAL.bulk, row * 1.7));
+    out.push(pile((bx0 + bx1) / 2 - 2, rowMid(row), 36, 21, h, row === 7 ? PAL.bulkGold : PAL.bulk, row * 1.7, sides));
   });
 
   // Zona C · perfiles (atados largos, tono frío).
@@ -302,31 +306,31 @@ function buildVolumes(): Volume[] {
   ];
   cLayers.forEach(([north, south], index) => {
     const y = rowY(index + 1);
-    out.push(stack(cx0 + 4, y + 9, cx1 - 4, y + 29, north, 8, PAL.bundle));
-    out.push(stack(cx0 + 4, y + 36, cx1 - 4, y + 56, south, 8, PAL.bundle));
+    out.push(stack(cx0 + 4, y + 9, cx1 - 4, y + 29, north, 8, PAL.bundle, !lite));
+    out.push(stack(cx0 + 4, y + 36, cx1 - 4, y + 56, south, 8, PAL.bundle, !lite));
   });
 
   // Zona D · granel en pilas grandes que abarcan dos filas.
   const [dx0, dx1] = STORE(3);
   [44, 34, 52, 30].forEach((h, index) => {
-    out.push(pile((dx0 + dx1) / 2, rowY(index * 2 + 1) + ROW_H, 44, 54, h, PAL.bulk, index * 2.3 + 0.6));
+    out.push(pile((dx0 + dx1) / 2, rowY(index * 2 + 1) + ROW_H, 44, 54, h, PAL.bulk, index * 2.3 + 0.6, sides));
   });
 
   // Zona E · tarimas.
   const [ex0, ex1] = STORE(4);
   [26, 34, 0, 26, 34, 18, 0, 26].forEach((h, index) => {
     const y = rowY(index + 1);
-    out.push(stack(ex0 + 4, y + 6, ex1 - 4, y + 59, h ? Math.round(h / 9) : 0, 9, PAL.crate));
+    out.push(stack(ex0 + 4, y + 6, ex1 - 4, y + 59, h ? Math.round(h / 9) : 0, 9, PAL.crate, !lite));
   });
 
   // Zona F · silos de granel (abarcan dos filas cada uno).
   const [fx0, fx1] = STORE(5);
   [96, 108, 84].forEach((h, index) => {
     const cy = rowY(index * 2 + 1) + ROW_H;
-    const polys = silo((fx0 + fx1) / 2, cy, 36, h, PAL.concrete);
+    const polys = silo((fx0 + fx1) / 2, cy, 36, h, PAL.concrete, lite ? 12 : 18);
     out.push(volume(polys, [(fx0 + fx1) / 2 - 36, cy - 36, (fx0 + fx1) / 2 + 36, cy + 36]));
   });
-  out.push(stack(fx0 + 6, rowY(7) + 10, fx1 - 6, rowY(7) + 54, 2, 9, PAL.crate));
+  out.push(stack(fx0 + 6, rowY(7) + 10, fx1 - 6, rowY(7) + 54, 2, 9, PAL.crate, !lite));
 
   // G · maniobras: dos unidades estacionadas.
   out.push(parked(GATE_IN.lane + 4, rowMid(2), "W", false, PAL.cabCool));
@@ -376,11 +380,12 @@ function classify(volumes: Volume[]) {
   return { front, back };
 }
 
-export const VOLUMES = classify(buildVolumes());
+export const VOLUMES = classify(buildVolumes("full"));
+export const VOLUMES_LITE = classify(buildVolumes("lite"));
 
 /* ───────── Cerca perimetral ───────── */
 
-function fenceRun(from: Pt, to: Pt, gaps: [number, number][] = []): Poly[] {
+function fenceRun(from: Pt, to: Pt, gaps: [number, number][] = [], step = 50): Poly[] {
   const polys: Poly[] = [];
   const length = Math.hypot(to[0] - from[0], to[1] - from[1]);
   const unit: Pt = [(to[0] - from[0]) / length, (to[1] - from[1]) / length];
@@ -393,7 +398,7 @@ function fenceRun(from: Pt, to: Pt, gaps: [number, number][] = []): Poly[] {
     for (const z of [7, 16]) polys.push({ pts: ptsOf([iso(...at(a), z), iso(...at(b), z)]), fill: "none", stroke: "rgb(238 235 228 / 0.34)", sw: 0.9 });
     polys.push({ pts: ptsOf([iso(...at(a), 0), iso(...at(b), 0)]), fill: "none", stroke: "rgb(238 235 228 / 0.2)", sw: 0.8 });
   }
-  for (let s = 0; s <= length + 0.1; s += 35) {
+  for (let s = 0; s <= length + 0.1; s += step) {
     if (inGap(s)) continue;
     polys.push({ pts: ptsOf([iso(...at(s), 0), iso(...at(s), 17)]), fill: "none", stroke: "rgb(238 235 228 / 0.42)", sw: 1 });
   }
@@ -466,6 +471,36 @@ function truckFrames(plan: TruckPlan): [number, Props][] {
     [plan.vanish, { opacity: "0" }],
     [1, { transform: move(last), opacity: "0" }],
   ];
+}
+
+/** Cabeza del haz de B-07 (etiqueta fija) en pantalla: los chips móviles se ocultan al cruzarla. */
+export const BEAM_H = 205 * 0.8387;
+const [beamX, beamY] = iso(B07.x, B07.y, 0);
+const PIN_ZONE: [number, number, number, number] = [beamX - 62, beamY - BEAM_H - 112, beamX + 62, beamY - BEAM_H - 4];
+
+/** Igual que el camión, pero el chip se desvanece mientras su caja se encimaría con la etiqueta de B-07. */
+function chipFrames(plan: TruckPlan, width: number): [number, Props][] {
+  const frames = truckFrames(plan);
+  const samples = samplesOf(plan);
+  const hidden = (t: number) => {
+    const index = samples.findIndex((item) => item.t >= t);
+    if (index <= 0) return false;
+    const a = samples[index - 1];
+    const b = samples[index];
+    const k = b.t === a.t ? 0 : (t - a.t) / (b.t - a.t);
+    const [sx, sy] = iso(a.p[0] + (b.p[0] - a.p[0]) * k, a.p[1] + (b.p[1] - a.p[1]) * k, 0);
+    const [l, top, r, bottom] = PIN_ZONE;
+    return sx - 8 > l && sx - 8 - width < r && sy - 30 > top && sy - 66 < bottom;
+  };
+  let previous = false;
+  for (let t = plan.appear; t <= plan.vanish; t += 0.0015) {
+    const now = hidden(t);
+    if (now !== previous) {
+      frames.push([t - 0.006, { opacity: now ? "1" : "0" }], [t, { opacity: now ? "0" : "1" }]);
+      previous = now;
+    }
+  }
+  return frames;
 }
 
 function stripFrames(plan: TruckPlan, strip: Strip): [number, Props][] {
@@ -551,6 +586,8 @@ export function sceneKeyframes(prefix: string) {
   return [
     keyframes(`${prefix}-t01`, truckFrames(T01)),
     keyframes(`${prefix}-t02`, truckFrames(T02)),
+    keyframes(`${prefix}-c01`, chipFrames(T01, 190)),
+    keyframes(`${prefix}-c02`, chipFrames(T02, 90)),
     keyframes(`${prefix}-s01`, stripFrames(T01, STRIPS.T01)),
     keyframes(`${prefix}-s02`, stripFrames(T02, STRIPS.T02)),
     keyframes(`${prefix}-road`, trailFrames(([x]) => (GATE_IN.lane - x) / (GATE_IN.lane - GATE_OUT.lane), "X")),

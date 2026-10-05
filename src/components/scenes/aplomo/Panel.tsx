@@ -33,7 +33,7 @@ export function Panel() {
       <section className={s.block}>
         <header className="label flex items-center justify-between gap-3 text-fog">
           <span className="flex items-center gap-2 text-mist">
-            <span className="live-dot" />
+            <span className="size-1.5 rounded-full bg-signal" />
             Eventos del patio
           </span>
           <span>Patio 01</span>

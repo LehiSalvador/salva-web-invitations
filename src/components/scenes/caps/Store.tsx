@@ -123,7 +123,7 @@ function Product() {
           <i className={styles.viewDot} /> Vista 360°
         </span>
         <span className={`${styles.viewHint} hidden sm:flex`}>
-          <span aria-hidden="true">↻</span> Arrastra para girar
+          <span aria-hidden="true">↻</span> Modelo 3D · giro automático
         </span>
       </div>
       <div className={`${styles.box} ${styles.productName}`} style={box(L.name)}>
@@ -142,6 +142,9 @@ function Product() {
           style={box(L.colorDot(index), { "--cap": product.color } as CSSProperties)}
         />
       ))}
+      <Step at={[T.color - 0.008, T.colorOut + 0.012]} fx="up" rm="hide" className={`${styles.box} ${styles.tip}`} style={box(L.colorTip)}>
+        {target.name}
+      </Step>
       <div className={`${styles.box} ${styles.tl} text-fog`} style={box(L.tallaLabel)}>
         Talla
       </div>
@@ -219,7 +222,7 @@ function Drawer() {
       <div className={`${styles.box} ${styles.button} ${styles.buttonLight}`} style={box(D.confirm)}>
         Confirmar pedido
       </div>
-      <Step at={[T.confirmed, T.out]} fx="scale" className={`${styles.box} ${styles.button} ${styles.buttonOk}`} style={box(D.confirm)}>
+      <Step at={[T.confirmed, T.out + 0.03]} fx="scale" className={`${styles.box} ${styles.button} ${styles.buttonOk}`} style={box(D.confirm)}>
         <Icon name="check" /> Pedido confirmado
       </Step>
       <div className={`${styles.box} ${styles.receiptClip}`} style={box(D.receipt)}>

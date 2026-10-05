@@ -112,7 +112,7 @@ function Desktop() {
           </span>
         </Step>
         <Step at={[0.76, 0.94]} fx="up" className={`${MICRO} absolute inset-y-0 left-2.5 flex items-center gap-1.5 text-signal`}>
-          <Check /> sincronizado en todos los dispositivos
+          <Check /> sincronizado en cada dispositivo
         </Step>
       </div>
     </div>

@@ -218,14 +218,16 @@ export function MotionObserver() {
         const element = entry.target as HTMLElement;
         const previous = running.get(element);
         const width = Math.round(entry.contentRect.width);
-        if (!previous || widths.get(element) === width) continue;
+        // Ancho 0 (oculto o en transición): se conservan las animaciones actuales.
+        if (!previous || !width || widths.get(element) === width) continue;
         widths.set(element, width);
         const paused = !element.hasAttribute("data-inview");
-        const times = previous.map((animation) => animation.currentTime);
+        // Todas las animaciones de un bloque nacen juntas y se pausan juntas: comparten el mismo tiempo.
+        const time = previous.find((animation) => animation.currentTime !== null)?.currentTime ?? 0;
         previous.forEach((animation) => animation.cancel());
         const next = build(element);
-        next.forEach((animation, index) => {
-          animation.currentTime = times[index] ?? 0;
+        next.forEach((animation) => {
+          animation.currentTime = time;
           if (paused) animation.pause();
         });
         running.set(element, next);

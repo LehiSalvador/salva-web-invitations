@@ -92,6 +92,7 @@ export const L = {
   desc: { w: [55, 28.5, 38, 10], m: [4, 57, 92, 5] },
   colorLabel: { w: [55, 40.5, 30, 4], m: [4, 60, 40, 4] },
   colorDot: (index: number): Pair => ({ w: [55 + index * 4.4, 45.5, 3.1, 5.22], m: [4 + index * 9, 64.5, 6.4, 4.8] }),
+  colorTip: { w: [70.15, 39.4, 8, 4.6], m: [35.2, 59.2, 16, 4.4] },
   tallaLabel: { w: [55, 55, 30, 4], m: [4, 70, 40, 4] },
   talla: (index: number): Pair => ({ w: [55 + index * 10.5, 60, 9.5, 9], m: [4 + index * 21.5, 74.5, 19.5, 7.5] }),
   add: { w: [55, 73.5, 42, 10], m: [4, 84.5, 92, 10] },
@@ -286,8 +287,8 @@ function drawerFrames(): Frame[] {
     [0, hidden],
     [T.drawer, hidden, OUT],
     [T.drawer + 0.04, "transform:translate3d(0,0,0)"],
-    [T.out - 0.004, "transform:translate3d(0,0,0)", "cubic-bezier(.7,0,.84,0)"],
-    [T.out + 0.024, hidden],
+    [T.out - 0.036, "transform:translate3d(0,0,0)", "cubic-bezier(.6,0,.8,.2)"],
+    [T.out - 0.002, hidden],
     [1, hidden],
   ];
 }
@@ -303,7 +304,8 @@ function printFrames(): Frame[] {
     const start = T.print + ((index - 1) / (feed.length - 1)) * span;
     frames.push([start, y(feed[index - 1]), "cubic-bezier(.3,0,.2,1)"], [start + (span / (feed.length - 1)) * 0.55, y(value)]);
   });
-  frames.push([T.out, `${y(0)};opacity:1`, "ease-in"], [T.out + 0.02, `${y(0)};opacity:0`], [T.out + 0.024, `${y(101)};opacity:0`], [1, `${y(101)};opacity:1`]);
+  // Se queda impreso mientras el cajón sale; se reinicia ya fuera de cuadro.
+  frames.push([T.out + 0.01, `${y(0)};opacity:1`], [T.out + 0.012, `${y(101)};opacity:1`], [1, `${y(101)};opacity:1`]);
   return frames;
 }
 

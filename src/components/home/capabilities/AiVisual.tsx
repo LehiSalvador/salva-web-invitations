@@ -47,7 +47,7 @@ function Message() {
         <span className={`${MICRO} text-fog`}>mensaje</span>
         <span className={`${MICRO} flex items-center gap-2.5 text-mist`}>
           <span className="live-dot" />
-          <span className="hidden @lg:inline">canal web</span>
+          <span className="hidden @2xl:inline">canal web</span>
         </span>
       </div>
       <p className="px-2 py-2 text-[10.5px] leading-[1.6] text-mist @lg:px-3 @lg:py-3 @lg:text-[12.5px]">
@@ -64,7 +64,7 @@ function Message() {
         </Fragment>
         ? Gracias.
       </p>
-      <span className="mt-auto hidden border-t border-line px-3 py-2 font-mono text-[10px] leading-none text-fog @lg:block">msg-219 · sin clasificar</span>
+      <span className="mt-auto hidden truncate border-t border-line px-3 py-2 font-mono text-[10px] leading-none text-fog @lg:block">msg-219 · por clasificar</span>
     </Step>
   );
 }
@@ -155,7 +155,7 @@ function Outputs() {
       </div>
 
       <Step at={[0.8, 0.94]} fx="up" className={`${MICRO} absolute bottom-0 left-0 hidden items-center gap-1.5 text-gold-300 @lg:flex`}>
-        <span className="size-[6px] rounded-full bg-gold-300" /> respuesta sugerida lista
+        <span className="size-[6px] rounded-full bg-gold-300" /> respuesta lista
       </Step>
     </div>
   );

@@ -41,13 +41,13 @@ function Requirements() {
           key={item.need}
           at={[0.02 + index * 0.03, 0.94]}
           fx="left"
-          className={`${PANEL} absolute left-0 flex w-[32%] flex-col justify-center gap-1 overflow-hidden px-2 @lg:px-2.5`}
+          className={`${PANEL} absolute left-0 flex w-[32%] flex-col justify-center gap-1 overflow-hidden pr-6 pl-2 @lg:pr-7 @lg:pl-2.5`}
           style={{ top: `${CARD_Y[index] - 10.5}%`, height: "21%" }}
         >
           <span className="flex items-center gap-1.5">
             <span className="font-mono text-[10px] leading-none text-gold-300">R{index + 1}</span>
-            <span className="truncate text-[10.5px] leading-tight text-bone @lg:hidden">{item.short}</span>
-            <span className="hidden truncate text-[12px] leading-tight text-bone @lg:inline">{item.need}</span>
+            <span className="truncate text-[10.5px] leading-tight text-bone @lg:text-[11.5px] @2xl:hidden">{item.short}</span>
+            <span className="hidden truncate text-[12px] leading-tight text-bone @2xl:inline">{item.need}</span>
           </span>
           <span className="hidden font-mono text-[10px] leading-none text-fog @lg:block">requerimiento</span>
           <Step at={[DEPART(index), 0.94]} fx="fade" className="absolute inset-0 flex items-center justify-end bg-ink-900/55 pr-2 text-signal @lg:pr-2.5">
@@ -70,8 +70,8 @@ export function CustomVisual() {
     <Scene
       cycle={11500}
       phases={[
-        { label: "diagnóstico", at: [0, 0.18] },
-        { label: "diseño", at: [0.18, 0.42] },
+        { label: "diagnóstico", at: [0, 0.2] },
+        { label: "diseño", at: [0.2, 0.42] },
         { label: "implementación", at: [0.42, 0.7] },
         { label: "a medida", at: [0.7, 0.94] },
       ]}
