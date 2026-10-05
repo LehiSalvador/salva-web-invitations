@@ -213,7 +213,7 @@ function rippleFrames(): Frame[] {
 /** Ticker vertical: muestra la línea `index` de `count` (translateY en % del propio bloque). */
 const line = (index: number, count: number) => `transform:translate3d(0,${-((100 / count) * index).toFixed(3)}%,0)`;
 
-function tickerFrames(changes: number[], count: number, resetAt = T.out): Frame[] {
+function tickerFrames(changes: readonly number[], count: number, resetAt: number = T.out): Frame[] {
   const frames: Frame[] = [[0, `${line(0, count)};opacity:1`]];
   changes.forEach((time, index) => {
     frames.push([time, `${line(index, count)};opacity:1`, OUT], [time + 0.014, `${line(index + 1, count)};opacity:1`]);

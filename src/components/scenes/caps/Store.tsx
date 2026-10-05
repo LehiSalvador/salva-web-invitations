@@ -130,7 +130,7 @@ function Product() {
         Gorra {target.id} <span className="text-mist">· {target.name}</span>
       </div>
       <p className={`${styles.box} ${styles.desc} hidden sm:block`} style={box(L.desc)}>
-        Corona estructurada de seis paneles, visera curva y ajuste trasero.
+        Corona estructurada por paneles, visera curva y cierre trasero.
       </p>
       <div className={`${styles.box} ${styles.tl} text-fog`} style={box(L.colorLabel)}>
         Color · <span className="text-mist">{target.name}</span>

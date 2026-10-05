@@ -40,8 +40,8 @@
   .stage {
     --u: calc(100cqw / 700);
     --cx: -190;
-    --cy: 40;
-    height: calc(var(--u) * 660);
+    --cy: 66;
+    height: calc(var(--u) * 630);
   }
 }
 
