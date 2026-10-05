@@ -8,7 +8,7 @@ import s from "@/components/scenes/CareertracklyScene.module.css";
 
 /*
  * Careertrackly · constructor de portfolio.
- * Un lienzo con dos sistemas de coordenadas: ancho (1000×520, tablet y desktop) y alto (400×880, mobile).
+ * Un lienzo con dos sistemas de coordenadas: ancho (1000×520, tablet y desktop) y alto (400×780, mobile).
  * Cada pieza lleva sus dos posiciones como variables CSS y una container query elige cuál usar;
  * las medidas van en --u (una unidad del lienzo), así todo escala como un SVG pero sigue siendo HTML
  * y puede vivir en 3D. Los paquetes tienen una capa por sistema de coordenadas.
@@ -20,7 +20,7 @@ import s from "@/components/scenes/CareertracklyScene.module.css";
 const CYCLE = 16000;
 const END = 0.94;
 const WIDE: [number, number] = [1000, 520];
-const TALL: [number, number] = [400, 880];
+const TALL: [number, number] = [400, 780];
 
 /** Fracciones del ciclo. */
 const T = {
@@ -34,6 +34,8 @@ const T = {
   sections: 0.565,
   projectsFlow: [0.55, 0.615] as [number, number],
   thumbs: 0.605,
+  /** Resaltado del origen mientras los datos viajan al portfolio. */
+  origin: [0.5, 0.62] as [number, number],
   stamp: 0.67,
   floor: 0.71,
   /** El portfolio termina de bajar a su celda de Descubrir. */
@@ -72,20 +74,20 @@ const W = {
 };
 
 const M = {
-  nodeY: [176, 306, 436],
+  nodeY: [150, 262, 374],
   trackX: 30,
-  trackY: [150, 560] as const,
+  trackY: [128, 486] as const,
   cardX: 46,
   cardW: 334,
-  cardH: 88,
+  cardH: 80,
   tileX: [20, 143, 266],
-  tileY: 40,
+  tileY: 34,
   tileW: 114,
-  tileH: 60,
+  tileH: 58,
 };
 
 const nodeX = W.cardX.map((x) => x + W.cardW / 2);
-const tallCardY = M.nodeY.map((y) => y + 18);
+const tallCardY = M.nodeY.map((y) => y + 16);
 
 /** Centro de la ranura de evidencia dentro de una tarjeta (esquina superior derecha). */
 const SLOT = { pad: 10, size: 20, gap: 4 };
@@ -120,16 +122,27 @@ const files: Record<Evidence, { name: string; id: string }> = {
   repo: { name: "Repositorio", id: "EV-03" },
 };
 
-const log: { at: number; tone: "signal" | "bone" | "cool" | "gold"; event: string; detail: string }[] = [
-  { at: 0.03, tone: "signal", event: "Etapa añadida", detail: "Etapa 01 · Formación" },
-  { at: 0.08, tone: "signal", event: "Etapa añadida", detail: "Etapa 02 · Proyecto" },
-  { at: 0.13, tone: "signal", event: "Etapa añadida", detail: "Etapa 03 · Rol actual" },
-  { at: 0.19, tone: "bone", event: "Proyecto vinculado", detail: "P-01 → Etapa 01" },
-  { at: 0.24, tone: "bone", event: "Proyecto vinculado", detail: "P-02 → Etapa 02" },
-  { at: 0.29, tone: "bone", event: "Proyecto vinculado", detail: "P-03 → Etapa 03" },
-  { at: 0.39, tone: "cool", event: "Evidencia adjunta", detail: "Imagen → P-01" },
-  { at: 0.44, tone: "cool", event: "Evidencia adjunta", detail: "Repositorio → P-02" },
-  { at: 0.49, tone: "cool", event: "Evidencia adjunta", detail: "Documento → P-03" },
+/*
+ * Registro completo (12 eventos) en la columna lateral de desktop amplio. En los demás tamaños se
+ * agrupa en 6: los eventos con `compact: "hide"` se ocultan y el último de cada grupo muestra el resumen.
+ */
+type LogEntry = {
+  at: number;
+  tone: "signal" | "bone" | "cool" | "gold";
+  event: string;
+  detail: string;
+  compact?: "hide" | [event: string, detail: string];
+};
+const log: LogEntry[] = [
+  { at: 0.03, tone: "signal", event: "Etapa añadida", detail: "Etapa 01 · Formación", compact: "hide" },
+  { at: 0.08, tone: "signal", event: "Etapa añadida", detail: "Etapa 02 · Proyecto", compact: "hide" },
+  { at: 0.13, tone: "signal", event: "Etapa añadida", detail: "Etapa 03 · Rol actual", compact: ["Etapas añadidas", "Formación · Proyecto · Rol actual"] },
+  { at: 0.19, tone: "bone", event: "Proyecto vinculado", detail: "P-01 → Etapa 01", compact: "hide" },
+  { at: 0.24, tone: "bone", event: "Proyecto vinculado", detail: "P-02 → Etapa 02", compact: "hide" },
+  { at: 0.29, tone: "bone", event: "Proyecto vinculado", detail: "P-03 → Etapa 03", compact: ["Proyectos vinculados", "P-01 · P-02 · P-03 → etapas"] },
+  { at: 0.39, tone: "cool", event: "Evidencia adjunta", detail: "Imagen → P-01", compact: "hide" },
+  { at: 0.44, tone: "cool", event: "Evidencia adjunta", detail: "Repositorio → P-02", compact: "hide" },
+  { at: 0.49, tone: "cool", event: "Evidencia adjunta", detail: "Documento → P-03", compact: ["Evidencia adjunta", "Imagen · repositorio · documento"] },
   { at: 0.63, tone: "gold", event: "Portfolio ensamblado", detail: "Etapas, proyectos y evidencia" },
   { at: 0.67, tone: "gold", event: "Portfolio publicado", detail: "Visibilidad pública" },
   { at: 0.8, tone: "signal", event: "Visible en Descubrir", detail: "Junto a otros perfiles publicados" },
@@ -154,27 +167,41 @@ function evidenceRoute(layout: "wide" | "tall", index: number): Point[] {
     const to = slotCenter(W.cardX[index], W.cardY, W.cardW, kind);
     return cubic(from, [from[0], from[1] + 58], [to[0], to[1] - 52], to, 14);
   }
-  // Mobile: pasillos libres (entre etiquetas y por el margen derecho) para no cruzar texto.
+  // Mobile: pasillos libres (bajo la bandeja y por el margen derecho) para no cruzar texto.
   const to = slotCenter(M.cardX, tallCardY[index], M.cardW, kind);
-  if (index === 0) return [...cubic(from, [194, 92], [190, 112], [190, 140], 6), ...cubic([190, 140], [196, 188], [to[0], 168], to, 10).slice(1)];
+  if (index === 0) return cubic(from, [from[0], 104], [to[0], 92], to, 12);
   if (index === 1) return cubic(from, [394, from[1] + 40], [394, to[1] - 60], to, 14);
   return [
-    ...cubic(from, [from[0], 98], [100, 106], [140, 106], 6),
-    [360, 106],
-    ...cubic([360, 106], [392, 106], [392, 130], [392, 160], 6).slice(1),
-    [392, 420],
-    ...cubic([392, 420], [392, 462], [346, to[1]], to, 8).slice(1),
+    ...cubic(from, [from[0], 99], [100, 99], [140, 99], 6),
+    [360, 99],
+    ...cubic([360, 99], [392, 99], [392, 122], [392, 150], 6).slice(1),
+    [392, 340],
+    ...cubic([392, 340], [392, 374], [346, to[1]], to, 8).slice(1),
   ];
 }
 
-const flows = {
+/** Curvas hacia el portfolio: el trazo estático y el paquete usan los mismos puntos de control. */
+type Curve = [Point, Point, Point, Point];
+const curves: Record<"wide" | "tall", { trajectory: Curve; projects: Curve }> = {
   wide: {
-    trajectory: [[W.trackX[0], W.trackY] as Point, ...cubic([W.trackX[1], W.trackY], [710, W.trackY], [760, 262], DOCK.wide.sections, 12)],
-    projects: cubic([W.trackX[1], W.cardY + W.cardH / 2], [716, W.cardY + W.cardH / 2], [800, 160], DOCK.wide.thumbs, 12),
+    trajectory: [[W.trackX[1], W.trackY], [706, W.trackY], [742, DOCK.wide.sections[1] + 44], DOCK.wide.sections],
+    projects: [[W.trackX[1], W.cardY + W.cardH / 2], [700, W.cardY + W.cardH / 2], [746, DOCK.wide.thumbs[1] - 40], DOCK.wide.thumbs],
   },
   tall: {
-    trajectory: [[M.trackX, M.trackY[0]] as Point, ...cubic([M.trackX, M.trackY[1]], [M.trackX, 640], [110, 696], DOCK.tall.sections, 12)],
-    projects: cubic([M.cardX + M.cardW / 2, tallCardY[2] + M.cardH], [M.cardX + M.cardW / 2, 610], [270, 620], DOCK.tall.thumbs, 10),
+    trajectory: [[M.trackX, M.trackY[1]], [M.trackX, 560], [96, DOCK.tall.sections[1] + 10], DOCK.tall.sections],
+    projects: [[M.cardX + M.cardW / 2, tallCardY[2] + M.cardH], [M.cardX + M.cardW / 2, 520], [DOCK.tall.thumbs[0] + 30, DOCK.tall.thumbs[1] - 50], DOCK.tall.thumbs],
+  },
+};
+const curvePath = ([a, b, c, d]: Curve) => `M${a.join(" ")}C${b.join(" ")} ${c.join(" ")} ${d.join(" ")}`;
+
+const flows = {
+  wide: {
+    trajectory: [[W.trackX[0], W.trackY] as Point, ...cubic(...curves.wide.trajectory, 12)],
+    projects: cubic(...curves.wide.projects, 12),
+  },
+  tall: {
+    trajectory: [[M.trackX, M.trackY[0]] as Point, ...cubic(...curves.tall.trajectory, 12)],
+    projects: cubic(...curves.tall.projects, 10),
   },
 };
 
@@ -214,21 +241,23 @@ function Tracks() {
           <path key={x} d={`M${x} ${W.trackY - 3}v6`} className={s.tick} />
         ))}
         <path d={`M${W.trackX[0]} ${W.trackY}H${W.trackX[1]}`} pathLength={1} className={`draw ${s.track}`} />
-        <path d={`M${W.trackX[1]} ${W.trackY}C700 ${W.trackY} 732 344 762 322`} className={s.export} />
+        <path d={curvePath(curves.wide.trajectory)} className={s.export} />
+        <path d={curvePath(curves.wide.projects)} className={s.exportGold} />
         <path d={`M${W.trackX[1] - 8} ${W.trackY - 5}l8 5-8 5`} className={s.track} />
       </svg>
       <svg viewBox={`0 0 ${TALL[0]} ${TALL[1]}`} className={`${s.svg} ${s.tallOnly}`} fill="none" aria-hidden="true">
-        <path d="M20 108H380M20 576H380" className={s.rule} />
+        <path d="M20 101H380M20 496H380" className={s.rule} />
         <path d={`M${M.trackX} ${M.trackY[0]}V${M.trackY[1]}`} pathLength={1} className={`draw ${s.track}`} />
-        <path d={`M${M.trackX} ${M.trackY[1]}C${M.trackX} 640 80 682 130 696`} className={s.export} />
+        <path d={curvePath(curves.tall.trajectory)} className={s.export} />
+        <path d={curvePath(curves.tall.projects)} className={s.exportGold} />
       </svg>
     </>
   );
 }
 
-function Lane({ n, name, wide, tall }: { n: string; name: string; wide: Box; tall: Box }) {
+function Lane({ n, name, wide, tall, className = "" }: { n: string; name: string; wide: Box; tall: Box; className?: string }) {
   return (
-    <div className={`${s.at} ${s.lane}`} style={place(wide, tall)}>
+    <div className={`${s.at} ${s.lane} ${className}`} style={place(wide, tall)}>
       <span className={s.laneN}>{n}</span>
       <span>{name}</span>
     </div>
@@ -255,7 +284,7 @@ function Milestones() {
       <Step
         key={stage.n}
         at={[T.stages[index], END]}
-        fx="left"
+        fx="fade"
         className={`${s.at} ${s.milestone}`}
         style={place([nodeX[index], W.trackY], [M.trackX, M.nodeY[index]], { "--sw": wideGap, "--sh": tallGap })}
       >
@@ -309,8 +338,8 @@ function Cards() {
 function Stage() {
   return (
     <>
-      <Lane n="04" name="Portfolio" wide={[672, 26]} tall={[20, 592]} />
-      <div className={`${s.at} ${s.status}`} style={place([980, 24], [380, 588])}>
+      <Lane n="04" name="Portfolio" wide={[672, 26]} tall={[20, 508]} />
+      <div className={`${s.at} ${s.status}`} style={place([980, 24], [380, 504])}>
         <span className={s.chip}>
           <i className={s.chipDot} />
           Borrador
@@ -323,12 +352,22 @@ function Stage() {
       <Portfolio3D
         times={{ plate: T.plate, header: T.header, sections: T.sections, thumbs: T.thumbs, stamp: T.stamp, floor: T.floor, landed: T.landed }}
         end={END}
-        style={place([830, 322], [200, 762])}
+        cycle={CYCLE}
+        style={place([826, 286], [200, 662])}
       />
-      <div className={`${s.at} ${s.floorLabel}`} style={place([980, 478], [380, 862])}>
-        Descubrir · perfiles publicados
+      <div className={`${s.at} ${s.floorLabel}`} style={place([980, 478], [380, 748])}>
+        Descubrir<span className={s.floorMore}> · perfiles publicados</span>
       </div>
     </>
+  );
+}
+
+/** Resalta el origen (proyectos y trayectoria) mientras sus datos viajan al portfolio. */
+function Origin() {
+  return (
+    <Step at={T.origin} fx="fade" rm="hide" className={`${s.at} ${s.origin}`} style={place([138, 140, 510, 282], [12, 114, 380, 382])}>
+      <span className={s.originTag}>Exportando al portfolio →</span>
+    </Step>
   );
 }
 
@@ -366,13 +405,25 @@ function Log() {
         </span>
       </div>
       <ol className={s.logList}>
-        {log.map((entry) => (
-          <Step as="li" key={entry.at} at={[entry.at, END]} fx="up" className={s.logItem} data-tone={entry.tone}>
-            <span className={s.logEvent}>{entry.event}</span>
-            <span className={s.logTime}>{clock(entry.at)}</span>
-            <span className={s.logDetail}>{entry.detail}</span>
-          </Step>
-        ))}
+        {log.map(({ at, tone, event, detail, compact }) => {
+          const group = Array.isArray(compact) ? compact : null;
+          const text = (full: string, short?: string) =>
+            short ? (
+              <>
+                <span className={s.logFull}>{full}</span>
+                <span className={s.logShort}>{short}</span>
+              </>
+            ) : (
+              full
+            );
+          return (
+            <Step as="li" key={at} at={[at, END]} fx="up" className={s.logItem} data-tone={tone} data-compact={compact === "hide" ? "hide" : undefined}>
+              <span className={s.logEvent}>{text(event, group?.[0])}</span>
+              <span className={s.logTime}>{clock(at)}</span>
+              <span className={s.logDetail}>{text(detail, group?.[1])}</span>
+            </Step>
+          );
+        })}
       </ol>
     </aside>
   );
@@ -386,9 +437,10 @@ export function CareertracklyScene() {
         <Reveal variant="group" className={s.canvas}>
           <div className={s.grid} />
           <Tracks />
-          <Lane n="03" name="Evidencia" wide={[20, 56]} tall={[20, 16]} />
-          <Lane n="02" name="Proyectos" wide={[20, 207]} tall={[214, 120]} />
-          <Lane n="01" name="Trayectoria" wide={[20, 357]} tall={[20, 120]} />
+          <Lane n="03" name="Evidencia" wide={[20, 56]} tall={[20, 12]} />
+          <Lane n="02" name="Proyectos" wide={[20, 207]} tall={[0, 0]} className={s.laneWideOnly} />
+          <Lane n="01" name="Trayectoria" wide={[20, 357]} tall={[20, 108]} />
+          <Origin />
           <Flow />
           <Tray />
           <Milestones />
@@ -456,13 +508,20 @@ export function CareertracklyPreview() {
             <EvidenceIcon kind={projects[index].evidence} className={s.pCardIcon} />
             <i className={s.connector} />
             <i className={s.pNode} />
-            <span className={s.pNodeLabel}>{stages[index].n}</span>
+            <span className={s.pNodeLabel}>
+              <span className={s.pNodeWord}>Etapa </span>
+              <span className={s.pNodeShort}>E-</span>
+              {String(index + 1).padStart(2, "0")}
+            </span>
           </Step>
         ))}
-        <Portfolio3D times={{ plate: P.plate, header: P.header, sections: P.sections, thumbs: P.thumbs }} end={0.94} preview style={at(524, 206)} />
-        <Step at={[P.stamp, 0.94]} fx="pop" className={`${s.pAt} ${s.pStamp}`} style={at(566, 86)}>
-          Publicado
-        </Step>
+        <Portfolio3D
+          times={{ plate: P.plate, header: P.header, sections: P.sections, thumbs: P.thumbs, stamp: P.stamp }}
+          end={0.94}
+          cycle={PREVIEW_CYCLE}
+          preview
+          style={at(524, 206)}
+        />
         <Step at={[P.discover, 0.94]} fx="up" className={`${s.pAt} ${s.pDiscover}`} style={at(432, 312)}>
           <span className={s.pDiscoverLabel}>Descubrir</span>
           <span className={s.pDiscoverRow}>

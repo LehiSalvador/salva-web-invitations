@@ -16,7 +16,7 @@ export type PortfolioTimes = {
   header: number;
   sections: number;
   thumbs: number;
-  /** Sello dentro del plano de la tarjeta (solo escena principal). */
+  /** Sello PUBLICADO dentro del plano de la tarjeta. */
   stamp?: number;
   /** Perfiles de la cuadrícula Descubrir (solo escena principal). */
   floor?: number;
@@ -37,7 +37,16 @@ function Plate() {
   );
 }
 
-export function Portfolio3D({ times, end, preview = false, style }: { times: PortfolioTimes; end: number; preview?: boolean; style?: CSSProperties }) {
+type Portfolio3DProps = {
+  times: PortfolioTimes;
+  end: number;
+  /** Duración del ciclo de la escena: el keyframe del grupo dura exactamente lo mismo (MotionObserver lo alinea). */
+  cycle: number;
+  preview?: boolean;
+  style?: CSSProperties;
+};
+
+export function Portfolio3D({ times, end, cycle, preview = false, style }: Portfolio3DProps) {
   return (
     <div className={`${s.at} ${s.stage3d}`} style={style}>
       <div className={`${s.rig} ${preview ? s.rigPreview : ""}`}>
@@ -67,7 +76,7 @@ export function Portfolio3D({ times, end, preview = false, style }: { times: Por
         <div className={s.shadow3d} />
         {times.landed !== undefined && <Step at={[times.landed, end]} fx="pop" className={s.slotRing} />}
 
-        <div className={`${s.cardGroup} ${preview ? s.cardGroupPreview : s.cardGroupScene}`}>
+        <div className={`${s.cardGroup} ${preview ? s.cardGroupPreview : s.cardGroupScene}`} style={{ animationDuration: `${cycle}ms` }}>
           {/* Marco vacío: el portfolio espera datos; la placa real lo cubre al aparecer. */}
           <div className={`${s.layer} ${s.plate} ${s.plateIdle}`} style={z(0)}>
             <Plate />
@@ -106,8 +115,9 @@ export function Portfolio3D({ times, end, preview = false, style }: { times: Por
             ))}
           </Step>
 
+          {/* En la escena el sello se retira al aterrizar en Descubrir (ahí lo marca el anillo de la celda). */}
           {times.stamp !== undefined && (
-            <Step at={[times.stamp, end]} fx="pop" className={`${s.layer} ${s.lStamp}`} style={z(96)}>
+            <Step at={[times.stamp, times.landed ?? end]} fx="pop" className={`${s.layer} ${s.lStamp}`} style={z(96)}>
               Publicado
             </Step>
           )}
