@@ -373,7 +373,7 @@ function classify(volumes: Volume[]) {
     const occludes = points.some(([x, y]) => {
       const [sx, sy] = iso(x, y, 0);
       const [l, t, r, b] = item.screen;
-      if (sx + 24 < l || sx - 24 > r || sy - 30 > b || sy + 10 < t) return false;
+      if (sx + 32 < l || sx - 32 > r || sy - 40 > b || sy + 14 < t) return false;
       const qx = Math.min(Math.max(x, x0), x1);
       const qy = Math.min(Math.max(y, y0), y1);
       return nearness(x, y) < nearness(qx, qy) - 1;

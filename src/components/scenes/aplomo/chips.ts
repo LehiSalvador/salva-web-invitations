@@ -16,7 +16,7 @@ export const CAMERA = {
   /** Contenedor > 600 px: patio completo. */
   wide: { w: 1290, h: 712, cx: 24, cy: 2 },
   /** Contenedor ≤ 600 px: del pasillo B al acceso (incluye la pluma). */
-  narrow: { w: 920, h: 600, cx: 166, cy: 46 },
+  narrow: { w: 920, h: 640, cx: 166, cy: 30 },
   /** Vista previa (tarjeta 16:10 o 16:11). */
   preview: { w: 1300, h: 700, cx: 22, cy: 6 },
 } satisfies Record<string, Camera>;
@@ -56,10 +56,8 @@ const overlaps = (a: Rect, b: Rect) => a[0] < b[2] && a[2] > b[0] && a[1] < b[3]
 const inside = (a: Rect, b: Rect) => a[0] >= b[0] && a[2] <= b[2] && a[1] >= b[1] && a[3] <= b[3];
 const grow = (a: Rect, m: number): Rect => [a[0] - m, a[1] - m, a[2] + m, a[3] + m];
 
-const pinAt: Pt = (() => {
-  const [x, y] = iso(B07.x, B07.y, 0);
-  return [x, y - BEAM_H - 10];
-})();
+const beamBase = iso(B07.x, B07.y, 0);
+const pinAt: Pt = [beamBase[0], beamBase[1] - BEAM_H - 10];
 
 /** Etiquetas fijas que un chip nunca debe tapar (en unidades, según el rango). */
 function keepOut(range: Range, t: number): Rect[] {
@@ -67,6 +65,8 @@ function keepOut(range: Range, t: number): Rect[] {
   const rects: Rect[] = [];
   const [tw, th] = PIN_PX.tag;
   rects.push(rectAround(pinAt, tw * k, th * k, 0.5, 1));
+  // Montículo y anillo de B-07: el foco de la escena no se tapa (el haz, una línea fina, sí puede cruzarse).
+  rects.push([beamBase[0] - 62, beamBase[1] - 44, beamBase[0] + 62, beamBase[1] + 30]);
   if (t >= MOMENTS.unloadEnd - 0.01) rects.push(rectAround([pinAt[0], pinAt[1] - (th + PIN_PX.gap) * k], PIN_PX.status[0] * k, PIN_PX.status[1] * k, 0.5, 1));
   for (let index = 0; index < ROWS; index++) {
     if (range.narrow && index % 2) continue;
@@ -127,7 +127,7 @@ function place(plan: TruckPlan, range: Range, others: Map<number, Rect>, out: Ma
       const w = (range.narrow ? state.narrow : state.wide) * k;
       const h = CHIP_H * k;
       const blocked = [...keepOut(range, t), ...(others.has(Math.round(t / step)) ? [others.get(Math.round(t / step)) as Rect] : [])].map((rect) => grow(rect, 5 * k));
-      const shifts = [0, -0.22, 0.22, -0.42, 0.42].map((f) => f * w);
+      const shifts = [0, -0.22, 0.22, -0.44, 0.44].map((f) => f * w);
       const clamp = Math.min(0, view[2] - (x + w / 2)) + Math.max(0, view[0] - (x - w / 2));
       if (Math.abs(clamp) <= 0.44 * w) shifts.push(clamp);
       const candidates: (Place & { cost: number; rect: Rect })[] = [];
@@ -164,7 +164,23 @@ function place(plan: TruckPlan, range: Range, others: Map<number, Rect>, out: Ma
     if (chosen) previous = chosen;
     else if (!state) previous = null;
   }
-  return simplify(frames);
+  return simplify(parkHidden(frames));
+}
+
+/** Mientras el chip está oculto se queda donde va a reaparecer (o donde desapareció): nunca barre ni sale del cuadro. */
+function parkHidden(frames: ChipFrame[]) {
+  const sorted = frames.sort((a, b) => a.t - b.t);
+  let anchor: ChipFrame | null = null;
+  for (let index = sorted.length - 1; index >= 0; index--) {
+    if (sorted[index].op > 0) anchor = sorted[index];
+    else if (anchor) Object.assign(sorted[index], { x: anchor.x, y: anchor.y });
+  }
+  anchor = null;
+  for (const frame of sorted) {
+    if (frame.op > 0) anchor = frame;
+    else if (anchor && !sorted.some((other) => other.t > frame.t && other.op > 0)) Object.assign(frame, { x: anchor.x, y: anchor.y });
+  }
+  return sorted;
 }
 
 /** Quita fotogramas que la interpolación lineal ya reproduce (tolerancia 0.5 u). */

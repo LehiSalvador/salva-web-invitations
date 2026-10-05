@@ -215,9 +215,10 @@
   pointer-events: none;
 }
 
-.scan::after {
-  content: "";
+/* El haz es un elemento real: las animaciones en pseudo-elementos no se componen. */
+.scanBeam {
   position: absolute;
+  display: block;
   inset: 0;
   background: linear-gradient(180deg, transparent 38%, rgb(111 214 176 / 0.55) 49%, rgb(226 236 232 / 0.9) 50%, transparent 52%);
   opacity: 0;

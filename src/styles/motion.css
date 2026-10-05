@@ -177,8 +177,8 @@
   height: 0;
 }
 
-.beacon::before {
-  content: "";
+/* El anillo es un elemento real: las animaciones en pseudo-elementos no se componen y recalculan estilos. */
+.beacon__ring {
   position: absolute;
   left: -14px;
   top: -14px;
@@ -290,32 +290,6 @@
 @keyframes spin {
   to {
     transform: rotate(360deg);
-  }
-}
-
-/* Escáner vertical (barrido de luz sobre una superficie). */
-.scanline {
-  position: absolute;
-  inset: 0;
-  overflow: hidden;
-  pointer-events: none;
-}
-
-.scanline::after {
-  content: "";
-  position: absolute;
-  inset: 0 0 auto;
-  height: 40%;
-  background: linear-gradient(180deg, transparent, rgb(111 214 176 / 0.09), transparent);
-  animation: scan-y var(--dur, 5s) linear infinite;
-}
-
-@keyframes scan-y {
-  from {
-    transform: translateY(-100%);
-  }
-  to {
-    transform: translateY(250%);
   }
 }
 
@@ -447,7 +421,6 @@
   .packet,
   .beacon,
   .motion-only,
-  .scanline,
   [data-rm="hide"] {
     display: none;
   }

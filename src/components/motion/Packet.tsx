@@ -78,7 +78,9 @@ export function Beacon({ x, y, delay = 0, tone = "gold", size = [640, 400] }: { 
     <span
       className={`beacon beacon--${tone}`}
       style={{ left: `${(x / size[0]) * 100}%`, top: `${(y / size[1]) * 100}%`, "--delay": `-${delay}ms` } as CSSProperties}
-    />
+    >
+      <span className="beacon__ring" />
+    </span>
   );
 }
 

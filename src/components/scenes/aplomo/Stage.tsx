@@ -137,9 +137,9 @@ function Ground({ id, preview }: { id: string; preview: boolean }) {
         ))}
       </g>
 
-      {/* Letras de zona pintadas en el piso (solo en la escena: en la vista previa no se leerían) */}
+      {/* Letras de zona pintadas en el piso (solo en la escena ancha: en la vista previa o en mobile no se leerían) */}
       {!preview && (
-        <g fill="rgb(238 235 228 / 0.1)" fontFamily="var(--font-mono)" fontSize="30" textAnchor="middle">
+        <g className={s.floorLetters} fill="rgb(238 235 228 / 0.1)" fontFamily="var(--font-mono)" fontSize="30" textAnchor="middle">
           {ZONES.map((zone) => (
             <text key={zone.id} x={colX(zone.col) + 25} y={ROW0 + 32}>
               {zone.id}
@@ -230,7 +230,7 @@ export function Stage({ preview = false, cycle }: { preview?: boolean; cycle: nu
     ? ""
     : ZONES.map(
         (zone) =>
-          `.${s.stage}:has([data-zone="${zone.id}"]:hover) [data-zone-hl="${zone.id}"]{opacity:1}.${s.stage}:has([data-zone="${zone.id}"]:hover) [data-zone-tag="${zone.id}"]{opacity:1;translate:-50% -100%}`,
+          `.${s.stage}:has([data-zone="${zone.id}"]:hover) .${s.zoneHl}{opacity:1;transform:translateX(calc(${colX(zone.col)} * var(--u)))}.${s.stage}:has([data-zone="${zone.id}"]:hover) [data-zone-tag="${zone.id}"]{opacity:1;translate:-50% -100%}`,
       ).join("");
 
   return (
@@ -260,15 +260,8 @@ export function Stage({ preview = false, cycle }: { preview?: boolean; cycle: nu
 
         {/* Plano del piso en HTML: resaltado de zona, traza iluminada por tramos y anillo de B-07 */}
         <div className={s.plane} style={plane}>
-          {!preview &&
-            ZONES.map((zone) => (
-              <span
-                key={zone.id}
-                data-zone-hl={zone.id}
-                className={s.zoneHl}
-                style={{ left: u(colX(zone.col) + 1.5), top: u(ROW0 - 3), width: u(COL_W - 3), height: u(ROWS * ROW_H + 6) }}
-              />
-            ))}
+          {/* Un solo resaltado (capa propia) que se desliza a la zona bajo el puntero */}
+          {!preview && <span className={s.zoneHl} style={{ left: u(1.5), top: u(ROW0 - 3), width: u(COL_W - 3), height: u(ROWS * ROW_H + 6) }} />}
           <span
             className={s.trail}
             style={{ left: u(GATE_IN.lane - 2), top: u(SOUTH_ROAD - 2), width: u(4), height: u(APPROACH.from - SOUTH_ROAD + 2), transformOrigin: "50% 100%", animation: anim("approach") }}

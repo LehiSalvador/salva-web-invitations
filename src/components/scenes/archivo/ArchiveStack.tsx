@@ -74,7 +74,11 @@ function DocumentLayer({ compact }: { compact: boolean }) {
           ),
         )}
       </div>
-      {!compact && <span className={`${styles.scan} motion-only`} />}
+      {!compact && (
+        <span className={`${styles.scan} motion-only`}>
+          <i className={styles.scanBeam} />
+        </span>
+      )}
       {!compact && <LayerLabel n="01" name="Documento" />}
       {!compact && (
         <Billboard x="19.6%" y="80.3%" anchor="up">
