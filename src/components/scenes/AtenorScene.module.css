@@ -2,7 +2,8 @@
  * Atenor · bandeja inteligente.
  * Mobile: columnas apiladas · md: hilos y carriles en filas de tres · lg: escenario de tres columnas con coordenadas
  * fijas (x en %, y en px) compartidas por las conexiones SVG y la capa de paquetes.
- * Solo se anima transform y opacity (Step, Packet y los keyframes generados en timeline.ts).
+ * Solo se anima transform y opacity (Step, Packet y los keyframes generados en atenor/timeline.ts).
+ * Las tiras (chat, estado, tarjeta en proceso, registro) llevan su posición final en --final: es la vista estática.
  */
 
 .scene {
@@ -35,11 +36,8 @@
   }
 }
 
-.mono,
 .colHead,
-.threadMeta,
-.avatar,
-.typing,
+.status,
 .sent,
 .laneName,
 .laneSub,
@@ -56,13 +54,12 @@
 .returnLabel,
 .blockLabel,
 .chip,
-.entities,
-.providers,
+.dataLine,
 .busLabel,
 .mlinkLabel,
 .panelHead,
 .logLine,
-.statusList,
+.systemList,
 .legend {
   font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
 }
@@ -106,12 +103,19 @@
   display: flex;
   align-items: center;
   gap: 8px;
-  height: 24px;
-  margin-bottom: 12px;
+  height: 22px;
+  margin-bottom: 8px;
   font-size: 10.5px;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
+}
+
+@media (min-width: 64rem) {
+  .colHead {
+    height: 24px;
+    margin-bottom: 12px;
+  }
 }
 
 .colIndex {
@@ -133,18 +137,20 @@
 
 .rows {
   display: grid;
-  gap: 10px;
+  gap: 8px;
 }
 
 @media (min-width: 48rem) and (max-width: 63.99rem) {
   .rows {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 10px;
   }
 }
 
 @media (min-width: 64rem) {
   .rows {
     grid-template-rows: repeat(3, 121px);
+    gap: 10px;
   }
 }
 
@@ -181,6 +187,7 @@
   border: 1px solid var(--line-strong);
   background: var(--ink-3);
   font-size: 10px;
+  font-weight: 500;
   color: var(--bone);
 }
 
@@ -190,22 +197,83 @@
   overflow: hidden;
   text-overflow: ellipsis;
   font-size: 12px;
-  color: var(--bone);
-}
-
-.threadName span {
   color: var(--mist);
 }
 
-.threadMeta {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 10px;
-  color: var(--fog);
+.nameLong,
+.nameShort {
+  color: var(--mist);
 }
 
-.onlineDot {
+.nameBiz {
+  color: var(--bone);
+}
+
+.nameShort {
+  display: none;
+}
+
+/* Hilos angostos (lg hasta 1280 y mobile muy chico): "N01 · Cafetería". En md solo el negocio. */
+@media (max-width: 25rem), (min-width: 64rem) and (max-width: 79.99rem) {
+  .nameLong {
+    display: none;
+  }
+
+  .nameShort {
+    display: inline;
+  }
+}
+
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .nameLong,
+  .nameShort {
+    display: none;
+  }
+}
+
+/* Estado de la conversación: en línea → escribiendo → procesando → respondido (tira vertical). */
+.status {
+  position: relative;
+  flex: none;
+  height: 14px;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 14px;
+}
+
+.statusList {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  transform: translate3d(0, var(--final), 0);
+}
+
+.statusList > span {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+  height: 14px;
+  color: var(--fog);
+  white-space: nowrap;
+}
+
+.statusTyping,
+.statusBusy {
+  color: var(--signal) !important;
+}
+
+.statusDone {
+  color: var(--mist) !important;
+}
+
+.statusDone .ticks {
+  color: var(--signal);
+}
+
+.onlineDot,
+.busyDot {
+  display: block;
   width: 5px;
   height: 5px;
   border-radius: 50%;
@@ -213,14 +281,38 @@
   opacity: 0.8;
 }
 
-.threadBody {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  gap: 6px;
-  padding: 7px 10px 9px;
+.busyDot {
+  opacity: 1;
+  box-shadow: 0 0 0 3px rgb(111 214 176 / 0.18);
 }
 
-/* Hilo cuyo mensaje está en curso: contorno y estado "procesando". */
+.dots {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+}
+
+.dots i,
+.dots b {
+  display: block;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+}
+
+.dots i {
+  background: rgb(111 214 176 / 0.35);
+}
+
+.dots b {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: var(--signal);
+  opacity: 0;
+}
+
+/* Hilo cuyo mensaje está en curso: contorno. */
 .threadLive {
   position: absolute;
   inset: 0;
@@ -230,53 +322,25 @@
   pointer-events: none;
 }
 
-.threadLiveTag {
-  position: absolute;
-  right: 11px;
-  bottom: 9px;
+/* Conversación: ventana de 76 px; la tira sube como en un chat real (historial → mensaje → respuesta). */
+.chat {
+  height: 76px;
+  margin: 7px 10px 8px;
+  overflow: hidden;
+}
+
+.chatList {
   display: flex;
-  align-items: center;
-  gap: 7px;
-  height: 42px;
-  font-family: var(--font-plex-mono), ui-monospace, monospace;
-  font-size: 10px;
-  letter-spacing: 0.04em;
-  color: var(--signal);
-}
-
-.threadLiveTag::before {
-  content: "";
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--signal);
-  box-shadow: 0 0 0 3px rgb(111 214 176 / 0.18);
-}
-
-.slotIn,
-.slotOut {
-  display: grid;
-  min-width: 0;
-}
-
-.slotIn {
-  height: 28px;
-  justify-items: start;
-}
-
-.slotOut {
-  height: 42px;
-  justify-items: end;
-}
-
-.slotIn > *,
-.slotOut > * {
-  grid-area: 1 / 1;
+  flex-direction: column;
+  gap: 6px;
+  transform: translate3d(0, var(--final), 0);
 }
 
 .bubbleIn {
+  align-self: flex-start;
   display: block;
-  max-width: 92%;
+  flex: none;
+  max-width: 100%;
   height: 28px;
   padding: 0 10px;
   border: 1px solid var(--line-strong);
@@ -290,53 +354,24 @@
   color: var(--bone);
 }
 
-.typing {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  height: 28px;
-  font-size: 10px;
-  color: var(--fog);
-}
-
-.typingBubble {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  height: 28px;
-  padding: 0 11px;
-  border: 1px solid var(--line-strong);
-  border-radius: 10px 10px 10px 2px;
-  background: var(--ink-3);
-}
-
-.typingBubble i {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--mist);
-}
-
-.typingBubble i:nth-child(1) {
-  opacity: 0.35;
-}
-
-.typingBubble i:nth-child(2) {
-  opacity: 0.65;
-}
-
 .bubbleOut {
+  align-self: flex-end;
   display: flex;
+  flex: none;
   flex-direction: column;
   justify-content: center;
   gap: 2px;
-  max-width: 94%;
+  max-width: 100%;
   min-width: 0;
   height: 42px;
   padding: 0 10px;
   border: 1px solid rgb(111 214 176 / 0.3);
   border-radius: 10px 10px 2px 10px;
   background: rgb(18 44 37 / 0.92);
+}
+
+.old {
+  opacity: 0.5;
 }
 
 .bubbleText {
@@ -360,7 +395,12 @@
   white-space: nowrap;
 }
 
+.sentOld {
+  color: var(--mist);
+}
+
 .ticks {
+  flex: none;
   width: 14px;
   height: 9px;
   fill: none;
@@ -368,6 +408,13 @@
   stroke-width: 1.4;
   stroke-linecap: round;
   stroke-linejoin: round;
+}
+
+@media (min-width: 48rem) and (max-width: 63.99rem) {
+  .bubbleIn,
+  .bubbleText {
+    font-size: 12px;
+  }
 }
 
 /* ───────── Carriles ───────── */
@@ -396,18 +443,17 @@
   display: grid;
   place-items: center;
   height: 44px;
-  border: 1px dashed rgb(226 236 232 / 0.16);
+  border: 1px dashed rgb(226 236 232 / 0.14);
   border-radius: 5px;
 }
 
 .laneIdle {
   font-size: 10px;
   color: var(--fog);
-  opacity: 0.8;
+  opacity: 0.45;
 }
 
 .laneCard {
-  overflow: hidden;
   position: absolute;
   inset: -1px;
   display: flex;
@@ -416,6 +462,7 @@
   gap: 3px;
   min-width: 0;
   padding: 0 10px;
+  overflow: hidden;
   border: 1px solid rgb(220 197 154 / 0.38);
   border-left: 2px solid var(--gold);
   border-radius: 5px;
@@ -478,8 +525,40 @@
 
 .laneOldState {
   margin-left: auto;
-  color: var(--fog);
   opacity: 0.75;
+}
+
+/* Mobile: cada carril es una fila compacta (nombre a la izquierda, tarjeta a la derecha). */
+@media (max-width: 47.99rem) {
+  .lane {
+    display: grid;
+    grid-template-columns: 86px minmax(0, 1fr);
+  }
+
+  .laneHead {
+    height: auto;
+    border-bottom: 0;
+    border-right: 1px solid var(--line);
+    padding: 0 8px 0 10px;
+  }
+
+  .laneName {
+    letter-spacing: 0.08em;
+  }
+
+  .laneSub,
+  .laneOld,
+  .badge {
+    display: none;
+  }
+
+  .laneBody {
+    padding: 6px 8px;
+  }
+
+  .laneSlot {
+    height: 40px;
+  }
 }
 
 /* ───────── Núcleo ───────── */
@@ -545,25 +624,38 @@
   text-transform: none;
 }
 
+/* Tarjeta en proceso: ventana de 76 px; la tira avanza 88 px por mensaje. */
 .cardSlot {
   position: relative;
-  display: grid;
   height: 76px;
   margin: 12px 12px 11px;
+  overflow: hidden;
+  border-radius: 6px;
+}
+
+.cardStrip {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translate3d(0, var(--final), 0);
+}
+
+.cardIdle,
+.card {
+  flex: none;
+  height: 76px;
+  border-radius: 6px;
 }
 
 .cardIdle {
   display: grid;
   place-items: center;
   border: 1px dashed rgb(111 214 176 / 0.22);
-  border-radius: 6px;
   font-size: 10px;
   color: var(--fog);
 }
 
 .card {
-  position: absolute;
-  inset: 0;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -571,7 +663,6 @@
   min-width: 0;
   padding: 0 12px;
   border: 1px solid rgb(111 214 176 / 0.45);
-  border-radius: 6px;
   background: #0c1614;
 }
 
@@ -591,8 +682,8 @@
   text-overflow: ellipsis;
 }
 
-.cardState {
-  color: var(--signal);
+.cardTime {
+  color: var(--fog);
 }
 
 .cardText {
@@ -666,7 +757,7 @@
   transform: translateX(-50%);
   font-size: 10px;
   line-height: 13px;
-  letter-spacing: 0.04em;
+  letter-spacing: 0;
   text-transform: uppercase;
   white-space: nowrap;
 }
@@ -694,9 +785,9 @@
 }
 
 .nodeIa .nodeDot {
-  width: 26px;
-  height: 26px;
-  margin: -13px 0 0 -13px;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
   border-color: rgb(111 214 176 / 0.75);
   background: #0d1a17;
   font-size: 10px;
@@ -731,14 +822,15 @@
   position: absolute;
   left: var(--x);
   top: 59px;
-  width: 120px;
-  height: 120px;
-  margin: -60px 0 0 -60px;
+  width: 130px;
+  height: 130px;
+  margin: -65px 0 0 -65px;
   border-radius: 50%;
   background: radial-gradient(closest-side, rgb(111 214 176 / 0.14), transparent);
   pointer-events: none;
 }
 
+/* Anillo punteado: el mensaje lo recorre mientras la IA lo interpreta. */
 .iaRing {
   position: absolute;
   left: var(--x);
@@ -747,19 +839,16 @@
   height: 52px;
   margin: -26px 0 0 -26px;
   border-radius: 50%;
-  border: 1px dashed rgb(111 214 176 / 0.55);
+  border: 1px dashed rgb(111 214 176 / 0.5);
 }
 
 .returnLabel {
   position: absolute;
-  font-size: 10px;
-  line-height: 13px;
-  white-space: nowrap;
-}
-
-.returnLabel {
   left: 12px;
-  top: 97px;
+  top: 99px;
+  font-size: 10px;
+  line-height: 12px;
+  white-space: nowrap;
   color: rgb(220 197 154 / 0.8);
 }
 
@@ -775,9 +864,11 @@
   }
 }
 
+/* Intención y datos: la rejilla base queda fija y el resultado de la IA se superpone por mensaje. */
 .intents {
   position: relative;
   margin: 12px 12px 0;
+  padding-bottom: 12px;
 }
 
 .blockLabel {
@@ -788,6 +879,10 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--fog);
+}
+
+.chips + .blockLabel {
+  margin-top: 9px;
 }
 
 .chips {
@@ -806,7 +901,6 @@
 .chip {
   display: grid;
   place-items: center;
-  height: 22px;
   border: 1px solid var(--line-strong);
   border-radius: 4px;
   font-size: 10px;
@@ -823,61 +917,23 @@
   box-shadow: 0 0 0 3px rgb(111 214 176 / 0.1);
 }
 
-.entities {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  height: 16px;
-  margin-top: 7px;
-  font-size: 10px;
+/* Campo que la IA llena: línea punteada vacía, luego los datos extraídos encima. */
+.dataLine {
+  display: block;
+  height: 18px;
+  border-bottom: 1px dashed rgb(226 236 232 / 0.16);
+  font-size: 10.5px;
   line-height: 16px;
   white-space: nowrap;
   overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--bone);
 }
 
-.entitiesLabel {
-  flex: none;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--fog);
+.dataOn {
+  border-bottom-color: transparent;
 }
 
-.entity {
-  color: var(--fog);
-}
-
-.providers {
-  display: flex;
-  justify-content: space-between;
-  gap: 8px;
-  margin: 10px 12px 0;
-  padding-top: 8px;
-  border-top: 1px solid rgb(111 214 176 / 0.14);
-  font-size: 10px;
-  line-height: 13px;
-  color: var(--mist);
-  white-space: nowrap;
-}
-
-.providers > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.providerDot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--signal);
-}
-
-.providerDotIdle {
-  background: transparent;
-  border: 1px solid var(--fog);
-}
-
-/* Resultado de la IA para el mensaje en curso: se superpone a la rejilla base. */
 .intentsLit {
   position: absolute;
   left: 0;
@@ -997,7 +1053,13 @@
   position: relative;
   display: grid;
   place-items: center;
-  height: 40px;
+  height: 30px;
+}
+
+@media (min-width: 48rem) {
+  .mlink {
+    height: 40px;
+  }
 }
 
 @media (min-width: 64rem) {
@@ -1009,15 +1071,15 @@
 .mlinkLine {
   position: absolute;
   left: 50%;
-  top: 4px;
-  bottom: 4px;
+  top: 2px;
+  bottom: 2px;
   width: 1px;
   background: linear-gradient(180deg, rgb(111 214 176 / 0.1), rgb(111 214 176 / 0.6), rgb(111 214 176 / 0.1));
 }
 
 .mlinkLabel {
   position: relative;
-  padding: 2px 8px;
+  padding: 1px 8px;
   border: 1px solid var(--line);
   border-radius: 3px;
   background: var(--ink);
@@ -1031,12 +1093,13 @@
 .bottom {
   display: grid;
   gap: 12px;
-  margin-top: 18px;
+  margin-top: 14px;
 }
 
 @media (min-width: 48rem) {
   .bottom {
     grid-template-columns: minmax(0, 1fr) 280px;
+    margin-top: 18px;
   }
 }
 
@@ -1048,7 +1111,7 @@
 }
 
 .log,
-.status {
+.system {
   min-width: 0;
   border: 1px solid var(--line);
   border-radius: 6px;
@@ -1075,6 +1138,7 @@
   text-transform: none;
 }
 
+/* Registro: la línea más nueva siempre ocupa la última fila (resaltada). */
 .logView {
   position: relative;
   height: 120px;
@@ -1098,7 +1162,7 @@
   position: absolute;
   left: 0;
   right: 0;
-  top: 0;
+  top: calc(100% - 120px);
   margin: 0;
   padding: 0;
   list-style: none;
@@ -1141,26 +1205,43 @@
   color: var(--gold);
 }
 
-.status {
+@media (max-width: 47.99rem) {
+  .logView {
+    height: 100px;
+    margin: 4px 0 6px;
+  }
+
+  .logLine {
+    font-size: 10.5px;
+  }
+}
+
+@media (max-width: 25rem) {
+  .logLine {
+    grid-template-columns: 52px 62px minmax(0, 1fr);
+    padding: 0 10px;
+  }
+}
+
+.system {
   display: none;
 }
 
 @media (min-width: 48rem) {
-  .status {
+  .system {
     display: flex;
     flex-direction: column;
   }
 }
 
-.statusList {
+.systemList {
   display: grid;
-  gap: 0;
   margin: 0;
   padding: 6px 12px 0;
   font-size: 10.5px;
 }
 
-.statusRow {
+.systemRow {
   display: flex;
   justify-content: space-between;
   gap: 12px;
@@ -1169,11 +1250,11 @@
   white-space: nowrap;
 }
 
-.statusRow dt {
+.systemRow dt {
   color: var(--fog);
 }
 
-.statusRow dd {
+.systemRow dd {
   margin: 0;
   color: var(--bone);
 }
@@ -1218,51 +1299,6 @@
   border: 1px solid rgb(220 197 154 / 0.6);
   border-left: 2px solid var(--gold);
   border-radius: 2px;
-}
-
-/* Mobile: carriles compactos y registro más angosto. */
-@media (max-width: 47.99rem) {
-  .laneOld {
-    display: none;
-  }
-
-  .logLine {
-    grid-template-columns: 56px 68px minmax(0, 1fr);
-    font-size: 10.5px;
-  }
-}
-
-/* Tablet: hilos y carriles en filas de tres, el texto puede ocupar dos líneas. */
-@media (min-width: 48rem) and (max-width: 63.99rem) {
-  .threadMeta,
-  .badge {
-    display: none;
-  }
-
-  .slotIn,
-  .slotOut {
-    height: auto;
-  }
-
-  .slotIn {
-    min-height: 28px;
-  }
-
-  .slotOut {
-    min-height: 42px;
-  }
-
-  .bubbleIn,
-  .bubbleOut {
-    height: auto;
-    padding: 5px 10px;
-    white-space: normal;
-    line-height: 16px;
-  }
-
-  .bubbleText {
-    white-space: normal;
-  }
 }
 
 /* Vista estática (sin JS o con movimiento reducido): solo el estado final, sin estados intermedios encimados. */

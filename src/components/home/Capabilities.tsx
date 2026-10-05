@@ -8,6 +8,9 @@ import { SectionHeading } from "@/components/SectionHeading";
 import { capabilities, type CapabilityId } from "@/data/capabilities";
 
 const AUTO_MS = 6000;
+/** Cada capacidad dura un ciclo completo de su visual (data-cycle), dentro de estos límites. */
+const MIN_MS = 6000;
+const MAX_MS = 12000;
 
 /**
  * "Qué hacemos" como consola: una lista de capacidades (tabs) y un visor que muestra
@@ -20,6 +23,7 @@ export function Capabilities() {
   const reduced = useReducedMotion();
   const auto = !manual && !reduced;
   const visorRef = useRef<HTMLDivElement>(null);
+  const [capMs, setCapMs] = useState(AUTO_MS);
   const first = useRef(true);
 
   const select = (id: CapabilityId, byUser: boolean) => {
@@ -35,6 +39,12 @@ export function Capabilities() {
       }
     }
   };
+
+  // La barra de progreso dura un ciclo completo del visual activo (que reinicia al mostrarse: data-restart).
+  useEffect(() => {
+    const cycle = Number(visorRef.current?.querySelector<HTMLElement>(`[data-visual="${active}"] [data-cycle]`)?.dataset.cycle);
+    setCapMs(Number.isFinite(cycle) && cycle > 0 ? Math.min(MAX_MS, Math.max(MIN_MS, cycle + 300)) : AUTO_MS);
+  }, [active]);
 
   // Entrada del visual activo: barrido con recorte y leve profundidad.
   useEffect(() => {
@@ -119,9 +129,9 @@ export function Capabilities() {
                   <span aria-hidden="true" className="absolute inset-x-0 bottom-[-1px] h-px overflow-hidden">
                     {selected && (
                       <span
-                        key={`${active}-${auto}`}
+                        key={`${active}-${auto}-${capMs}`}
                         className={`block h-full origin-left bg-signal ${auto ? "cap-progress" : ""}`}
-                        style={{ animationDuration: `${AUTO_MS}ms` }}
+                        style={{ animationDuration: `${capMs}ms` }}
                         onAnimationEnd={auto ? advance : undefined}
                       />
                     )}
@@ -151,7 +161,14 @@ export function Capabilities() {
                 {capabilities.map((capability) => {
                   const Visual = capabilityVisuals[capability.id];
                   return (
-                    <div key={capability.id} data-visual={capability.id} hidden={capability.id !== active} className="absolute inset-0" aria-hidden="true">
+                    <div
+                      key={capability.id}
+                      data-visual={capability.id}
+                      data-restart
+                      hidden={capability.id !== active}
+                      className="absolute inset-0"
+                      aria-hidden="true"
+                    >
                       <Visual />
                     </div>
                   );

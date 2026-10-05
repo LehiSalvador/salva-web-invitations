@@ -200,7 +200,7 @@ function buildMessage(def: MessageDef, index: number) {
     portOut: [COLS.core[1], Y0],
   };
   const inbound = rounded([[COLS.inbox[1] + 2, p], [BUS_L, p], [BUS_L, Y0], marks.portIn, marks.n1, marks.orbitIn]);
-  const loop = orbit([NX[1], Y0], ORBIT_X, ORBIT_PX, 2.5).slice(1, -1);
+  const loop = orbit([NX[1], Y0], ORBIT_X, ORBIT_PX, 1.5).slice(1, -1);
   const core: Point[] = [marks.portIn, marks.n1, marks.orbitIn, ...loop, marks.orbitOut, marks.n3, marks.n4, marks.portOut];
   const outbound = rounded([marks.orbitOut, marks.n3, marks.n4, marks.portOut, [BUS_R, Y0], [BUS_R, q], [COLS.lanes[0] + 10, q]]);
   const route = [...inbound, ...loop, ...outbound];
