@@ -1,0 +1,132 @@
+/* Diagramas de proyecto (SVG 640×400). */
+.dg {
+  --dg-stroke: 1.15;
+  --dg-text: 12.5px;
+}
+
+.dg-line {
+  fill: none;
+  stroke: rgb(238 235 228 / 0.6);
+  stroke-width: var(--dg-stroke);
+  stroke-linejoin: round;
+  stroke-linecap: round;
+}
+
+.dg-faint {
+  stroke: rgb(238 235 228 / 0.22);
+}
+
+.dg-accent {
+  stroke: var(--color-gold-400);
+}
+
+.dg-signal {
+  stroke: var(--color-signal);
+}
+
+.dg-dashed {
+  stroke-dasharray: 5 5;
+  stroke: rgb(238 235 228 / 0.32);
+}
+
+.dg-fill {
+  fill: rgb(238 235 228 / 0.07);
+}
+
+.dg-fill-gold {
+  fill: rgb(200 173 118 / 0.22);
+}
+
+.dg-paper {
+  fill: var(--color-ink-900);
+}
+
+.dg-gap {
+  stroke: var(--color-ink-900);
+  stroke-width: 5;
+}
+
+.dg-dot {
+  fill: var(--color-rose);
+}
+
+.dg-dot-gold {
+  fill: var(--color-gold-300);
+}
+
+.dg-dot-signal {
+  fill: var(--color-signal);
+}
+
+.dg-dot-light {
+  fill: var(--color-ink-900);
+  stroke: var(--color-bone);
+  stroke-width: var(--dg-stroke);
+}
+
+.dg-ring {
+  fill: none;
+  stroke: rgb(195 119 128 / 0.6);
+  stroke-width: var(--dg-stroke);
+}
+
+.dg-ring-signal {
+  fill: none;
+  stroke: var(--color-signal);
+  stroke-width: var(--dg-stroke);
+}
+
+.dg-stamp {
+  fill: none;
+  stroke: var(--color-rose);
+  stroke-width: var(--dg-stroke);
+}
+
+.dg-label {
+  fill: var(--color-mist);
+  font-family: var(--font-mono);
+  font-size: var(--dg-text);
+  letter-spacing: 0.08em;
+}
+
+.dg-label-strong {
+  fill: var(--color-bone);
+}
+
+.dg-label-signal {
+  fill: var(--color-signal);
+}
+
+@media (width < 40rem) {
+  .dg {
+    --dg-stroke: 1.8;
+    --dg-text: 15px;
+  }
+
+  .dg--hero {
+    --dg-stroke: 1.4;
+    --dg-text: 13px;
+  }
+
+  .packet--msg .packet__body {
+    width: 11px;
+    height: 8px;
+  }
+
+  .packet--truck .packet__body {
+    width: 20px;
+    height: 9px;
+  }
+
+  .packet--dot .packet__body {
+    width: 6px;
+    height: 6px;
+  }
+
+  .beacon::before {
+    left: -10px;
+    top: -10px;
+    width: 20px;
+    height: 20px;
+  }
+}

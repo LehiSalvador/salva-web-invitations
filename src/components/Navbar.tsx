@@ -1,15 +1,24 @@
 "use client";
 
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
-import { navLinks, whatsapp } from "@/data/site";
+import { navHref, navLinks, whatsapp, type NavId } from "@/data/site";
 import { whatsAppUrl } from "@/lib/whatsapp";
 
 export function Navbar() {
+  const pathname = usePathname();
+  const onHome = pathname === "/";
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<string>("inicio");
+  const [spy, setSpy] = useState<NavId>("inicio");
   const toggleRef = useRef<HTMLButtonElement>(null);
+  const indicatorRef = useRef<HTMLSpanElement>(null);
+  const listRef = useRef<HTMLUListElement>(null);
+
+  // Fuera de la home, la sección activa la define la ruta.
+  const active: NavId | null = onHome ? spy : pathname.startsWith("/proyectos") ? "proyectos" : null;
 
   useEffect(() => {
     let frame = 0;
@@ -29,20 +38,41 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
+    if (!onHome) return;
     const targets = navLinks
       .map((link) => document.getElementById(link.id))
       .filter((el): el is HTMLElement => el !== null);
     const observer = new IntersectionObserver(
       (entries) => {
         for (const entry of entries) {
-          if (entry.isIntersecting) setActive(entry.target.id);
+          if (entry.isIntersecting) setSpy(entry.target.id as NavId);
         }
       },
       { rootMargin: "-45% 0px -50% 0px" },
     );
     targets.forEach((target) => observer.observe(target));
     return () => observer.disconnect();
-  }, []);
+  }, [onHome]);
+
+  // Indicador que se desliza bajo el enlace activo.
+  useEffect(() => {
+    const indicator = indicatorRef.current;
+    const link = active ? listRef.current?.querySelector<HTMLElement>(`[data-nav="${active}"]`) : null;
+    if (!indicator) return;
+    if (!link) {
+      indicator.style.opacity = "0";
+      return;
+    }
+    indicator.style.opacity = "1";
+    indicator.style.transform = `translateX(${link.offsetLeft + 12}px) scaleX(${(link.offsetWidth - 24) / 100})`;
+  }, [active]);
+
+  // Al cambiar de ruta (incluido el botón atrás) el menú móvil se cierra.
+  const [lastPath, setLastPath] = useState(pathname);
+  if (lastPath !== pathname) {
+    setLastPath(pathname);
+    setOpen(false);
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -64,7 +94,11 @@ export function Navbar() {
     };
   }, [open]);
 
-  const goTo = (event: React.MouseEvent<HTMLAnchorElement>, id: string) => {
+  const goTo = (event: React.MouseEvent<HTMLAnchorElement>, id: NavId) => {
+    if (!onHome) {
+      setOpen(false);
+      return;
+    }
     const target = document.getElementById(id);
     if (!target) return;
     event.preventDefault();
@@ -77,48 +111,53 @@ export function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
-        className={`border-b transition-colors duration-500 ${
-          scrolled || open ? "border-line bg-ink-950" : "border-transparent bg-transparent"
+        className={`border-b transition-[background-color,border-color] duration-500 ${
+          scrolled || open ? "border-line bg-ink-950/90" : "border-transparent bg-transparent"
         }`}
       >
         <nav aria-label="Principal" className="mx-auto flex h-16 max-w-[90rem] items-center gap-6 px-5 sm:px-8">
-          <a href="#inicio" aria-label="Salva Systems, ir al inicio" className="shrink-0">
+          <Link href="/" aria-label="Salva Systems, ir al inicio" className="shrink-0" transitionTypes={["nav-back"]}>
             <BrandMark animated />
-          </a>
+          </Link>
 
-          <ul className="ml-auto hidden items-center gap-1 lg:flex">
+          <ul ref={listRef} className="relative ml-auto hidden items-center lg:flex">
             {navLinks.map((link) => {
               const isActive = active === link.id;
               return (
                 <li key={link.id}>
-                  <a
-                    href={`#${link.id}`}
-                    aria-current={isActive ? "true" : undefined}
+                  <Link
+                    href={navHref(link.id, onHome)}
+                    data-nav={link.id}
+                    onClick={(event) => goTo(event, link.id)}
+                    aria-current={isActive ? (onHome ? "true" : "page") : undefined}
                     className={`relative flex items-center px-3 py-2 text-[0.86rem] transition-colors ${
                       isActive ? "text-bone" : "text-mist hover:text-bone"
                     }`}
                   >
                     {link.label}
-                    <span
-                      aria-hidden="true"
-                      className={`absolute inset-x-3 -bottom-px h-px origin-left bg-gold-400 transition-transform duration-500 ease-out-expo ${
-                        isActive ? "scale-x-100" : "scale-x-0"
-                      }`}
-                    />
-                  </a>
+                  </Link>
                 </li>
               );
             })}
+            <span
+              ref={indicatorRef}
+              aria-hidden="true"
+              className="pointer-events-none absolute -bottom-px left-0 h-px w-[100px] origin-left bg-signal opacity-0 transition-[transform,opacity] duration-500 ease-out-expo"
+            />
           </ul>
 
           <a
             href={whatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto hidden min-h-10 items-center gap-2 border border-gold-400/70 px-4 text-[0.86rem] text-bone transition-colors hover:bg-gold-400 hover:text-ink-950 sm:inline-flex lg:ml-2"
+            data-magnetic="8"
+            className="btn btn--ghost ml-auto hidden !min-h-10 !px-4 text-[0.86rem] sm:inline-flex lg:ml-2"
           >
+            <span className="live-dot" aria-hidden="true" />
             WhatsApp
-            <span aria-hidden="true">↗</span>
+            <span aria-hidden="true" className="btn__icon btn__icon--out">
+              ↗
+            </span>
             <span className="sr-only">(se abre en una nueva pestaña)</span>
           </a>
 
@@ -147,17 +186,23 @@ export function Navbar() {
         }`}
       >
         <ul className="border-t border-line">
-          {navLinks.map((link) => (
-            <li key={link.id} className="border-b border-line">
-              <a
-                href={`#${link.id}`}
+          {navLinks.map((link, index) => (
+            <li
+              key={link.id}
+              className={`border-b border-line transition-[opacity,transform] duration-500 ease-out-expo ${
+                open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+              }`}
+              style={{ transitionDelay: open ? `${80 + index * 45}ms` : "0ms" }}
+            >
+              <Link
+                href={navHref(link.id, onHome)}
                 onClick={(event) => goTo(event, link.id)}
-                aria-current={active === link.id ? "true" : undefined}
+                aria-current={active === link.id ? (onHome ? "true" : "page") : undefined}
                 className="flex min-h-15 items-center gap-4 py-3"
               >
-                <span className="font-mono text-xs text-gold-400">{link.number}</span>
+                <span className="font-mono text-xs text-signal">{link.number}</span>
                 <span className="display text-[1.9rem] leading-none text-bone">{link.label}</span>
-              </a>
+              </Link>
             </li>
           ))}
         </ul>

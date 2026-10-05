@@ -24,8 +24,20 @@ export const sections = [
 
 export type SectionId = (typeof sections)[number]["id"];
 
-/** Navegación principal: inicio más las secciones. */
-export const navLinks = [{ id: "inicio", label: "Inicio", number: "00" }, ...sections];
+/** Navegación principal: inicio más las secciones de la home. Proyectos tiene además su propia página. */
+export const navLinks = [{ id: "inicio", label: "Inicio", number: "00" }, ...sections] as const;
+
+export type NavId = (typeof navLinks)[number]["id"];
+
+/**
+ * Destino de un enlace de navegación según la página actual:
+ * en la home son anclas; fuera de ella vuelven a la home, salvo Proyectos, que abre su índice.
+ */
+export const navHref = (id: NavId, onHome: boolean) => {
+  if (id === "proyectos" && !onHome) return "/proyectos";
+  if (id === "inicio") return onHome ? "#inicio" : "/";
+  return onHome ? `#${id}` : `/#${id}`;
+};
 
 export const footerLinks = navLinks;
 

@@ -1,0 +1,458 @@
+/*
+ * Sistema de motion de Salva Systems.
+ * Capas: entradas al hacer scroll (data-reveal), escenas vivas que solo corren en pantalla (data-live),
+ * líneas de tiempo declarativas (data-cycle + data-step) y paquetes que recorren rutas (Packet).
+ * Todo se anima con transform y opacity; MotionObserver arma las animaciones con Web Animations.
+ */
+
+/* Hero: entrada del lema (CSS puro, no espera a JS). */
+.rise {
+  animation: rise 1s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+.rise-line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+
+.rise-line > span {
+  display: inline-block;
+  animation: line-in 1.05s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 16px, 0);
+  }
+}
+
+/* Entrada sin opacidad: el bloque es visible desde el primer pintado (no retrasa el LCP). */
+.rise-soft {
+  animation: rise-soft 1.2s var(--ease-out-expo) both;
+  animation-delay: var(--d, 0ms);
+}
+
+@keyframes rise-soft {
+  from {
+    transform: translate3d(0, 28px, 0);
+  }
+}
+
+@keyframes line-in {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
+}
+
+/* Logo oficial: entrada breve por partes. */
+.salva-logo__structure,
+.salva-logo__node {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+.salva-logo--compact .salva-logo__structure {
+  animation: logo-structure-in 0.7s var(--ease-out-expo) 0.1s both;
+}
+
+.salva-logo--compact .salva-logo__node {
+  animation: logo-node-in 0.5s var(--ease-out-expo) both;
+  animation-delay: calc(0.32s + var(--node-index) * 0.06s);
+}
+
+@keyframes logo-structure-in {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+}
+
+@keyframes logo-node-in {
+  from {
+    opacity: 0;
+    transform: scale(0.35);
+  }
+}
+
+/*
+ * Escenas vivas: solo corren mientras su bloque está en pantalla.
+ * MotionObserver marca [data-live] con data-inview.
+ */
+[data-live]:not([data-inview]) *,
+[data-live]:not([data-inview]) *::before,
+[data-live]:not([data-inview]) *::after {
+  animation-play-state: paused !important;
+}
+
+/*
+ * Paquetes sobre diagramas: capa HTML del mismo tamaño que la figura.
+ * Cada paquete mide 0×0 en la esquina y se traslada con transform (Web Animations).
+ */
+.packet-layer {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.packet {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 0;
+  height: 0;
+  opacity: 0;
+}
+
+.packet__body {
+  position: absolute;
+  display: block;
+  translate: -50% -50%;
+}
+
+.packet--dot .packet__body {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 3px rgb(6 8 9 / 0.9);
+}
+
+.packet--msg .packet__body {
+  width: 16px;
+  height: 11px;
+  border-radius: 3px 3px 3px 0;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgb(6 8 9 / 0.9);
+}
+
+.packet--doc .packet__body {
+  width: 10px;
+  height: 13px;
+  border-radius: 1px;
+  border: 1.5px solid currentColor;
+  background: var(--color-ink-900);
+}
+
+.packet--truck .packet__body {
+  width: 26px;
+  height: 12px;
+}
+
+.packet--truck svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.packet__load {
+  fill: rgb(200 173 118 / 0.28);
+  stroke: var(--color-gold-300);
+  stroke-width: 1.4;
+}
+
+.packet__cab {
+  fill: var(--color-bone);
+}
+
+.packet--signal {
+  color: var(--color-signal);
+}
+
+.packet--gold {
+  color: var(--color-gold-300);
+}
+
+.packet--bone {
+  color: var(--color-bone);
+}
+
+.beacon {
+  position: absolute;
+  width: 0;
+  height: 0;
+}
+
+.beacon::before {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: -14px;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 1.5px solid currentColor;
+  animation: ping 2.6s ease-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+.blink {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: var(--color-gold-300);
+}
+
+.beacon--gold {
+  color: var(--color-gold-300);
+}
+
+.beacon--signal {
+  color: var(--color-signal);
+}
+
+.beacon--rose {
+  color: var(--color-rose);
+}
+
+.pulse {
+  animation: pulse var(--dur, 2.4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ping {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+.spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin 9s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.pulse {
+  animation: pulse var(--dur, 2.4s) ease-in-out infinite;
+  animation-delay: var(--delay, 0s);
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@keyframes ping {
+  0% {
+    opacity: 0.9;
+    transform: scale(0.3);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1.4);
+  }
+}
+
+.spin {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin var(--dur, 9s) linear infinite;
+}
+
+.spin-rev {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: spin var(--dur, 14s) linear infinite reverse;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Escáner vertical (barrido de luz sobre una superficie). */
+.scanline {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scanline::after {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 40%;
+  background: linear-gradient(180deg, transparent, rgb(111 214 176 / 0.09), transparent);
+  animation: scan-y var(--dur, 5s) linear infinite;
+}
+
+@keyframes scan-y {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(250%);
+  }
+}
+
+/* Entradas al hacer scroll (MotionObserver añade data-revealed). */
+[data-reveal] {
+  transition:
+    opacity 0.9s var(--ease-out-expo),
+    transform 0.9s var(--ease-out-expo),
+    clip-path 1.1s var(--ease-out-expo);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.draw {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+  transition: stroke-dashoffset 1.4s var(--ease-out-expo);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--i, 0) * 80ms);
+}
+
+.appear {
+  transition: opacity 0.6s ease;
+  transition-delay: calc(400ms + var(--i, 0) * 70ms);
+}
+
+/* Hijos escalonados dentro de un grupo revelado. */
+.stagger > * {
+  transition:
+    opacity 0.8s var(--ease-out-expo),
+    transform 0.8s var(--ease-out-expo);
+  transition-delay: calc(var(--reveal-delay, 0ms) + var(--i, 0) * 70ms);
+}
+
+@media (scripting: enabled) {
+  [data-reveal="fade"]:not([data-revealed]) {
+    opacity: 0;
+    transform: translate3d(0, 24px, 0);
+  }
+
+  [data-reveal="mask"]:not([data-revealed]) {
+    clip-path: inset(0 0 100% 0);
+    transform: translate3d(0, 18px, 0);
+  }
+
+  [data-reveal="scale"]:not([data-revealed]) {
+    opacity: 0;
+    transform: perspective(1200px) rotateX(8deg) translate3d(0, 40px, 0) scale(0.97);
+  }
+
+  [data-reveal]:not([data-revealed]) .stagger > * {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+
+  [data-reveal]:not([data-revealed]) .draw {
+    stroke-dashoffset: 1;
+  }
+
+  [data-reveal]:not([data-revealed]) .appear {
+    opacity: 0;
+  }
+}
+
+/* Transiciones entre páginas (React ViewTransition). */
+::view-transition-group(.morph) {
+  animation-duration: 520ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+::view-transition-old(.nav-forward),
+::view-transition-old(.nav-back) {
+  animation: 160ms ease-in both vt-fade reverse;
+}
+
+::view-transition-new(.nav-forward) {
+  --vt-offset: 36px;
+  animation:
+    260ms ease-out 120ms both vt-fade,
+    520ms cubic-bezier(0.16, 1, 0.3, 1) both vt-slide;
+}
+
+::view-transition-new(.nav-back) {
+  --vt-offset: -36px;
+  animation:
+    260ms ease-out 120ms both vt-fade,
+    520ms cubic-bezier(0.16, 1, 0.3, 1) both vt-slide;
+}
+
+@keyframes vt-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-slide {
+  from {
+    translate: 0 var(--vt-offset);
+  }
+}
+
+/* Pasos de escena: ocultos hasta que su escena entra en pantalla y arma su línea de tiempo. */
+@media (scripting: enabled) and (prefers-reduced-motion: no-preference) {
+  [data-live]:not([data-inview]) [data-step] {
+    opacity: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    transition-delay: 0ms !important;
+  }
+
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+
+  /* Lo que solo existe en movimiento se oculta; las escenas quedan estáticas y completas. */
+  .packet,
+  .beacon,
+  .motion-only,
+  .scanline,
+  [data-rm="hide"] {
+    display: none;
+  }
+
+  .pulse {
+    opacity: 1;
+  }
+}

@@ -24,16 +24,24 @@ type PacketProps = {
   tone?: "signal" | "gold" | "bone";
   /** Tamaño del sistema de coordenadas de la ruta. */
   size?: [number, number];
+  /**
+   * Ventana dentro del ciclo de la escena (data-cycle del contenedor), en fracciones 0–1.
+   * Si se indica, dur y delay se ignoran y el recorrido se sincroniza con los pasos de la escena.
+   */
+  at?: [number, number];
+  className?: string;
 };
 
 /**
  * Elemento que recorre una ruta sobre un diagrama. Se dibuja en HTML encima del SVG
  * y se anima con transform/opacity desde MotionObserver, solo mientras está en pantalla.
  */
-export function Packet({ route, dur = 5000, delay = 0, hold = 0, kind = "dot", tone = "signal", size = [640, 400] }: PacketProps) {
+export function Packet({ route, dur = 5000, delay = 0, hold = 0, kind = "dot", tone = "signal", size = [640, 400], at, className = "" }: PacketProps) {
   return (
     <span
-      className={`packet packet--${kind} packet--${tone}`}
+      className={`packet packet--${kind} packet--${tone} ${className}`}
+      data-in={at?.[0]}
+      data-out={at?.[1]}
       data-route={route.map(([x, y]) => `${Math.round(x)},${Math.round(y)}`).join(";")}
       data-dur={dur}
       data-delay={delay}
@@ -55,7 +63,7 @@ export function Packet({ route, dur = 5000, delay = 0, hold = 0, kind = "dot", t
   );
 }
 
-/** Capa HTML alineada con el SVG del diagrama; sus unidades cqw/cqh siguen el tamaño de la figura. */
+/** Capa HTML alineada con el SVG del diagrama: mide lo mismo que la figura. */
 export function PacketLayer({ children, className = "" }: { children: React.ReactNode; className?: string }) {
   return (
     <div aria-hidden="true" className={`packet-layer ${className}`}>

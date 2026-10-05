@@ -1,5 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
-import { Beacon, Blink, cubic, Packet, PacketLayer, type Point } from "@/components/Packet";
+import { Beacon, Blink, cubic, Packet, PacketLayer, type Point } from "@/components/motion/Packet";
 import type { Project } from "@/data/projects";
 
 /*

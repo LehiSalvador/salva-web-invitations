@@ -17,7 +17,7 @@ export default function OpengraphImage() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: "68px 80px",
-          background: "radial-gradient(120% 90% at 78% 0%, #1a1d22 0%, #07090C 60%)",
+          background: "radial-gradient(110% 80% at 8% 0%, #12302a 0%, #060809 58%)",
           color: "#F4F1EA",
           fontFamily: "sans-serif",
         }}
@@ -38,7 +38,7 @@ export default function OpengraphImage() {
             Plataformas web · Apps · Automatización · IA aplicada
           </div>
         </div>
-        <div style={{ display: "flex", height: 2, width: "100%", background: "linear-gradient(90deg, #7D6845, #C8AD76 50%, transparent)" }} />
+        <div style={{ display: "flex", height: 2, width: "100%", background: "linear-gradient(90deg, #6FD6B0, #C8AD76 50%, transparent)" }} />
       </div>
     ),
     size,
