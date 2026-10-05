@@ -1,14 +1,13 @@
 import type { Metadata, Viewport } from "next";
-import { IBM_Plex_Mono, IBM_Plex_Sans, Instrument_Serif } from "next/font/google";
-import { RevealObserver } from "@/components/RevealObserver";
+import { Archivo, IBM_Plex_Mono, IBM_Plex_Sans } from "next/font/google";
+import { MotionObserver } from "@/components/MotionObserver";
 import { site } from "@/data/site";
 import "./globals.css";
 
-const display = Instrument_Serif({
+const display = Archivo({
   subsets: ["latin"],
-  weight: "400",
-  style: ["normal", "italic"],
-  variable: "--font-instrument-serif",
+  axes: ["wdth"],
+  variable: "--font-archivo",
   display: "swap",
 });
 
@@ -74,7 +73,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
           Saltar al contenido
         </a>
         {children}
-        <RevealObserver />
+        <MotionObserver />
       </body>
     </html>
   );

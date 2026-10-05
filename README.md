@@ -6,8 +6,8 @@ Sitio web oficial de Salva Systems: landing one-page sobre soluciones digitales,
 
 - Next.js (App Router) + React + TypeScript
 - Tailwind CSS v4
-- Tipografías Instrument Serif (titulares) e IBM Plex Sans/Mono (texto y datos) con `next/font`
-- Animaciones con CSS y un único IntersectionObserver, sin librerías de animación
+- Tipografías Archivo (titulares) e IBM Plex Sans/Mono (texto y datos) con `next/font`
+- Animaciones con CSS y Web Animations API, sin librerías de animación ni WebGL
 - Sitio estático: sin backend, base de datos ni servicios externos
 
 ## Desarrollo
@@ -26,7 +26,8 @@ npm run build      # build de producción
 
 ```
 src/app/                 layout, página, estilos globales, metadata, ícono, imagen Open Graph y robots
-src/components/          secciones de la landing; ProjectDiagram.tsx dibuja la figura de cada proyecto
+src/components/          secciones de la landing; ProjectsCarousel.tsx es el índice navegable de proyectos y
+                         ProjectDiagram.tsx dibuja el esquema animado de cada uno
 src/components/brand/    logo de Salva Systems (SalvaLogo) y marca con nombre (BrandMark)
 src/data/site.ts         textos generales, navegación, WhatsApp y URL del sitio
 src/data/projects.ts     proyectos: texto, componentes del sistema, pie de figura y logo
@@ -38,7 +39,13 @@ public/projects/         logos de los proyectos
 ## Logos y assets
 
 - **Salva Systems:** `public/brand/salva-systems-logo.svg` (colores originales) y `salva-systems-logo-inverse.svg` (para fondos oscuros). La interfaz dibuja el logo desde `src/components/brand/SalvaLogo.tsx` con la misma geometría, para poder animar sus partes. Si cambia el logo, actualiza ese componente, los archivos de `public/brand/` y `src/app/icon.svg`.
-- **Proyectos:** cada entrada de `src/data/projects.ts` acepta `logo` (`src`, `alt`, `width`, `height`). Para cambiar una marca, reemplaza el archivo en `public/projects/` o actualiza la ruta; sin `logo`, la lámina del proyecto omite el sello. El diagrama de cada proyecto vive en `src/components/ProjectDiagram.tsx`, indexado por `id`.
+- **Proyectos:** cada entrada de `src/data/projects.ts` acepta `logo` (`src`, `alt`, `width`, `height`). Para cambiar una marca, reemplaza el archivo en `public/projects/` o actualiza la ruta; sin `logo`, el carrusel muestra las iniciales del proyecto y la sección de detalle omite el sello. El diagrama de cada proyecto vive en `src/components/ProjectDiagram.tsx`, indexado por `id`.
+
+## Animaciones
+
+- `MotionObserver.tsx` es el único observador del sitio: activa las entradas al hacer scroll (`data-reveal`) y enciende o pausa los bloques con movimiento continuo (`data-live`) según estén en pantalla.
+- Los diagramas son SVG estáticos; lo que se mueve (paquetes, camiones, pulsos) vive en una capa HTML encima, definida con `Packet`, `Beacon` y `Blink` en `Packet.tsx`. Las rutas usan las coordenadas del SVG y se animan solo con `transform` y `opacity`.
+- Con `prefers-reduced-motion` no se crea ninguna animación continua y los diagramas se muestran completos y estáticos.
 
 ## WhatsApp
 

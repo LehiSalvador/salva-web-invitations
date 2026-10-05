@@ -10,7 +10,7 @@ export function BrandMark({ className = "", animated = false, tone = "light" }: 
   return (
     <span className={`inline-flex items-center gap-2.5 ${className}`}>
       <SalvaLogo tone={tone} intro={animated ? "compact" : "none"} className="size-8 shrink-0" />
-      <span className="font-display text-[1.45rem] leading-none tracking-[-0.01em] whitespace-nowrap">
+      <span className="font-display text-[1.12rem] leading-none font-semibold tracking-[-0.02em] whitespace-nowrap [font-stretch:110%]">
         Salva Systems
       </span>
     </span>

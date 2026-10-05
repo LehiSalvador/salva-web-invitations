@@ -2,13 +2,13 @@
 
 import { useEffect, useRef, useState } from "react";
 import { BrandMark } from "@/components/brand/BrandMark";
-import { sections, whatsapp } from "@/data/site";
+import { navLinks, whatsapp } from "@/data/site";
 import { whatsAppUrl } from "@/lib/whatsapp";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<string | null>(null);
+  const [active, setActive] = useState<string>("inicio");
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
@@ -29,8 +29,8 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    const targets = sections
-      .map((section) => document.getElementById(section.id))
+    const targets = navLinks
+      .map((link) => document.getElementById(link.id))
       .filter((el): el is HTMLElement => el !== null);
     const observer = new IntersectionObserver(
       (entries) => {
@@ -81,55 +81,56 @@ export function Navbar() {
           scrolled || open ? "border-line bg-ink-950" : "border-transparent bg-transparent"
         }`}
       >
-        <nav aria-label="Principal" className="mx-auto flex h-14 max-w-[90rem] items-center gap-6 px-5 sm:px-8 lg:h-16">
+        <nav aria-label="Principal" className="mx-auto flex h-16 max-w-[90rem] items-center gap-6 px-5 sm:px-8">
           <a href="#inicio" aria-label="Salva Systems, ir al inicio" className="shrink-0">
             <BrandMark animated />
           </a>
 
-          <ol className="ml-auto hidden items-center gap-7 lg:flex">
-            {sections.map((section) => {
-              const isActive = active === section.id;
+          <ul className="ml-auto hidden items-center gap-1 lg:flex">
+            {navLinks.map((link) => {
+              const isActive = active === link.id;
               return (
-                <li key={section.id}>
+                <li key={link.id}>
                   <a
-                    href={`#${section.id}`}
+                    href={`#${link.id}`}
                     aria-current={isActive ? "true" : undefined}
-                    className={`group flex items-baseline gap-1.5 py-2 text-[0.82rem] transition-colors ${
+                    className={`relative flex items-center px-3 py-2 text-[0.86rem] transition-colors ${
                       isActive ? "text-bone" : "text-mist hover:text-bone"
                     }`}
                   >
-                    <span className={`font-mono text-[0.68rem] ${isActive ? "text-rose" : "text-fog"}`}>
-                      {section.number}
-                    </span>
-                    <span className={isActive ? "link-rule" : ""}>{section.label}</span>
+                    {link.label}
+                    <span
+                      aria-hidden="true"
+                      className={`absolute inset-x-3 -bottom-px h-px origin-left bg-gold-400 transition-transform duration-500 ease-out-expo ${
+                        isActive ? "scale-x-100" : "scale-x-0"
+                      }`}
+                    />
                   </a>
                 </li>
               );
             })}
-          </ol>
+          </ul>
 
           <a
             href={whatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="ml-auto hidden border-l border-line pl-6 text-[0.82rem] text-bone sm:inline-flex lg:ml-0"
+            className="ml-auto hidden min-h-10 items-center gap-2 border border-gold-400/70 px-4 text-[0.86rem] text-bone transition-colors hover:bg-gold-400 hover:text-ink-950 sm:inline-flex lg:ml-2"
           >
-            <span className="link-rule">WhatsApp</span>
-            <span aria-hidden="true" className="ml-1 text-gold-400">
-              ↗
-            </span>
+            WhatsApp
+            <span aria-hidden="true">↗</span>
             <span className="sr-only">(se abre en una nueva pestaña)</span>
           </a>
 
           <button
             ref={toggleRef}
             type="button"
-            className="-mr-2 ml-auto inline-flex min-h-11 items-center gap-2 px-2 font-mono text-[0.72rem] tracking-[0.14em] text-bone uppercase sm:ml-0 lg:hidden"
+            className="-mr-2 ml-auto inline-flex min-h-11 items-center gap-3 px-2 font-mono text-[0.72rem] tracking-[0.14em] text-bone uppercase sm:ml-0 lg:hidden"
             aria-expanded={open}
-            aria-controls="indice-movil"
+            aria-controls="menu-movil"
             onClick={() => setOpen((value) => !value)}
           >
-            {open ? "Cerrar" : "Índice"}
+            {open ? "Cerrar" : "Menú"}
             <span aria-hidden="true" className="relative block h-2.5 w-4">
               <span className={`absolute inset-x-0 top-0 h-px bg-bone transition-transform ${open ? "translate-y-[5px] rotate-45" : ""}`} />
               <span className={`absolute inset-x-0 bottom-0 h-px bg-bone transition-transform ${open ? "-translate-y-[4px] -rotate-45" : ""}`} />
@@ -139,34 +140,37 @@ export function Navbar() {
       </div>
 
       <div
-        id="indice-movil"
+        id="menu-movil"
         inert={!open}
-        className={`fixed inset-x-0 top-14 bottom-0 flex flex-col justify-between overflow-y-auto bg-ink-950 px-5 pt-8 pb-10 transition-[clip-path] duration-500 ease-out-expo sm:px-8 lg:hidden ${
+        className={`fixed inset-x-0 top-16 bottom-0 flex flex-col justify-between overflow-y-auto bg-ink-950 px-5 pt-6 pb-10 transition-[clip-path] duration-500 ease-out-expo sm:px-8 lg:hidden ${
           open ? "[clip-path:inset(0_0_0_0)]" : "[clip-path:inset(0_0_100%_0)]"
         }`}
       >
-        <ol className="border-t border-line">
-          {sections.map((section) => (
-            <li key={section.id} className="border-b border-line">
+        <ul className="border-t border-line">
+          {navLinks.map((link) => (
+            <li key={link.id} className="border-b border-line">
               <a
-                href={`#${section.id}`}
-                onClick={(event) => goTo(event, section.id)}
-                aria-current={active === section.id ? "true" : undefined}
-                className="flex min-h-16 items-baseline gap-4 py-3"
+                href={`#${link.id}`}
+                onClick={(event) => goTo(event, link.id)}
+                aria-current={active === link.id ? "true" : undefined}
+                className="flex min-h-15 items-center gap-4 py-3"
               >
-                <span className="font-mono text-xs text-fog">{section.number}</span>
-                <span className="font-display text-[2.6rem] leading-none text-bone">{section.label}</span>
+                <span className="font-mono text-xs text-gold-400">{link.number}</span>
+                <span className="display text-[1.9rem] leading-none text-bone">{link.label}</span>
               </a>
             </li>
           ))}
-        </ol>
-        <div className="mt-10 flex items-end justify-between gap-6">
-          <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer" className="text-lg text-bone">
-            <span className="link-rule">Escribir por WhatsApp</span> <span aria-hidden="true">↗</span>
-            <span className="sr-only">(se abre en una nueva pestaña)</span>
-          </a>
-          <span className="label text-fog">{whatsapp.displayNumber}</span>
-        </div>
+        </ul>
+        <a
+          href={whatsAppUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="mt-10 flex min-h-14 items-center justify-between gap-4 bg-gold-400 px-5 text-ink-950"
+        >
+          <span className="font-medium">Escribir por WhatsApp</span>
+          <span className="font-mono text-sm">{whatsapp.displayNumber}</span>
+          <span className="sr-only">(se abre en una nueva pestaña)</span>
+        </a>
       </div>
     </header>
   );

@@ -4,31 +4,29 @@ import { sections, type SectionId } from "@/data/site";
 type SectionHeadingProps = {
   section: SectionId;
   title: React.ReactNode;
-  /** Texto breve a la derecha de la regla superior. */
-  aside?: string;
+  /** Texto de apoyo bajo el titular. */
+  intro?: React.ReactNode;
   className?: string;
 };
 
-/** Cabecera editorial: regla con número de sección y titular en serif. */
-export function SectionHeading({ section, title, aside, className = "" }: SectionHeadingProps) {
+/** Cabecera de sección: índice técnico, titular y texto de apoyo. */
+export function SectionHeading({ section, title, intro, className = "" }: SectionHeadingProps) {
   const { number, label } = sections.find((item) => item.id === section)!;
   return (
-    <header className={className}>
-      <Reveal variant="rule" className="h-px bg-current opacity-25" />
-      <div className="label mt-3 flex items-baseline justify-between gap-6 opacity-70">
-        <span>
-          {number} — {label}
-        </span>
-        {aside && <span className="hidden text-right sm:block">{aside}</span>}
-      </div>
-      <Reveal variant="clip" delay={120}>
-        <h2
-          id={`${section}-title`}
-          className="mt-8 max-w-[16ch] font-display text-[clamp(2.6rem,7vw,5.6rem)] leading-[0.95] tracking-[-0.015em] text-balance"
-        >
+    <Reveal as="header" className={`grid gap-6 lg:grid-cols-12 lg:items-end lg:gap-8 ${className}`}>
+      <div className="lg:col-span-7">
+        <p className="label flex items-center gap-3 text-mist">
+          <span className="font-mono text-gold-400">[{number}]</span>
+          {label}
+          <span aria-hidden="true" className="h-px w-10 bg-line-strong" />
+        </p>
+        <h2 id={`${section}-title`} className="display mt-5 max-w-[20ch] text-[clamp(2rem,5.2vw,3.5rem)] leading-[1.04] text-balance text-bone">
           {title}
         </h2>
-      </Reveal>
-    </header>
+      </div>
+      {intro && (
+        <div className="max-w-xl text-[1.05rem] leading-relaxed text-pretty text-mist lg:col-span-5">{intro}</div>
+      )}
+    </Reveal>
   );
 }

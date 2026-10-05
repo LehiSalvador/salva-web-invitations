@@ -1,88 +1,75 @@
 import Image from "next/image";
 import { ProjectDiagram } from "@/components/ProjectDiagram";
+import { ProjectsCarousel } from "@/components/ProjectsCarousel";
 import { Reveal } from "@/components/Reveal";
 import { SectionHeading } from "@/components/SectionHeading";
 import { projects, type Project } from "@/data/projects";
 
 const pad = (value: number) => String(value).padStart(2, "0");
 
-function ProjectPlate({ project, index }: { project: Project; index: number }) {
+function ProjectDetail({ project, index }: { project: Project; index: number }) {
   const number = pad(index + 1);
   const mirrored = index % 2 === 1;
   return (
     <article
       id={`proyecto-${project.id}`}
       aria-labelledby={`proyecto-${project.id}-titulo`}
-      className="border-t border-line py-14 lg:py-24"
+      className="border-t border-line py-16 lg:py-24"
     >
-      <div className="grid gap-x-8 lg:grid-cols-12">
-        <div className="flex items-baseline justify-between gap-4 lg:col-span-12">
-          <p className="label text-fog">
-            Sistema {number} / {pad(projects.length)}
-          </p>
-          <p className="label text-right text-mist">{project.category}</p>
-        </div>
+      <div className="grid items-center gap-10 lg:grid-cols-12 lg:gap-12">
+        <Reveal className={`lg:col-span-5 ${mirrored ? "lg:order-2" : ""}`}>
+          <div className="flex items-center gap-4">
+            {project.logo ? (
+              <span className="flex size-14 shrink-0 items-center justify-center border border-line bg-ink-900 p-2">
+                <Image
+                  src={project.logo.src}
+                  alt={project.logo.alt}
+                  width={project.logo.width}
+                  height={project.logo.height}
+                  sizes="56px"
+                  unoptimized={project.logo.src.endsWith(".svg")}
+                  className="h-full w-auto object-contain"
+                />
+              </span>
+            ) : null}
+            <div className="min-w-0">
+              <p className="label text-gold-400">
+                Sistema {number} / {pad(projects.length)}
+              </p>
+              <p className="label mt-1.5 text-mist">{project.category}</p>
+            </div>
+          </div>
 
-        <Reveal variant="clip" className={`mt-6 flex items-end gap-5 lg:col-span-12 ${mirrored ? "lg:justify-end lg:text-right" : ""}`}>
-          <span aria-hidden="true" className="hidden font-display text-[clamp(4rem,9vw,8.5rem)] leading-[0.8] text-fog/60 italic lg:block">
-            {number}
-          </span>
-          <h3
-            id={`proyecto-${project.id}-titulo`}
-            className="font-display text-[clamp(2.9rem,8.5vw,7.6rem)] leading-[0.88] tracking-[-0.02em] text-bone"
-          >
+          <h3 id={`proyecto-${project.id}-titulo`} className="display mt-7 text-[clamp(2.2rem,5.4vw,3.6rem)] leading-[1] text-bone">
             {project.name}
           </h3>
-        </Reveal>
-
-        <figure className={`mt-10 lg:col-span-7 lg:row-start-3 lg:mt-14 ${mirrored ? "lg:col-start-6" : ""}`}>
-          <Reveal variant="group" className="reg-marks bg-ink-900 p-4 text-mist sm:p-6">
-            <ProjectDiagram id={project.id} title={project.figure} />
-          </Reveal>
-          <figcaption className="mt-3 flex gap-3 text-sm leading-snug text-fog">
-            <span className="label shrink-0 pt-0.5 text-gold-400">Fig. {number}</span>
-            <span>{project.figure}</span>
-          </figcaption>
-        </figure>
-
-        <div
-          className={`mt-10 flex flex-col lg:col-span-4 lg:row-start-3 lg:mt-14 ${
-            mirrored ? "lg:col-start-1" : "lg:col-start-9"
-          }`}
-        >
-          {project.logo && (
-            <div className="mb-8 flex size-24 items-center justify-center border border-line bg-ink-900 p-3">
-              <Image
-                src={project.logo.src}
-                alt={project.logo.alt}
-                width={project.logo.width}
-                height={project.logo.height}
-                sizes="96px"
-                unoptimized={project.logo.src.endsWith(".svg")}
-                className="h-full w-auto object-contain"
-              />
-            </div>
-          )}
-          <p className="text-[1.12rem] leading-relaxed text-pretty text-bone/90">{project.description}</p>
+          <p className="mt-5 text-[1.08rem] leading-relaxed text-pretty text-bone/85">{project.description}</p>
           {project.relation && (
             <p className="label mt-5 border-l border-rose pl-3 leading-relaxed text-rose">{project.relation}</p>
           )}
-          <dl className="mt-auto pt-10">
-            <dt className="label text-fog">Componentes del sistema</dt>
-            <dd>
-              <ul className="mt-3 border-t border-line">
-                {project.parts.map((part, partIndex) => (
-                  <li key={part} className="flex items-baseline gap-4 border-b border-line py-2 text-[0.95rem] text-mist">
-                    <span className="font-mono text-[0.7rem] text-fog">
-                      {number}.{partIndex + 1}
-                    </span>
-                    {part}
-                  </li>
-                ))}
-              </ul>
-            </dd>
-          </dl>
-        </div>
+
+          <ul className="mt-8 flex flex-wrap gap-2" aria-label="Componentes del sistema">
+            {project.parts.map((part) => (
+              <li key={part} className="label border border-line px-2.5 py-1.5 text-mist">
+                {part}
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
+        <figure className={`lg:col-span-7 ${mirrored ? "lg:order-1" : ""}`}>
+          <Reveal variant="group" className="frame-marks border border-line bg-ink-900 p-3 sm:p-5">
+            <div className="label mb-3 flex items-center justify-between gap-4 border-b border-line pb-3 text-fog">
+              <span>fig. {number} · {project.id}</span>
+              <span className="flex items-center gap-2">
+                <span className="size-1.5 rounded-full bg-signal" />
+                esquema animado
+              </span>
+            </div>
+            <ProjectDiagram id={project.id} title={project.figure} />
+          </Reveal>
+          <figcaption className="mt-3 text-sm leading-snug text-fog">{project.figure}</figcaption>
+        </figure>
       </div>
     </article>
   );
@@ -90,17 +77,21 @@ function ProjectPlate({ project, index }: { project: Project; index: number }) {
 
 export function Projects() {
   return (
-    <section id="proyectos" aria-labelledby="proyectos-title" className="grain relative bg-ink-950 text-bone">
-      <div className="mx-auto max-w-[90rem] px-5 pt-24 pb-16 sm:px-8 lg:pt-32">
-        <SectionHeading section="proyectos" title="Proyectos y soluciones" aside="Archivo de sistemas construidos" />
-        <Reveal className="mt-8 grid lg:grid-cols-12" delay={150}>
-          <p className="max-w-xl text-[1.08rem] leading-relaxed text-mist lg:col-span-5 lg:col-start-7">
-            Algunos de los sistemas, plataformas y experiencias digitales que hemos desarrollado.
-          </p>
+    <section id="proyectos" aria-labelledby="proyectos-title" className="relative border-t border-line bg-ink-950">
+      <div className="mx-auto max-w-[90rem] px-5 pt-24 pb-8 sm:px-8 lg:pt-32">
+        <SectionHeading
+          section="proyectos"
+          title="Proyectos y soluciones"
+          intro="Algunos de los sistemas, plataformas y experiencias digitales que hemos desarrollado. Elige uno para ver cómo funciona."
+        />
+
+        <Reveal className="mt-14 lg:mt-16">
+          <ProjectsCarousel projects={projects} />
         </Reveal>
-        <div className="mt-16 lg:mt-24">
+
+        <div className="mt-20 lg:mt-28">
           {projects.map((project, index) => (
-            <ProjectPlate key={project.id} project={project} index={index} />
+            <ProjectDetail key={project.id} project={project} index={index} />
           ))}
         </div>
       </div>

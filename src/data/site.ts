@@ -24,10 +24,10 @@ export const sections = [
 
 export type SectionId = (typeof sections)[number]["id"];
 
-export const footerLinks = [
-  { id: "inicio", label: "Inicio" },
-  ...sections.filter((section) => ["nosotros", "proyectos", "contacto"].includes(section.id)),
-];
+/** Navegación principal: inicio más las secciones. */
+export const navLinks = [{ id: "inicio", label: "Inicio", number: "00" }, ...sections];
+
+export const footerLinks = navLinks;
 
 export const whatsapp = {
   /** Formato internacional, solo dígitos: código de país + número. */
