@@ -182,8 +182,8 @@
   }
 
   /*
-   * Indicador de sistema activo. La animación vive en el propio elemento (no en un pseudo-elemento):
-   * así el navegador la resuelve en el compositor sin recalcular estilos en cada frame.
+   * Indicador de sistema activo: estático a propósito. Una animación infinita en un elemento tan pequeño
+   * no se compone en GPU y obliga a recalcular estilos en cada frame (medido: ~10× el costo en reposo).
    */
   .live-dot {
     position: relative;
@@ -193,17 +193,6 @@
     border-radius: 50%;
     background: var(--color-signal);
     box-shadow: 0 0 0 3px rgb(111 214 176 / 0.16);
-    animation: live-dot 2.4s ease-in-out infinite;
-  }
-
-  @keyframes live-dot {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.35;
-    }
   }
 
   @media (hover: none) {

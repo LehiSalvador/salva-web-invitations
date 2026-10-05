@@ -16,9 +16,9 @@ export const CAMERA = {
   /** Contenedor > 600 px: patio completo. */
   wide: { w: 1290, h: 712, cx: 24, cy: 2 },
   /** Contenedor ≤ 600 px: del pasillo B al acceso (incluye la pluma). */
-  narrow: { w: 920, h: 640, cx: 166, cy: 30 },
+  narrow: { w: 920, h: 682, cx: 166, cy: -6 },
   /** Vista previa (tarjeta 16:10 o 16:11). */
-  preview: { w: 1300, h: 700, cx: 22, cy: 6 },
+  preview: { w: 1350, h: 724, cx: 22, cy: 6 },
 } satisfies Record<string, Camera>;
 
 type Rect = [number, number, number, number];

@@ -230,7 +230,26 @@ export function MotionObserver() {
       return { animations, packets };
     };
 
-    const clock = (block: Block) => block.animations.find((animation) => animation.currentTime !== null)?.currentTime ?? null;
+    // Un elemento oculto por el diseño responsive (display: none) no se pinta: su animación no puede ir al
+    // compositor y, si siguiera corriendo, forzaría un recálculo de estilos en cada frame. Se pausa.
+    const rendered = (animation: Animation) => {
+      const target = (animation.effect as KeyframeEffect | null)?.target;
+      return target instanceof Element && target.getClientRects().length > 0;
+    };
+
+    /** Reloj del bloque: el tiempo de una animación visible (todas nacen y se pausan juntas). */
+    const clock = (block: Block) =>
+      (block.animations.find((animation) => animation.currentTime !== null && rendered(animation)) ?? block.animations.find((animation) => animation.currentTime !== null))
+        ?.currentTime ?? null;
+
+    /** Corre solo lo que se pinta; lo que vuelve a mostrarse se alinea con el reloj del bloque. */
+    const run = (block: Block, time: CSSNumberish | null) => {
+      for (const animation of block.animations) {
+        if (time !== null) animation.currentTime = time;
+        if (rendered(animation)) animation.play();
+        else animation.pause();
+      }
+    };
 
     /*
      * Las escenas pueden mezclar keyframes CSS propios con Web Animations. Si una parte se oculta con
@@ -261,6 +280,8 @@ export function MotionObserver() {
         widths.set(element, width);
         const time = clock(block);
         const paused = !element.hasAttribute("data-inview");
+        // Un cambio de breakpoint puede mostrar u ocultar partes de la escena.
+        if (!paused) run(block, time);
         for (const packet of owned(element, "[data-route]")) {
           const plan = planPacket(packet);
           if (!plan) continue;
@@ -291,15 +312,18 @@ export function MotionObserver() {
           const block = blocks.get(element);
           if (block) {
             // Dentro de [data-restart] (diapositivas del showcase) la escena vuelve a empezar desde cero.
-            if (element.closest("[data-restart]")) block.animations.forEach((animation) => (animation.currentTime = 0));
-            block.animations.forEach((animation) => animation.play());
-            syncCss(element, clock(block));
+            const time = element.closest("[data-restart]") ? 0 : clock(block);
+            run(block, time);
+            syncCss(element, time);
           } else {
             const built = build(element);
             blocks.set(element, built);
             widths.set(element, Math.round(element.getBoundingClientRect().width));
             resizeObserver.observe(element);
-            if (built.animations.length) syncCss(element, 0);
+            if (built.animations.length) {
+              run(built, 0);
+              syncCss(element, 0);
+            }
           }
         } else {
           element.removeAttribute("data-inview");
