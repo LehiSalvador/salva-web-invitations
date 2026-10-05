@@ -187,7 +187,7 @@ export function Showcase({ projects }: { projects: Project[] }) {
           <div data-tilt="3" className="frame-marks">
             <div ref={stageRef} data-spotlight className="surface" onPointerDown={onPointerDown} onPointerUp={onPointerUp}>
               <div className="label flex items-center justify-between gap-4 border-b border-line px-4 py-3 text-fog">
-                <span className="truncate">{projects[index].scene}</span>
+                <span className="min-w-0 [overflow-wrap:anywhere]">{projects[index].scene}</span>
                 <span className="flex shrink-0 items-center gap-2 text-mist">
                   <span className="live-dot" aria-hidden="true" />
                   simulación

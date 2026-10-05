@@ -104,7 +104,7 @@ export function CapsPreview() {
               </span>
             ))}
           </div>
-          <Step at={[P.view2, P.out]} fx="fade" className={styles.pvProduct}>
+          <span className={`${styles.pvProduct} ${PA.view}`}>
             <span className={styles.pvTurntable}>
               <Cap3D color={target.color} spin={PA.spin} simple />
             </span>
@@ -129,7 +129,7 @@ export function CapsPreview() {
                 <Step at={[P.add - 0.03, P.add + 0.05]} fx="pop" rm="hide" className={styles.pvTapRing} />
               </span>
             </span>
-          </Step>
+          </span>
           <Step at={[P.toast, P.out]} fx="up" className={styles.pvToast}>
             <span className={styles.pvToastIcon}>✓</span>
             <span className="min-w-0">

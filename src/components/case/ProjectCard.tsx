@@ -18,7 +18,7 @@ export function ProjectCard({ project }: { project: Project }) {
       className="group surface flex h-full min-w-0 flex-col transition-colors duration-500 hover:border-signal/40"
     >
       <span className="label flex items-center justify-between gap-4 border-b border-line px-4 py-3 text-fog">
-        <span className="truncate">{project.scene}</span>
+        <span className="min-w-0 [overflow-wrap:anywhere]">{project.scene}</span>
         <span className="shrink-0 text-signal">
           {pad(position + 1)} / {pad(projects.length)}
         </span>

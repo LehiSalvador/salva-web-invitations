@@ -245,6 +245,8 @@ export const LOG: { tag: "ui" | "cart" | "api" | "auto" | "ok"; text: string; at
 
 /** Líneas previas al ciclo (estado del sistema): llenan la ventana del registro desde el inicio. */
 export const PRE_LOG: { tag: "sys"; text: string }[] = [
+  { tag: "sys", text: "sesión anterior cerrada" },
+  { tag: "sys", text: "registro de eventos activo" },
   { tag: "sys", text: "conexión con inventario" },
   { tag: "sys", text: "plantilla de correo lista" },
   { tag: "sys", text: "4 automatizaciones activas" },
@@ -347,14 +349,16 @@ function emitFrames(): Frame[] {
   ];
 }
 
-/** Cambio de estado casi instantáneo (sin mezclar dos etiquetas encimadas): aparece en `on`, se va en `off`. */
-function swapFrames(on: number, off: number, cycle = CYCLE): Frame[] {
-  const quick = 90 / cycle;
+/**
+ * Cambio de estado rápido (sin mezclar dos etiquetas o dos vistas encimadas): aparece en `on` y se va en `off`.
+ * `inMs` y `outMs` son la duración de la entrada y la salida.
+ */
+function swapFrames(on: number, off: number, cycle = CYCLE, inMs = 90, outMs = 180): Frame[] {
   return [
     [0, "opacity:0"],
     [on, "opacity:0", OUT],
-    [on + quick, "opacity:1"],
-    [off - quick * 2, "opacity:1", "ease-in"],
+    [on + inMs / cycle, "opacity:1"],
+    [off - outMs / cycle, "opacity:1", "ease-in"],
     [off, "opacity:0"],
     [1, "opacity:0"],
   ];
@@ -408,6 +412,7 @@ export const A = {
   emit: "capsx-a capsx-emit",
   flow: "capsx-a capsx-flow",
   spin: "capsx-a capsx-spin",
+  view: "capsx-a capsx-view",
   sizeOn: "capsx-a capsx-size",
   added: "capsx-a capsx-added",
   confirmed: "capsx-a capsx-confirmed",
@@ -439,6 +444,7 @@ export function sceneCss() {
     ["capsx-emit", emitFrames()],
     ["capsx-flow", tickerFrames([T.trigger, T.done], 3)],
     ["capsx-spin", spinFrames(T.view2, T.add)],
+    ["capsx-view", swapFrames(T.view2 - 0.004, T.reset, CYCLE, 200, 360)],
     ["capsx-size", swapFrames(T.click2, T.reset)],
     ["capsx-added", swapFrames(T.click3 + 0.003, T.reset)],
     ["capsx-confirmed", swapFrames(T.confirmed, T.out + 0.03)],
@@ -460,6 +466,7 @@ export const P = { pick: 0.15, view2: 0.25, add: 0.43, toast: 0.52, rows: [0.58,
 export const PA = {
   spin: "capsx-a capsx-pvspin",
   added: "capsx-a capsx-pvadded",
+  view: "capsx-a capsx-pvview",
   row: (index: number) => `capsx-a capsx-pvst${index}`,
 };
 
@@ -467,6 +474,7 @@ export function previewCss() {
   const anims: [string, Frame[]][] = [
     ["capsx-pvspin", spinFrames(P.view2, P.add)],
     ["capsx-pvadded", swapFrames(P.add, P.out, PREVIEW_CYCLE)],
+    ["capsx-pvview", swapFrames(P.view2, P.out, PREVIEW_CYCLE, 200, 360)],
     ...P.rows.map((start, index): [string, Frame[]] => [`capsx-pvst${index}`, tickerFrames([start], 2, 0.95)]),
   ];
   return [

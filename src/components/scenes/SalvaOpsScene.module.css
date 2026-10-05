@@ -265,6 +265,13 @@
   white-space: nowrap;
 }
 
+/* En mobile la cola va en la cabecera del broker: sin el prefijo "op-". */
+@media (width < 48rem) {
+  .opPrefix {
+    display: none;
+  }
+}
+
 @media (min-width: 48rem) {
   .queue {
     align-items: flex-start;

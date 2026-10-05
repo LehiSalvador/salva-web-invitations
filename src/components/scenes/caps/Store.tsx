@@ -113,7 +113,7 @@ function Catalog() {
 
 function Product() {
   return (
-    <Step at={[T.view2 - 0.006, T.reset]} fx="fade" className={`${styles.view} ${styles.viewOpaque}`}>
+    <div className={`${styles.view} ${styles.viewOpaque} ${A.view}`}>
       <div className={`${styles.box} ${styles.tl} flex items-center gap-2 text-fog`} style={box(L.crumb)}>
         Gorras <span className="text-line-strong">/</span> <span className="text-mist">Gorra {target.id}</span>
       </div>
@@ -165,7 +165,7 @@ function Product() {
       <div className={`${styles.box} ${styles.tl} ${styles.fine} hidden text-fog sm:block`} style={box(L.fine)}>
         Envío a domicilio · Cambios fáciles
       </div>
-    </Step>
+    </div>
   );
 }
 

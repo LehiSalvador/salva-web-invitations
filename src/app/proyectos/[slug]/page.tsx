@@ -106,7 +106,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         <section id="simulacion" aria-label={`Simulación de ${project.name}`} className="mx-auto mt-12 max-w-[90rem] px-5 sm:px-8 lg:mt-16">
           <div className="rise-soft frame-marks surface overflow-hidden" style={delay(240)}>
             <div className="label flex items-center justify-between gap-4 border-b border-line px-4 py-3 text-fog">
-              <span className="truncate">{project.scene}</span>
+              <span className="min-w-0 [overflow-wrap:anywhere]">{project.scene}</span>
               <span className="flex shrink-0 items-center gap-2 text-mist">
                 <span className="live-dot" aria-hidden="true" />
                 simulación

@@ -1,7 +1,7 @@
 import { cubic, Packet, PacketLayer, type Point } from "@/components/motion/Packet";
 import { Step } from "@/components/motion/Step";
 import styles from "./CapabilityVisuals.module.css";
-import { Check, curvePath, linePath, MICRO, PANEL, Scene, Wires } from "./kit";
+import { Check, curvePath, END, linePath, MICRO, PANEL, Scene, Wires } from "./kit";
 
 /*
  * Soluciones a medida: cada requerimiento pasa por diseño y se convierte en un módulo que encaja
@@ -39,18 +39,19 @@ function Requirements() {
       {items.map((item, index) => (
         <Step
           key={item.need}
-          at={[0.02 + index * 0.03, 0.94]}
+          at={[0.02 + index * 0.035, END]}
           fx="left"
+          min={0.4}
           className={`${PANEL} absolute left-0 flex w-[32%] flex-col justify-center gap-1 overflow-hidden pr-6 pl-2 @lg:pr-7 @lg:pl-2.5`}
           style={{ top: `${CARD_Y[index] - 10.5}%`, height: "21%" }}
         >
           <span className="flex items-center gap-1.5">
             <span className="font-mono text-[10px] leading-none text-gold-300">R{index + 1}</span>
-            <span className="truncate text-[10.5px] leading-tight text-bone @lg:text-[11.5px] @2xl:hidden">{item.short}</span>
-            <span className="hidden truncate text-[12px] leading-tight text-bone @2xl:inline">{item.need}</span>
+            <span className="truncate text-[10.5px] leading-[1.35] text-bone @lg:text-[11.5px] @2xl:hidden">{item.short}</span>
+            <span className="hidden truncate text-[12px] leading-[1.35] text-bone @2xl:inline">{item.need}</span>
           </span>
           <span className="hidden font-mono text-[10px] leading-none text-fog @lg:block">requerimiento</span>
-          <Step at={[DEPART(index), 0.94]} fx="fade" className="absolute inset-0 flex items-center justify-end bg-ink-900/55 pr-2 text-signal @lg:pr-2.5">
+          <Step at={[DEPART(index), END]} fx="fade" className="absolute inset-0 flex items-center justify-end bg-ink-900/55 pr-2 text-signal @lg:pr-2.5">
             <Check />
           </Step>
         </Step>
@@ -73,7 +74,7 @@ export function CustomVisual() {
         { label: "diagnóstico", at: [0, 0.2] },
         { label: "diseño", at: [0.2, 0.42] },
         { label: "implementación", at: [0.42, 0.7] },
-        { label: "a medida", at: [0.7, 0.94] },
+        { label: "a medida", at: [0.7, END] },
       ]}
     >
       <Wires
@@ -126,7 +127,7 @@ export function CustomVisual() {
       {items.map((item, index) => (
         <Step
           key={item.module}
-          at={[ARRIVE(index), 0.94]}
+          at={[ARRIVE(index), END]}
           fx="down"
           className="absolute flex flex-col justify-between overflow-hidden rounded-[2px] border border-signal/60 bg-[color-mix(in_srgb,var(--color-signal)_13%,var(--color-ink-900))] p-1.5 @lg:p-2"
           style={boxStyle(item.box)}
@@ -135,16 +136,16 @@ export function CustomVisual() {
           <svg viewBox="0 0 24 14" className="hidden h-[14px] w-[24px] text-signal @lg:block" fill="none" aria-hidden="true">
             <path d={item.glyph} stroke="currentColor" strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
-          <span className="truncate font-mono text-[10px] leading-none text-bone @lg:text-[10.5px]">
+          <span className="truncate font-mono text-[10px] leading-[1.35] text-bone @lg:text-[10.5px]">
             <span className="@lg:hidden">{item.short2 ?? item.module}</span>
             <span className="hidden @lg:inline">{item.module}</span>
           </span>
         </Step>
       ))}
 
-      <Step at={[0.72, 0.94]} fx="fade" className="absolute inset-y-0 rounded-[3px] border border-gold-300/80" style={{ left: `${FRAME.x}%`, width: `${FRAME.w}%` }} />
+      <Step at={[0.72, END]} fx="fade" className="absolute inset-y-0 rounded-[3px] border border-gold-300/80" style={{ left: `${FRAME.x}%`, width: `${FRAME.w}%` }} />
       <Step
-        at={[0.74, 0.94]}
+        at={[0.74, END]}
         fx="pop"
         className={`${MICRO} absolute flex -translate-y-1/2 items-center gap-1 rounded-[2px] border border-gold-300/60 bg-ink-900 px-1.5 py-1 text-gold-300`}
         style={{ right: "3%", top: 0 }}

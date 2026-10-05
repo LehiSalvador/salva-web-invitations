@@ -279,7 +279,8 @@ function Broker() {
                   ids.map((id, position) => (
                     <span key={id} className={position ? "text-fog" : "text-mist"}>
                       {position ? " · " : ""}
-                      {id}
+                      <span className={s.opPrefix}>op-</span>
+                      {id.slice(3)}
                     </span>
                   ))
                 ) : (
@@ -400,9 +401,9 @@ function Verdict({ op }: { op: Op }) {
               <p className={cx("flex items-center gap-2", cool ? "text-cool" : "text-signal")}>
                 <span className={cx("size-1.5 shrink-0 rounded-full", cool ? "bg-cool" : "bg-signal")} />
                 <span className="truncate">
+                  <span className={s.narrow}>← </span>
                   {op.id}
                   <span className={cx(s.wide, "text-mist")}> · en proceso</span>
-                  <span className={cx(s.narrow, "text-mist")}> · activa</span>
                 </span>
               </p>
               <p className={cx(s.wideBlock, "truncate text-fog")}>contexto · proyecto {agents[op.agent].project}</p>
