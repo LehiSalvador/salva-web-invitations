@@ -13,17 +13,21 @@ export const site = {
   url: configuredSiteUrl ? new URL(configuredSiteUrl) : undefined,
 } as const;
 
-export const navLinks = [
-  { id: "inicio", label: "Inicio" },
-  { id: "nosotros", label: "Nosotros" },
-  { id: "que-hacemos", label: "Qué hacemos" },
-  { id: "proyectos", label: "Proyectos" },
-  { id: "contacto", label: "Contacto" },
+/** Índice de secciones; el número se muestra en la navegación y en cada sección. */
+export const sections = [
+  { id: "nosotros", label: "Nosotros", number: "01" },
+  { id: "que-hacemos", label: "Qué hacemos", number: "02" },
+  { id: "proyectos", label: "Proyectos", number: "03" },
+  { id: "proceso", label: "Proceso", number: "04" },
+  { id: "contacto", label: "Contacto", number: "05" },
 ] as const;
 
-export const footerLinks = navLinks.filter((link) =>
-  ["inicio", "nosotros", "proyectos", "contacto"].includes(link.id),
-);
+export type SectionId = (typeof sections)[number]["id"];
+
+export const footerLinks = [
+  { id: "inicio", label: "Inicio" },
+  ...sections.filter((section) => ["nosotros", "proyectos", "contacto"].includes(section.id)),
+];
 
 export const whatsapp = {
   /** Formato internacional, solo dígitos: código de país + número. */

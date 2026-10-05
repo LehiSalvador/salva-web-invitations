@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Menu, X } from "lucide-react";
 import { BrandMark } from "@/components/brand/BrandMark";
-import { navLinks } from "@/data/site";
+import { sections, whatsapp } from "@/data/site";
+import { whatsAppUrl } from "@/lib/whatsapp";
 
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState<string>("inicio");
+  const [active, setActive] = useState<string | null>(null);
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     let frame = 0;
     const update = () => {
       frame = 0;
-      setScrolled(window.scrollY > 12);
+      setScrolled(window.scrollY > 24);
     };
     const onScroll = () => {
       if (!frame) frame = requestAnimationFrame(update);
@@ -29,8 +29,8 @@ export function Navbar() {
   }, []);
 
   useEffect(() => {
-    const sections = navLinks
-      .map((link) => document.getElementById(link.id))
+    const targets = sections
+      .map((section) => document.getElementById(section.id))
       .filter((el): el is HTMLElement => el !== null);
     const observer = new IntersectionObserver(
       (entries) => {
@@ -40,7 +40,7 @@ export function Navbar() {
       },
       { rootMargin: "-45% 0px -50% 0px" },
     );
-    sections.forEach((section) => observer.observe(section));
+    targets.forEach((target) => observer.observe(target));
     return () => observer.disconnect();
   }, []);
 
@@ -54,9 +54,11 @@ export function Navbar() {
     };
     const desktop = window.matchMedia("(min-width: 1024px)");
     const onBreakpoint = () => desktop.matches && setOpen(false);
+    document.documentElement.style.overflow = "hidden";
     window.addEventListener("keydown", onKey);
     desktop.addEventListener("change", onBreakpoint);
     return () => {
+      document.documentElement.style.overflow = "";
       window.removeEventListener("keydown", onKey);
       desktop.removeEventListener("change", onBreakpoint);
     };
@@ -75,106 +77,95 @@ export function Navbar() {
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
-        className={`border-b transition-[background-color,border-color] duration-500 ${
-          open
-            ? "border-line bg-ink-950/[0.97]"
-            : scrolled
-              ? "border-line bg-ink-950/90"
-              : "border-transparent bg-transparent"
+        className={`border-b transition-colors duration-500 ${
+          scrolled || open ? "border-line bg-ink-950" : "border-transparent bg-transparent"
         }`}
       >
-        <nav
-          aria-label="Principal"
-          className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8 md:h-[4.5rem]"
-        >
-          <a href="#inicio" className="rounded-md" aria-label="Salva Systems, ir al inicio">
+        <nav aria-label="Principal" className="mx-auto flex h-14 max-w-[90rem] items-center gap-6 px-5 sm:px-8 lg:h-16">
+          <a href="#inicio" aria-label="Salva Systems, ir al inicio" className="shrink-0">
             <BrandMark animated />
           </a>
 
-          <ul className="hidden items-center gap-1 lg:flex">
-            {navLinks.map((link) => {
-              const isActive = active === link.id;
+          <ol className="ml-auto hidden items-center gap-7 lg:flex">
+            {sections.map((section) => {
+              const isActive = active === section.id;
               return (
-                <li key={link.id}>
+                <li key={section.id}>
                   <a
-                    href={`#${link.id}`}
+                    href={`#${section.id}`}
                     aria-current={isActive ? "true" : undefined}
-                    className={`relative rounded-full px-3.5 py-2 text-sm transition-colors duration-300 ${
+                    className={`group flex items-baseline gap-1.5 py-2 text-[0.82rem] transition-colors ${
                       isActive ? "text-bone" : "text-mist hover:text-bone"
                     }`}
                   >
-                    {link.label}
-                    <span
-                      aria-hidden="true"
-                      className={`absolute inset-x-3.5 -bottom-0.5 h-px origin-left bg-gold-400 transition-transform duration-500 ease-out-expo ${
-                        isActive ? "scale-x-100" : "scale-x-0"
-                      }`}
-                    />
+                    <span className={`font-mono text-[0.68rem] ${isActive ? "text-rose" : "text-fog"}`}>
+                      {section.number}
+                    </span>
+                    <span className={isActive ? "link-rule" : ""}>{section.label}</span>
                   </a>
                 </li>
               );
             })}
-          </ul>
+          </ol>
 
-          <div className="flex items-center gap-2">
-            <a
-              href="#contacto"
-              className="group hidden items-center gap-2 rounded-full border border-gold-500/40 bg-gold-500/10 px-5 py-2.5 text-sm font-medium text-gold-300 transition-[background-color,border-color,color] duration-300 hover:border-gold-400/70 hover:bg-gold-500/20 hover:text-bone sm:inline-flex"
-            >
-              Hablemos
-              <span aria-hidden="true" className="transition-transform duration-300 group-hover:translate-x-0.5">
-                →
-              </span>
-            </a>
-            <button
-              ref={toggleRef}
-              type="button"
-              className="inline-flex size-11 items-center justify-center rounded-full border border-line text-bone transition-colors hover:border-line-strong lg:hidden"
-              aria-expanded={open}
-              aria-controls="menu-movil"
-              aria-label={open ? "Cerrar menú" : "Abrir menú"}
-              onClick={() => setOpen((value) => !value)}
-            >
-              {open ? <X className="size-5" aria-hidden="true" /> : <Menu className="size-5" aria-hidden="true" />}
-            </button>
-          </div>
+          <a
+            href={whatsAppUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="ml-auto hidden border-l border-line pl-6 text-[0.82rem] text-bone sm:inline-flex lg:ml-0"
+          >
+            <span className="link-rule">WhatsApp</span>
+            <span aria-hidden="true" className="ml-1 text-gold-400">
+              ↗
+            </span>
+            <span className="sr-only">(se abre en una nueva pestaña)</span>
+          </a>
+
+          <button
+            ref={toggleRef}
+            type="button"
+            className="-mr-2 ml-auto inline-flex min-h-11 items-center gap-2 px-2 font-mono text-[0.72rem] tracking-[0.14em] text-bone uppercase sm:ml-0 lg:hidden"
+            aria-expanded={open}
+            aria-controls="indice-movil"
+            onClick={() => setOpen((value) => !value)}
+          >
+            {open ? "Cerrar" : "Índice"}
+            <span aria-hidden="true" className="relative block h-2.5 w-4">
+              <span className={`absolute inset-x-0 top-0 h-px bg-bone transition-transform ${open ? "translate-y-[5px] rotate-45" : ""}`} />
+              <span className={`absolute inset-x-0 bottom-0 h-px bg-bone transition-transform ${open ? "-translate-y-[4px] -rotate-45" : ""}`} />
+            </span>
+          </button>
         </nav>
+      </div>
 
-        <div
-          id="menu-movil"
-          inert={!open}
-          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out lg:hidden ${
-            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
-          }`}
-        >
-          <div className="overflow-hidden">
-            <ul className="space-y-1 px-5 pt-2 pb-6">
-              {navLinks.map((link) => (
-                <li key={link.id}>
-                  <a
-                    href={`#${link.id}`}
-                    onClick={(event) => goTo(event, link.id)}
-                    aria-current={active === link.id ? "true" : undefined}
-                    className={`flex min-h-12 items-center justify-between rounded-xl px-4 text-base transition-colors ${
-                      active === link.id ? "bg-white/[0.04] text-bone" : "text-mist hover:text-bone"
-                    }`}
-                  >
-                    {link.label}
-                    {active === link.id && <span aria-hidden="true" className="size-1.5 rounded-full bg-gold-400" />}
-                  </a>
-                </li>
-              ))}
-              <li className="pt-3">
-                <a
-                  href="#contacto"
-                  onClick={(event) => goTo(event, "contacto")}
-                  className="flex min-h-12 items-center justify-center rounded-full border border-gold-500/40 bg-gold-500/10 text-base font-medium text-gold-300"
-                >
-                  Hablemos
-                </a>
-              </li>
-            </ul>
-          </div>
+      <div
+        id="indice-movil"
+        inert={!open}
+        className={`fixed inset-x-0 top-14 bottom-0 flex flex-col justify-between overflow-y-auto bg-ink-950 px-5 pt-8 pb-10 transition-[clip-path] duration-500 ease-out-expo sm:px-8 lg:hidden ${
+          open ? "[clip-path:inset(0_0_0_0)]" : "[clip-path:inset(0_0_100%_0)]"
+        }`}
+      >
+        <ol className="border-t border-line">
+          {sections.map((section) => (
+            <li key={section.id} className="border-b border-line">
+              <a
+                href={`#${section.id}`}
+                onClick={(event) => goTo(event, section.id)}
+                aria-current={active === section.id ? "true" : undefined}
+                className="flex min-h-16 items-baseline gap-4 py-3"
+              >
+                <span className="font-mono text-xs text-fog">{section.number}</span>
+                <span className="font-display text-[2.6rem] leading-none text-bone">{section.label}</span>
+              </a>
+            </li>
+          ))}
+        </ol>
+        <div className="mt-10 flex items-end justify-between gap-6">
+          <a href={whatsAppUrl} target="_blank" rel="noopener noreferrer" className="text-lg text-bone">
+            <span className="link-rule">Escribir por WhatsApp</span> <span aria-hidden="true">↗</span>
+            <span className="sr-only">(se abre en una nueva pestaña)</span>
+          </a>
+          <span className="label text-fog">{whatsapp.displayNumber}</span>
         </div>
       </div>
     </header>

@@ -23,7 +23,7 @@ type SalvaLogoProps = {
   /** "light" para fondos oscuros (variante inversa), "dark" para fondos claros (colores originales). */
   tone?: keyof typeof STRUCTURE_COLOR;
   /** Entrada animada única; se desactiva con prefers-reduced-motion. */
-  intro?: "none" | "compact" | "hero";
+  intro?: "none" | "compact";
   title?: string;
 };
 
@@ -39,24 +39,7 @@ export function SalvaLogo({ className = "", style, tone = "light", intro = "none
       focusable="false"
     >
       {title && <title>{title}</title>}
-      {intro === "hero" && (
-        <defs>
-          <linearGradient id="salva-logo-glint" x1="0" x2="1" y1="0" y2="0">
-            <stop offset="0" stopColor="#E8D6AE" stopOpacity="0" />
-            <stop offset="0.5" stopColor="#E8D6AE" stopOpacity="0.9" />
-            <stop offset="1" stopColor="#E8D6AE" stopOpacity="0" />
-          </linearGradient>
-          <clipPath id="salva-logo-structure">
-            <path d={STRUCTURE} clipRule="evenodd" />
-          </clipPath>
-        </defs>
-      )}
       <path className="salva-logo__structure" d={STRUCTURE} fill={STRUCTURE_COLOR[tone]} fillRule="evenodd" />
-      {intro === "hero" && (
-        <g clipPath="url(#salva-logo-structure)">
-          <rect className="salva-logo__glint" x="-60" y={y} width="300" height={height} fill="url(#salva-logo-glint)" />
-        </g>
-      )}
       {SALVA_LOGO_NODES.map(({ cx, cy, r }, index) => (
         <circle
           key={`${cx}-${cy}`}

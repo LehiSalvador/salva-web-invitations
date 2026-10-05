@@ -6,8 +6,8 @@ Sitio web oficial de Salva Systems: landing one-page sobre soluciones digitales,
 
 - Next.js (App Router) + React + TypeScript
 - Tailwind CSS v4
-- Lucide para iconos
-- Animaciones con CSS y Web Animations API, sin librerías de animación
+- Tipografías Instrument Serif (titulares) e IBM Plex Sans/Mono (texto y datos) con `next/font`
+- Animaciones con CSS y un único IntersectionObserver, sin librerías de animación
 - Sitio estático: sin backend, base de datos ni servicios externos
 
 ## Desarrollo
@@ -26,10 +26,10 @@ npm run build      # build de producción
 
 ```
 src/app/                 layout, página, estilos globales, metadata, ícono, imagen Open Graph y robots
-src/components/          secciones e interacciones de la landing
+src/components/          secciones de la landing; ProjectDiagram.tsx dibuja la figura de cada proyecto
 src/components/brand/    logo de Salva Systems (SalvaLogo) y marca con nombre (BrandMark)
 src/data/site.ts         textos generales, navegación, WhatsApp y URL del sitio
-src/data/projects.ts     proyectos del carrusel: texto, logo y composición de fondo
+src/data/projects.ts     proyectos: texto, componentes del sistema, pie de figura y logo
 src/lib/whatsapp.ts      enlace wa.me con mensaje precargado
 public/brand/            logo oficial de Salva Systems
 public/projects/         logos de los proyectos
@@ -38,7 +38,7 @@ public/projects/         logos de los proyectos
 ## Logos y assets
 
 - **Salva Systems:** `public/brand/salva-systems-logo.svg` (colores originales) y `salva-systems-logo-inverse.svg` (para fondos oscuros). La interfaz dibuja el logo desde `src/components/brand/SalvaLogo.tsx` con la misma geometría, para poder animar sus partes. Si cambia el logo, actualiza ese componente, los archivos de `public/brand/` y `src/app/icon.svg`.
-- **Proyectos:** cada entrada de `src/data/projects.ts` acepta `logo` (`src`, `alt`, `width`, `height` y `scale` opcional para el tamaño dentro de la tarjeta). Para cambiar una marca, reemplaza el archivo en `public/projects/` o actualiza la ruta. Si un proyecto no tiene `logo`, su tarjeta muestra solo la composición abstracta indicada en `visual`.
+- **Proyectos:** cada entrada de `src/data/projects.ts` acepta `logo` (`src`, `alt`, `width`, `height`). Para cambiar una marca, reemplaza el archivo en `public/projects/` o actualiza la ruta; sin `logo`, la lámina del proyecto omite el sello. El diagrama de cada proyecto vive en `src/components/ProjectDiagram.tsx`, indexado por `id`.
 
 ## WhatsApp
 

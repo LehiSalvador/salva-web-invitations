@@ -1,33 +1,34 @@
 import { Reveal } from "@/components/Reveal";
+import { sections, type SectionId } from "@/data/site";
 
 type SectionHeadingProps = {
-  index: string;
-  eyebrow: string;
-  title: string;
-  description?: string;
-  id?: string;
-  align?: "left" | "center";
+  section: SectionId;
+  title: React.ReactNode;
+  /** Texto breve a la derecha de la regla superior. */
+  aside?: string;
+  className?: string;
 };
 
-export function SectionHeading({ index, eyebrow, title, description, id, align = "left" }: SectionHeadingProps) {
-  const centered = align === "center";
+/** Cabecera editorial: regla con número de sección y titular en serif. */
+export function SectionHeading({ section, title, aside, className = "" }: SectionHeadingProps) {
+  const { number, label } = sections.find((item) => item.id === section)!;
   return (
-    <Reveal className={centered ? "mx-auto max-w-3xl text-center" : "max-w-3xl"}>
-      <p
-        className={`flex items-center gap-3 font-mono text-xs tracking-[0.22em] text-gold-400 uppercase ${
-          centered ? "justify-center" : ""
-        }`}
-      >
-        <span className="text-fog">{index}</span>
-        <span aria-hidden="true" className="h-px w-8 bg-gold-500/50" />
-        {eyebrow}
-      </p>
-      <h2 id={id} className="mt-5 text-3xl leading-[1.08] font-semibold tracking-tight text-balance text-bone sm:text-4xl lg:text-5xl">
-        {title}
-      </h2>
-      {description && (
-        <p className="mt-5 text-base leading-relaxed text-pretty text-mist sm:text-lg">{description}</p>
-      )}
-    </Reveal>
+    <header className={className}>
+      <Reveal variant="rule" className="h-px bg-current opacity-25" />
+      <div className="label mt-3 flex items-baseline justify-between gap-6 opacity-70">
+        <span>
+          {number} — {label}
+        </span>
+        {aside && <span className="hidden text-right sm:block">{aside}</span>}
+      </div>
+      <Reveal variant="clip" delay={120}>
+        <h2
+          id={`${section}-title`}
+          className="mt-8 max-w-[16ch] font-display text-[clamp(2.6rem,7vw,5.6rem)] leading-[0.95] tracking-[-0.015em] text-balance"
+        >
+          {title}
+        </h2>
+      </Reveal>
+    </header>
   );
 }
