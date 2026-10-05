@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { Blocks, BrainCircuit, MonitorSmartphone, Workflow, type LucideIcon } from "lucide-react";
 import { InteractiveCard } from "@/components/InteractiveCard";
 import { Reveal } from "@/components/Reveal";
@@ -29,7 +30,7 @@ const capabilities: { title: string; description: string; icon: LucideIcon }[] =
 export function Capabilities() {
   return (
     <section id="que-hacemos" aria-labelledby="que-hacemos-title" className="relative py-24 sm:py-32">
-      <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 top-0 mx-auto h-px max-w-5xl hairline-gold opacity-30" />
+      <div aria-hidden="true" className="hairline-gold pointer-events-none absolute inset-x-0 top-0 mx-auto h-px max-w-5xl opacity-30" />
       <div className="mx-auto max-w-7xl px-5 sm:px-8">
         <SectionHeading
           id="que-hacemos-title"
@@ -42,11 +43,16 @@ export function Capabilities() {
         <ul className="mt-14 grid gap-5 sm:grid-cols-2 xl:grid-cols-4">
           {capabilities.map(({ title, description, icon: Icon }, index) => (
             <li key={title} className="h-full">
-              <Reveal delay={index * 0.08} className="h-full">
+              <Reveal delay={index * 80} className="h-full">
                 <InteractiveCard
                   className="h-full overflow-hidden rounded-3xl border border-line bg-gradient-to-b from-ink-850 to-ink-900 p-7 hover:border-gold-500/30 sm:p-8"
                 >
-                  <div aria-hidden="true" className="card-spotlight pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-500 group-hover/card:opacity-100" />
+                  <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl">
+                    <div
+                      className="pointer-glow group-hover/card:opacity-100"
+                      style={{ "--glow-size": "440px", "--glow-color": "rgb(200 173 118 / 0.12)" } as CSSProperties}
+                    />
+                  </div>
                   <div className="relative flex h-full flex-col">
                     <div className="flex items-start justify-between">
                       <span className="flex size-12 items-center justify-center rounded-2xl border border-gold-500/30 bg-gold-500/[0.07] text-gold-400 transition-[background-color,border-color] duration-500 group-hover/card:border-gold-400/60 group-hover/card:bg-gold-500/15">

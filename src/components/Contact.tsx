@@ -1,7 +1,8 @@
 import { ArrowUpRight } from "lucide-react";
-import { BrandSymbol } from "@/components/BrandMark";
+import { SalvaLogo } from "@/components/brand/SalvaLogo";
 import { Reveal } from "@/components/Reveal";
 import { WhatsAppIcon } from "@/components/WhatsAppIcon";
+import { whatsapp } from "@/data/site";
 import { whatsAppUrl } from "@/lib/whatsapp";
 
 export function Contact() {
@@ -11,10 +12,10 @@ export function Contact() {
         <Reveal>
           <div className="relative isolate overflow-hidden rounded-[2rem] border border-line bg-ink-900 px-6 py-16 text-center sm:px-12 sm:py-24">
             <div aria-hidden="true" className="pointer-events-none absolute inset-0 -z-10">
-              <div className="bg-grid absolute inset-0 [mask-image:radial-gradient(60%_70%_at_50%_0%,black,transparent)] opacity-60" />
-              <div className="absolute -top-1/2 left-1/2 h-[140%] w-[90%] -translate-x-1/2 animate-pulse-soft rounded-full bg-[radial-gradient(closest-side,rgb(184_154_98/0.18),transparent)]" />
+              <div className="bg-grid absolute inset-0 opacity-60 [mask-image:radial-gradient(60%_70%_at_50%_0%,black,transparent)]" />
+              <div className="absolute -top-1/2 left-1/2 h-[140%] w-[90%] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgb(184_154_98/0.17),transparent)]" />
               <div className="hairline-gold absolute inset-x-12 top-0 h-px" />
-              <BrandSymbol className="absolute -right-16 -bottom-16 size-80 text-white/[0.03]" />
+              <SalvaLogo className="absolute -right-10 -bottom-14 w-72 opacity-[0.04] sm:w-80" />
             </div>
 
             <p className="font-mono text-xs tracking-[0.22em] text-gold-400 uppercase">05 · Contacto</p>
@@ -29,31 +30,23 @@ export function Contact() {
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-4">
-              {whatsAppUrl ? (
-                <a
-                  href={whatsAppUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-gold-400 px-8 text-base font-semibold text-ink-950 shadow-[0_20px_50px_-20px_rgb(200_173_118/0.8)] transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-gold-300 active:translate-y-0"
-                >
-                  <WhatsAppIcon className="size-5" />
-                  Hablar por WhatsApp
-                  <ArrowUpRight className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5" aria-hidden="true" />
-                  <span className="sr-only">(se abre en una nueva pestaña)</span>
-                </a>
-              ) : (
-                <>
-                  <span
-                    role="link"
-                    aria-disabled="true"
-                    className="inline-flex min-h-14 cursor-not-allowed items-center justify-center gap-3 rounded-full border border-gold-500/30 bg-gold-500/10 px-8 text-base font-semibold text-gold-300/70"
-                  >
-                    <WhatsAppIcon className="size-5" />
-                    Hablar por WhatsApp
-                  </span>
-                  <p className="text-sm text-fog">El canal de WhatsApp estará disponible en breve.</p>
-                </>
-              )}
+              <a
+                href={whatsAppUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group inline-flex min-h-14 items-center justify-center gap-3 rounded-full bg-gold-400 px-8 text-base font-semibold text-ink-950 shadow-[0_20px_50px_-20px_rgb(200_173_118/0.8)] transition-[transform,background-color] duration-300 hover:-translate-y-0.5 hover:bg-gold-300 active:translate-y-0"
+              >
+                <WhatsAppIcon className="size-5" />
+                Hablar por WhatsApp
+                <ArrowUpRight
+                  className="size-4 transition-transform duration-300 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+                  aria-hidden="true"
+                />
+                <span className="sr-only">(se abre en una nueva pestaña)</span>
+              </a>
+              <p className="font-mono text-sm tracking-[0.12em] text-fog">
+                WhatsApp <span className="text-mist">{whatsapp.displayNumber}</span>
+              </p>
             </div>
           </div>
         </Reveal>

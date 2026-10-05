@@ -1,5 +1,4 @@
-import Image from "next/image";
-import type { Project, ProjectVisualKind } from "@/data/projects";
+import type { ProjectVisualKind } from "@/data/projects";
 
 const GOLD = "#c8ad76";
 const GOLD_SOFT = "#7d6845";
@@ -46,8 +45,8 @@ function IndustrialMap() {
         </g>
       ))}
       <path d="M30 210H300V36" stroke={GOLD} strokeOpacity="0.5" strokeDasharray="4 5" />
-      <path d="M30 210H300V36" stroke={GOLD} strokeWidth="1.5" strokeDasharray="3 237" className="animate-dash" />
-      <circle cx="182" cy="154" r="9" fill={GOLD} fillOpacity="0.15" className="animate-pulse-soft" />
+      <path d="M30 210H300V36" stroke={GOLD} strokeWidth="1.5" strokeDasharray="3 237" />
+      <circle cx="182" cy="154" r="9" fill={GOLD} fillOpacity="0.15" />
       <circle cx="182" cy="154" r="3" fill={GOLD} />
       <rect x="306" y="52" width="74" height="140" rx="8" fill={SURFACE} stroke={LINE} />
       <text x="316" y="72" fill={MIST} fontSize="7.5" letterSpacing="1.2" fontFamily={MONO}>PATIO A-3</text>
@@ -88,7 +87,7 @@ function Conversations() {
         <rect x="164" y="166" width="194" height="36" rx="10" fill="#0c0f13" stroke="rgba(200,173,118,0.25)" />
         <path d="M178 184h10M183 179v10" stroke={GOLD} strokeWidth="1.4" />
         <text x="196" y="187" fill={MIST} fontSize="7.5" letterSpacing="1.2" fontFamily={MONO}>FLUJO · AUTO-RESPUESTA</text>
-        <circle cx="344" cy="184" r="3" fill={GOLD} className="animate-pulse-soft" />
+        <circle cx="344" cy="184" r="3" fill={GOLD} />
       </g>
     </Frame>
   );
@@ -128,40 +127,43 @@ function Portfolio() {
   );
 }
 
-function Terminal() {
-  const lines = [
-    { prefix: "$", text: "run tarea --origen datos.csv", color: BONE },
-    { prefix: "›", text: "validando estructura", color: MIST },
-    { prefix: "›", text: "normalizando registros", color: MIST },
-    { prefix: "✓", text: "proceso completado", color: GOLD },
+function Orchestration() {
+  const agents = [
+    { x: 200, y: 62 },
+    { x: 262, y: 168 },
+    { x: 138, y: 168 },
   ];
   return (
     <Frame>
-      <rect x="30" y="30" width="224" height="190" rx="12" fill={SURFACE} stroke={LINE} />
-      <path d="M30 56H254" stroke={LINE} />
-      {[0, 1, 2].map((i) => (
-        <circle key={i} cx={46 + i * 12} cy="43" r="3.5" fill={i === 0 ? GOLD : "#2a313c"} fillOpacity={i === 0 ? 0.7 : 1} />
-      ))}
-      {lines.map((line, i) => (
-        <text key={i} x="46" y={84 + i * 22} fontSize="9" fontFamily={MONO} fill={line.color} fillOpacity={line.color === BONE ? 0.9 : 1}>
-          <tspan fill={i === 3 ? GOLD : GOLD_SOFT}>{line.prefix}</tspan> {line.text}
-        </text>
-      ))}
-      <rect x="46" y="166" width="7" height="11" fill={GOLD} className="animate-blink" />
-      {[
-        { x: 290, y: 52 },
-        { x: 290, y: 112 },
-        { x: 290, y: 172 },
-      ].map((node, i) => (
+      <rect x="22" y="30" width="86" height="190" rx="10" fill={SURFACE} stroke={LINE} />
+      <text x="32" y="50" fill={MIST} fontSize="7" letterSpacing="1.2" fontFamily={MONO}>PROYECTOS</text>
+      {[0, 1, 2, 3].map((i) => (
         <g key={i}>
-          <rect x={node.x} y={node.y} width="82" height="32" rx="8" fill={SURFACE} stroke={i === 1 ? "rgba(200,173,118,0.45)" : LINE} />
-          <rect x={node.x + 10} y={node.y + 11} width="10" height="10" rx="3" fill={i === 1 ? GOLD : "#2a313c"} fillOpacity={i === 1 ? 0.6 : 1} />
-          <rect x={node.x + 28} y={node.y + 12} width="40" height="4" rx="2" fill="#3a424e" />
-          <rect x={node.x + 28} y={node.y + 19} width="26" height="3" rx="1.5" fill="#2a313c" />
+          <rect x="30" y={60 + i * 38} width="70" height="28" rx="6" fill={i === 1 ? SURFACE_UP : "transparent"} stroke={i === 1 ? "rgba(148,163,184,0.35)" : LINE} />
+          <rect x="38" y={70 + i * 38} width={[40, 48, 34, 44][i]} height="4" rx="2" fill={i === 1 ? BONE : "#2a313c"} fillOpacity={i === 1 ? 0.7 : 1} />
+          <rect x="38" y={78 + i * 38} width="26" height="3" rx="1.5" fill="#232a35" />
         </g>
       ))}
-      <path d="M254 125H290M331 84V112M331 144V172" stroke={GOLD} strokeOpacity="0.45" />
-      <path d="M254 125H290M331 84V112M331 144V172" stroke={GOLD} strokeWidth="1.5" strokeDasharray="3 60" className="animate-dash" />
+      <circle cx="200" cy="133" r="62" stroke="#2a313c" strokeDasharray="3 5" />
+      {agents.map((a) => (
+        <path key={`l${a.x}`} d={`M200 133L${a.x} ${a.y}`} stroke="#3a4556" strokeWidth="1.5" />
+      ))}
+      {agents.map((a, i) => (
+        <g key={a.x}>
+          <circle cx={a.x} cy={a.y} r="12" fill={SURFACE} stroke={i === 0 ? "#8fa6c8" : "#3a4556"} strokeWidth="2" />
+          <circle cx={a.x} cy={a.y} r="3.5" fill={i === 0 ? "#8fa6c8" : "#4b586b"} />
+        </g>
+      ))}
+      <rect x="187" y="120" width="26" height="26" rx="6" transform="rotate(45 200 133)" fill="#28405f" stroke="#cdd8e6" strokeOpacity="0.6" />
+      <rect x="292" y="30" width="86" height="190" rx="10" fill={SURFACE} stroke={LINE} />
+      <text x="302" y="50" fill={MIST} fontSize="7" letterSpacing="1.2" fontFamily={MONO}>EVIDENCIA</text>
+      {[0, 1, 2, 3, 4].map((i) => (
+        <g key={i}>
+          <path d={`M302 ${68 + i * 30}l3 3 6-6`} stroke={i < 3 ? "#8fa6c8" : "#3a4556"} strokeWidth="1.5" />
+          <rect x="318" y={64 + i * 30} width={[46, 38, 50, 30, 42][i]} height="4" rx="2" fill="#2a313c" />
+          <rect x="318" y={72 + i * 30} width="28" height="3" rx="1.5" fill="#232a35" />
+        </g>
+      ))}
     </Frame>
   );
 }
@@ -235,23 +237,12 @@ const visuals: Record<ProjectVisualKind, () => React.JSX.Element> = {
   "industrial-map": IndustrialMap,
   conversations: Conversations,
   portfolio: Portfolio,
-  terminal: Terminal,
+  orchestration: Orchestration,
   commerce: Commerce,
   archive: Archive,
 };
 
-export function ProjectVisual({ project }: { project: Project }) {
-  if (project.image) {
-    return (
-      <Image
-        src={project.image.src}
-        alt={project.image.alt}
-        fill
-        sizes="(min-width: 768px) 440px, 84vw"
-        className="object-cover"
-      />
-    );
-  }
-  const Visual = visuals[project.visual];
+export function ProjectVisual({ kind }: { kind: ProjectVisualKind }) {
+  const Visual = visuals[kind];
   return <Visual />;
 }

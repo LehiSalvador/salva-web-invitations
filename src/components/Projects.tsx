@@ -18,7 +18,7 @@ export function Projects() {
           description="Algunos de los sistemas, plataformas y experiencias digitales que hemos desarrollado."
         />
       </div>
-      <Reveal delay={0.1} className="relative mt-14">
+      <Reveal delay={100} className="relative mt-14">
         <ProjectsCarousel />
       </Reveal>
     </section>

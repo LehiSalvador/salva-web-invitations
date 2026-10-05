@@ -1,13 +1,14 @@
-# Salva Systems — sitio web
+# salva-systems-web
 
-Landing one-page de Salva Systems: soluciones digitales, automatización y tecnología para mejorar operaciones.
+Sitio web oficial de Salva Systems: landing one-page sobre soluciones digitales, automatización, aplicaciones e inteligencia aplicada a operaciones.
 
 ## Stack
 
 - Next.js (App Router) + React + TypeScript
 - Tailwind CSS v4
-- Motion (`motion/react`) para animaciones y Lucide para iconos
-- Página estática: sin backend, base de datos ni servicios externos
+- Lucide para iconos
+- Animaciones con CSS y Web Animations API, sin librerías de animación
+- Sitio estático: sin backend, base de datos ni servicios externos
 
 ## Desarrollo
 
@@ -24,28 +25,29 @@ npm run build      # build de producción
 ## Estructura
 
 ```
-src/app/            layout, página, estilos globales, metadata, icono, imagen OG, robots
-src/components/     secciones y componentes interactivos
-src/components/visuals/ProjectVisual.tsx   composiciones SVG de cada proyecto
-src/data/site.ts    textos generales, navegación y configuración de WhatsApp
-src/data/projects.ts datos del carrusel de proyectos
-src/lib/whatsapp.ts  generación del enlace wa.me
+src/app/                 layout, página, estilos globales, metadata, ícono, imagen Open Graph y robots
+src/components/          secciones e interacciones de la landing
+src/components/brand/    logo de Salva Systems (SalvaLogo) y marca con nombre (BrandMark)
+src/data/site.ts         textos generales, navegación, WhatsApp y URL del sitio
+src/data/projects.ts     proyectos del carrusel: texto, logo y composición de fondo
+src/lib/whatsapp.ts      enlace wa.me con mensaje precargado
+public/brand/            logo oficial de Salva Systems
+public/projects/         logos de los proyectos
 ```
 
-## Configuración
+## Logos y assets
 
-| Variable | Uso |
-| --- | --- |
-| `NEXT_PUBLIC_WHATSAPP_NUMBER` | Número de WhatsApp en formato internacional, solo dígitos (ej. `52` + 10 dígitos). Si no está definido o no es válido, los botones de WhatsApp no generan enlace y la sección de contacto lo indica. |
-| `NEXT_PUBLIC_SITE_URL` | Opcional. URL pública definitiva; se usa como `metadataBase` para Open Graph. |
+- **Salva Systems:** `public/brand/salva-systems-logo.svg` (colores originales) y `salva-systems-logo-inverse.svg` (para fondos oscuros). La interfaz dibuja el logo desde `src/components/brand/SalvaLogo.tsx` con la misma geometría, para poder animar sus partes. Si cambia el logo, actualiza ese componente, los archivos de `public/brand/` y `src/app/icon.svg`.
+- **Proyectos:** cada entrada de `src/data/projects.ts` acepta `logo` (`src`, `alt`, `width`, `height` y `scale` opcional para el tamaño dentro de la tarjeta). Para cambiar una marca, reemplaza el archivo en `public/projects/` o actualiza la ruta. Si un proyecto no tiene `logo`, su tarjeta muestra solo la composición abstracta indicada en `visual`.
 
-Las variables `NEXT_PUBLIC_*` se insertan al compilar: después de configurarlas en Vercel hay que volver a desplegar.
+## WhatsApp
 
-## Marca y visuales
+El número y el mensaje precargado viven en el objeto `whatsapp` de `src/data/site.ts`. `src/lib/whatsapp.ts` arma el enlace `wa.me`. Si el número no está en formato internacional válido, el build falla.
 
-- El símbolo y wordmark actuales son un tratamiento temporal en `src/components/BrandMark.tsx` (y `src/app/icon.svg`). Para usar el logo oficial, reemplaza ese componente y el icono.
-- Cada proyecto en `src/data/projects.ts` acepta `image: { src, alt }`. Coloca la imagen en `public/projects/` y agrégala al proyecto; reemplaza automáticamente la composición SVG.
+## URL del sitio
+
+`NEXT_PUBLIC_SITE_URL` es opcional y define la URL pública que se usa en la metadata y en Open Graph. Si no se define, Next.js toma la URL de producción que asigna Vercel. Las variables `NEXT_PUBLIC_*` se insertan al compilar, así que después de cambiarla hay que volver a desplegar.
 
 ## Deploy
 
-El repositorio está conectado al proyecto de Vercel `premium-cap-verify` mediante Git Integration: cada push a `main` genera un deployment de producción.
+El repositorio está conectado al proyecto de Vercel `salva-systems-web` por Git Integration: cada push a `main` genera un deployment de producción. El dominio corporativo se conectará más adelante. Cuando llegue ese momento, basta con agregarlo al proyecto en Vercel y actualizar `NEXT_PUBLIC_SITE_URL`.

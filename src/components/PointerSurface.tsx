@@ -1,28 +1,44 @@
 "use client";
 
-import { useRef } from "react";
+import { useEffect, useRef } from "react";
 
 type PointerSurfaceProps = React.HTMLAttributes<HTMLElement> & {
   as?: "section" | "div";
 };
 
+/** Expone la posición del puntero como variables CSS (--mx, --my, --px, --py) sin re-renderizar. */
 export function PointerSurface({ as: Tag = "div", children, ...rest }: PointerSurfaceProps) {
   const ref = useRef<HTMLElement>(null);
   const frame = useRef(0);
+  const rect = useRef<DOMRect | null>(null);
+
+  useEffect(() => {
+    const invalidate = () => {
+      rect.current = null;
+    };
+    window.addEventListener("scroll", invalidate, { passive: true });
+    window.addEventListener("resize", invalidate);
+    return () => {
+      cancelAnimationFrame(frame.current);
+      window.removeEventListener("scroll", invalidate);
+      window.removeEventListener("resize", invalidate);
+    };
+  }, []);
 
   const onPointerMove = (event: React.PointerEvent<HTMLElement>) => {
-    if (event.pointerType !== "mouse") return;
     const el = ref.current;
-    if (!el) return;
+    if (!el || event.pointerType !== "mouse") return;
     const { clientX, clientY } = event;
     cancelAnimationFrame(frame.current);
     frame.current = requestAnimationFrame(() => {
-      const rect = el.getBoundingClientRect();
-      el.style.setProperty("--mx", `${clientX - rect.left}px`);
-      el.style.setProperty("--my", `${clientY - rect.top}px`);
-      el.style.setProperty("--px", `${((clientX - rect.left) / rect.width - 0.5).toFixed(3)}`);
-      el.style.setProperty("--py", `${((clientY - rect.top) / rect.height - 0.5).toFixed(3)}`);
-      el.dataset.pointer = "active";
+      const box = (rect.current ??= el.getBoundingClientRect());
+      const x = clientX - box.left;
+      const y = clientY - box.top;
+      el.style.setProperty("--mx", `${x}px`);
+      el.style.setProperty("--my", `${y}px`);
+      el.style.setProperty("--px", (x / box.width - 0.5).toFixed(3));
+      el.style.setProperty("--py", (y / box.height - 0.5).toFixed(3));
+      if (el.dataset.pointer !== "active") el.dataset.pointer = "active";
     });
   };
 

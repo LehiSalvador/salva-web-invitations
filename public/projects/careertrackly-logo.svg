@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="142 22 256 228" width="256" height="228">
+  <title>Careertrackly</title>
+  <defs>
+    <linearGradient id="careertrackly-fill" gradientUnits="userSpaceOnUse" x1="168" y1="232" x2="352" y2="69">
+      <stop offset="0" stop-color="#1DB272"/>
+      <stop offset="0.6" stop-color="#20B575"/>
+      <stop offset="0.86" stop-color="#36C685"/>
+      <stop offset="1" stop-color="#5EE1A4"/>
+    </linearGradient>
+    <radialGradient id="careertrackly-glow" gradientUnits="userSpaceOnUse" cx="348.8" cy="72.2" r="44">
+      <stop offset="0" stop-color="#D4FFEB" stop-opacity="0.95"/>
+      <stop offset="0.14" stop-color="#9CF7CF" stop-opacity="0.62"/>
+      <stop offset="0.4" stop-color="#55E0A2" stop-opacity="0.22"/>
+      <stop offset="0.72" stop-color="#36D18E" stop-opacity="0.07"/>
+      <stop offset="1" stop-color="#2FCB88" stop-opacity="0"/>
+    </radialGradient>
+    <mask id="careertrackly-mask" maskUnits="userSpaceOnUse" x="142" y="22" width="256" height="228">
+      <circle cx="236.79" cy="155.53" r="87.93" fill="#fff"/>
+      <circle cx="236.98" cy="155.37" r="59.07" fill="#000"/>
+      <path d="M244.3 153.15L420 -34.92L420 307.78Z" fill="#000"/>
+      <path d="M192.1 194.75L196 194.7C236.44 197.49 290.75 142.37 317 115.61L313.8 131.12C294.06 153.42 214.06 230.32 196 198.58Z" fill="#000"/>
+      <path d="M179.2 167.66L180 169.25C204.28 217.6 299.7 115.69 317 96.24L323.65 88.77L324 108.47L317 115.61C290.75 142.37 236.44 197.49 196 194.7L192.1 194.75L187 202L176 176Z" fill="#fff"/>
+      <path d="M196 198.58C214.06 230.32 294.06 153.42 313.8 131.12C285.61 168.71 260.19 195.19 228 212.63L228 224L201 224Z" fill="#fff"/>
+      <path d="M318.5 78.2L351.8 69.2L345.2 104.2Z" fill="#fff"/>
+    </mask>
+  </defs>
+  <rect x="142" y="22" width="256" height="228" fill="url(#careertrackly-fill)" mask="url(#careertrackly-mask)"/>
+  <circle cx="348.8" cy="72.2" r="44" fill="url(#careertrackly-glow)"/>
+</svg>

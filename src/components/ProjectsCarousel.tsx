@@ -1,128 +1,181 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import {
-  animate,
-  motion,
-  useAnimationFrame,
-  useInView,
-  useMotionValue,
-  useReducedMotion,
-  type AnimationPlaybackControls,
-} from "motion/react";
 import { ChevronLeft, ChevronRight, Pause, Play } from "lucide-react";
 import { projects } from "@/data/projects";
-import { ProjectVisual } from "@/components/visuals/ProjectVisual";
+import { ProjectMedia } from "@/components/ProjectMedia";
 
-const COPIES = 3;
+const COPIES = 2;
 const SPEED_PX_PER_SECOND = 34;
 const DRAG_THRESHOLD_PX = 4;
+/** Mantiene currentTime lejos de 0 para poder retroceder sin salir del rango de la animación. */
+const TIME_HEADROOM_ITERATIONS = 1000;
+const easeOutQuart = (t: number) => 1 - (1 - t) ** 4;
+const loopDurationFor = (width: number) => (width / SPEED_PX_PER_SECOND) * 1000;
+const normalizeTimeFor = (time: number, width: number) => {
+  const duration = loopDurationFor(width);
+  return (((time % duration) + duration) % duration) + duration * TIME_HEADROOM_ITERATIONS;
+};
 
+/**
+ * Carrusel en loop: el desplazamiento automático es una animación WAAPI (corre en el compositor);
+ * arrastre y controles solo ajustan su currentTime.
+ */
 export function ProjectsCarousel() {
-  const reducedMotion = useReducedMotion();
   const viewportRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
   const firstCopyRef = useRef<HTMLUListElement>(null);
-  const inView = useInView(viewportRef, { margin: "200px 0px" });
-  const x = useMotionValue(0);
-  const setWidth = useRef(0);
-  const tween = useRef<AnimationPlaybackControls | null>(null);
-  const drag = useRef({ active: false, moved: false, startX: 0, startOffset: 0, lastX: 0, lastTime: 0, velocity: 0 });
-
+  const animation = useRef<Animation | null>(null);
+  const loopWidth = useRef(0);
+  const tweenFrame = useRef(0);
+  const blockers = useRef({ hover: false, focus: false, drag: false, tween: false, offscreen: true, reduced: false, user: false });
+  const drag = useRef({ active: false, moved: false, startX: 0, startTime: 0, lastX: 0, lastStamp: 0, velocity: 0 });
   const [userPaused, setUserPaused] = useState(false);
-  const [hovering, setHovering] = useState(false);
-  const [focusWithin, setFocusWithin] = useState(false);
+  const [reducedMotion, setReducedMotion] = useState(false);
   const [dragging, setDragging] = useState(false);
 
-  const autoplayOff = reducedMotion === true || userPaused;
-  const isMoving = !autoplayOff && !hovering && !focusWithin && !dragging && inView;
+  const currentTime = () => Number(animation.current?.currentTime ?? 0);
+  const normalizeTime = (time: number) => normalizeTimeFor(time, loopWidth.current);
 
-  const normalize = useCallback(() => {
-    const width = setWidth.current;
-    if (!width) return;
-    let value = x.get();
-    while (value > -width) value -= width;
-    while (value <= -2 * width) value += width;
-    x.set(value);
-  }, [x]);
+  const sync = useCallback(() => {
+    const anim = animation.current;
+    if (!anim) return;
+    const shouldRun = !Object.values(blockers.current).some(Boolean);
+    if (shouldRun && anim.playState !== "running") anim.play();
+    if (!shouldRun && anim.playState === "running") anim.pause();
+  }, []);
 
   useEffect(() => {
+    const track = trackRef.current;
     const list = firstCopyRef.current;
-    if (!list) return;
-    const measure = () => {
-      const previous = setWidth.current;
-      setWidth.current = list.offsetWidth;
-      if (!previous) x.set(-setWidth.current);
-      else x.set((x.get() / previous) * setWidth.current);
-      normalize();
+    if (!track || !list) return;
+    const build = () => {
+      const width = list.offsetWidth;
+      const previousWidth = loopWidth.current;
+      if (!width || width === previousWidth) return;
+      const previous = animation.current;
+      const previousTime = Number(previous?.currentTime ?? 0);
+      const progress = previous && previousWidth ? (previousTime % loopDurationFor(previousWidth)) / loopDurationFor(previousWidth) : 0;
+      previous?.cancel();
+      loopWidth.current = width;
+      const anim = track.animate(
+        [{ transform: "translate3d(0, 0, 0)" }, { transform: `translate3d(${-width}px, 0, 0)` }],
+        { duration: loopDurationFor(width), iterations: Infinity, easing: "linear" },
+      );
+      anim.pause();
+      anim.currentTime = normalizeTimeFor(progress * loopDurationFor(width), width);
+      animation.current = anim;
+      sync();
     };
-    measure();
-    const observer = new ResizeObserver(measure);
+    build();
+    const observer = new ResizeObserver(build);
     observer.observe(list);
+    return () => {
+      observer.disconnect();
+      cancelAnimationFrame(tweenFrame.current);
+      animation.current?.cancel();
+      animation.current = null;
+      loopWidth.current = 0;
+    };
+  }, [sync]);
+
+  useEffect(() => {
+    const query = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const update = () => {
+      blockers.current.reduced = query.matches;
+      setReducedMotion(query.matches);
+      sync();
+    };
+    update();
+    query.addEventListener("change", update);
+    return () => query.removeEventListener("change", update);
+  }, [sync]);
+
+  useEffect(() => {
+    const viewport = viewportRef.current;
+    if (!viewport) return;
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        blockers.current.offscreen = !entry.isIntersecting;
+        sync();
+      },
+      { rootMargin: "120px 0px" },
+    );
+    observer.observe(viewport);
     return () => observer.disconnect();
-  }, [normalize, x]);
+  }, [sync]);
 
-  useAnimationFrame((_, delta) => {
-    if (!isMoving || tween.current || !setWidth.current) return;
-    x.set(x.get() - (SPEED_PX_PER_SECOND * Math.min(delta, 64)) / 1000);
-    normalize();
-  });
-
-  const glide = useCallback(
-    (distance: number, duration = 0.75) => {
-      tween.current?.stop();
-      normalize();
-      const controls = animate(x, x.get() + distance, {
-        duration: reducedMotion ? 0 : duration,
-        ease: [0.16, 1, 0.3, 1],
-        onComplete: () => {
-          tween.current = null;
-          normalize();
-        },
-      });
-      tween.current = controls;
-    },
-    [normalize, reducedMotion, x],
-  );
+  const shiftBy = (pixels: number, duration: number) => {
+    const anim = animation.current;
+    if (!anim || !loopWidth.current) return;
+    cancelAnimationFrame(tweenFrame.current);
+    const from = currentTime();
+    const to = from - (pixels / SPEED_PX_PER_SECOND) * 1000;
+    const finish = () => {
+      anim.currentTime = normalizeTime(currentTime());
+      blockers.current.tween = false;
+      sync();
+    };
+    blockers.current.tween = true;
+    sync();
+    if (blockers.current.reduced || duration === 0) {
+      anim.currentTime = to;
+      finish();
+      return;
+    }
+    const start = performance.now();
+    const step = (now: number) => {
+      const progress = Math.min(1, (now - start) / duration);
+      anim.currentTime = from + (to - from) * easeOutQuart(progress);
+      if (progress < 1) tweenFrame.current = requestAnimationFrame(step);
+      else finish();
+    };
+    tweenFrame.current = requestAnimationFrame(step);
+  };
 
   const step = (direction: 1 | -1) => {
-    const cardStep = setWidth.current / projects.length;
-    if (!cardStep) return;
-    const current = x.get();
-    const target = Math.round((current - direction * cardStep) / cardStep) * cardStep;
-    glide(target - current);
+    const width = loopWidth.current;
+    if (!width) return;
+    const cardStep = width / projects.length;
+    const offset = -(((currentTime() * SPEED_PX_PER_SECOND) / 1000) % width);
+    const target = Math.round(offset / cardStep) * cardStep - direction * cardStep;
+    shiftBy(target - offset, 700);
   };
 
   const onPointerDown = (event: React.PointerEvent<HTMLDivElement>) => {
-    if (event.pointerType === "mouse" && event.button !== 0) return;
-    tween.current?.stop();
-    tween.current = null;
-    normalize();
+    if ((event.pointerType === "mouse" && event.button !== 0) || !animation.current) return;
+    cancelAnimationFrame(tweenFrame.current);
+    blockers.current.tween = false;
+    sync();
     drag.current = {
       active: true,
       moved: false,
       startX: event.clientX,
-      startOffset: x.get(),
+      startTime: normalizeTime(currentTime()),
       lastX: event.clientX,
-      lastTime: event.timeStamp,
+      lastStamp: event.timeStamp,
       velocity: 0,
     };
   };
 
   const onPointerMove = (event: React.PointerEvent<HTMLDivElement>) => {
     const state = drag.current;
-    if (!state.active) return;
+    const anim = animation.current;
+    if (!state.active || !anim) return;
     const dx = event.clientX - state.startX;
     if (!state.moved) {
       if (Math.abs(dx) < DRAG_THRESHOLD_PX) return;
       state.moved = true;
+      blockers.current.drag = true;
+      sync();
       setDragging(true);
       event.currentTarget.setPointerCapture(event.pointerId);
     }
-    const elapsed = Math.max(event.timeStamp - state.lastTime, 1);
+    const elapsed = Math.max(event.timeStamp - state.lastStamp, 1);
     state.velocity = ((event.clientX - state.lastX) / elapsed) * 1000;
     state.lastX = event.clientX;
-    state.lastTime = event.timeStamp;
-    x.set(state.startOffset + dx);
+    state.lastStamp = event.timeStamp;
+    anim.currentTime = state.startTime - (dx / SPEED_PX_PER_SECOND) * 1000;
   };
 
   const endDrag = (event: React.PointerEvent<HTMLDivElement>) => {
@@ -133,12 +186,21 @@ export function ProjectsCarousel() {
     if (event.currentTarget.hasPointerCapture(event.pointerId)) {
       event.currentTarget.releasePointerCapture(event.pointerId);
     }
+    blockers.current.drag = false;
     setDragging(false);
-    const width = setWidth.current;
-    const fling = Math.max(Math.min(state.velocity * 0.22, width / 3), -width / 3);
-    if (Math.abs(fling) > 4) glide(fling, 0.9);
-    else normalize();
+    const limit = loopWidth.current / 3;
+    const fling = Math.max(Math.min(state.velocity * 0.22, limit), -limit);
+    shiftBy(Math.abs(fling) > 4 ? fling : 0, Math.abs(fling) > 4 ? 900 : 0);
   };
+
+  const toggleAutoplay = () => {
+    const next = !userPaused;
+    blockers.current.user = next;
+    setUserPaused(next);
+    sync();
+  };
+
+  const autoplayOff = reducedMotion || userPaused;
 
   return (
     <div
@@ -146,16 +208,28 @@ export function ProjectsCarousel() {
       role="region"
       aria-roledescription="carrusel"
       aria-label="Proyectos y soluciones"
-      onPointerEnter={(event) => event.pointerType === "mouse" && setHovering(true)}
-      onPointerLeave={() => setHovering(false)}
-      onFocus={() => setFocusWithin(true)}
+      onPointerEnter={(event) => {
+        if (event.pointerType !== "mouse") return;
+        blockers.current.hover = true;
+        sync();
+      }}
+      onPointerLeave={() => {
+        blockers.current.hover = false;
+        sync();
+      }}
+      onFocus={() => {
+        blockers.current.focus = true;
+        sync();
+      }}
       onBlur={(event) => {
-        if (!event.currentTarget.contains(event.relatedTarget as Node | null)) setFocusWithin(false);
+        if (event.currentTarget.contains(event.relatedTarget as Node | null)) return;
+        blockers.current.focus = false;
+        sync();
       }}
     >
       <div
         ref={viewportRef}
-        className={`relative overflow-hidden [mask-image:linear-gradient(90deg,transparent,black_6%,black_94%,transparent)] select-none ${
+        className={`relative overflow-hidden select-none [mask-image:linear-gradient(90deg,transparent,black_6%,black_94%,transparent)] ${
           dragging ? "cursor-grabbing" : "cursor-grab"
         }`}
         style={{ touchAction: "pan-y" }}
@@ -165,7 +239,7 @@ export function ProjectsCarousel() {
         onPointerCancel={endDrag}
         onDragStart={(event) => event.preventDefault()}
       >
-        <motion.div className="flex w-max py-2 will-change-transform" style={{ x }}>
+        <div ref={trackRef} className="flex w-max py-2 will-change-transform">
           {Array.from({ length: COPIES }, (_, copy) => (
             <ul
               key={copy}
@@ -180,15 +254,7 @@ export function ProjectsCarousel() {
                     aria-label={copy === 0 ? `${project.name}, ${index + 1} de ${projects.length}` : undefined}
                     className="group/project h-full rounded-3xl border border-line bg-gradient-to-b from-ink-850 to-ink-900 p-3 transition-[border-color,transform] duration-500 ease-out-expo hover:-translate-y-1 hover:border-gold-500/35"
                   >
-                    <div className="relative aspect-[16/10] overflow-hidden rounded-2xl border border-line">
-                      <div className="absolute inset-0 transition-transform duration-[1200ms] ease-out-expo group-hover/project:scale-[1.04]">
-                        <ProjectVisual project={project} />
-                      </div>
-                      <div aria-hidden="true" className="pointer-events-none absolute inset-0 bg-gradient-to-t from-ink-950/60 via-transparent to-transparent" />
-                      <span className="absolute top-3 left-3 rounded-full border border-white/10 bg-ink-950/70 px-3 py-1 font-mono text-[0.68rem] tracking-[0.16em] text-mist uppercase backdrop-blur-sm">
-                        {String(index + 1).padStart(2, "0")} / {String(projects.length).padStart(2, "0")}
-                      </span>
-                    </div>
+                    <ProjectMedia project={project} position={index + 1} total={projects.length} />
                     <div className="px-3 pt-5 pb-4">
                       <p className="font-mono text-[0.72rem] tracking-[0.16em] text-gold-400 uppercase">{project.category}</p>
                       <h3 className="mt-2 text-xl font-semibold tracking-tight text-bone sm:text-2xl">{project.name}</h3>
@@ -199,7 +265,7 @@ export function ProjectsCarousel() {
               ))}
             </ul>
           ))}
-        </motion.div>
+        </div>
       </div>
 
       <div className="mx-auto mt-8 flex max-w-7xl items-center justify-between gap-4 px-5 sm:px-8">
@@ -209,8 +275,8 @@ export function ProjectsCarousel() {
         <div className="flex items-center gap-2 sm:ml-auto">
           <button
             type="button"
-            onClick={() => setUserPaused((value) => !value)}
-            disabled={reducedMotion === true}
+            onClick={toggleAutoplay}
+            disabled={reducedMotion}
             aria-pressed={autoplayOff}
             aria-label={autoplayOff ? "Reanudar desplazamiento automático" : "Pausar desplazamiento automático"}
             className="inline-flex size-12 items-center justify-center rounded-full border border-line text-mist transition-colors hover:border-gold-500/50 hover:text-bone disabled:cursor-not-allowed disabled:opacity-40"

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { MotionProvider } from "@/components/MotionProvider";
+import { RevealObserver } from "@/components/RevealObserver";
 import { site } from "@/data/site";
 import "./globals.css";
 
@@ -16,10 +16,8 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL;
-
 export const metadata: Metadata = {
-  ...(siteUrl ? { metadataBase: new URL(siteUrl) } : {}),
+  ...(site.url ? { metadataBase: site.url } : {}),
   title: site.title,
   description: site.description,
   applicationName: site.name,
@@ -39,6 +37,7 @@ export const metadata: Metadata = {
     siteName: site.name,
     title: site.title,
     description: site.description,
+    url: "/",
   },
   twitter: {
     card: "summary_large_image",
@@ -64,7 +63,8 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         >
           Saltar al contenido
         </a>
-        <MotionProvider>{children}</MotionProvider>
+        {children}
+        <RevealObserver />
       </body>
     </html>
   );

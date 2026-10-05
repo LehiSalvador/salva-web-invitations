@@ -1,22 +1,18 @@
-"use client";
+import type { CSSProperties, ElementType, HTMLAttributes } from "react";
 
-import { motion, type HTMLMotionProps } from "motion/react";
-
-type RevealProps = HTMLMotionProps<"div"> & {
+type RevealProps = HTMLAttributes<HTMLElement> & {
+  as?: ElementType;
+  /** Retraso de la transición en milisegundos. */
   delay?: number;
-  y?: number;
+  /** Solo dispara la entrada de los hijos (.reveal-item, .reveal-line-*), sin animar el contenedor. */
+  group?: boolean;
 };
 
-export function Reveal({ delay = 0, y = 28, children, ...rest }: RevealProps) {
+/** Entrada al hacer scroll: CSS en globals.css, activada por RevealObserver. */
+export function Reveal({ as: Tag = "div", delay = 0, group = false, style, children, ...rest }: RevealProps) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y, filter: "blur(6px)" }}
-      whileInView={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-      viewport={{ once: true, margin: "0px 0px -12% 0px" }}
-      transition={{ duration: 0.9, delay }}
-      {...rest}
-    >
+    <Tag data-reveal={group ? "group" : ""} style={{ "--reveal-delay": `${delay}ms`, ...style } as CSSProperties} {...rest}>
       {children}
-    </motion.div>
+    </Tag>
   );
 }

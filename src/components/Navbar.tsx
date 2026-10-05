@@ -1,9 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { AnimatePresence, motion } from "motion/react";
 import { Menu, X } from "lucide-react";
-import { BrandMark } from "@/components/BrandMark";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { navLinks } from "@/data/site";
 
 export function Navbar() {
@@ -13,10 +12,20 @@ export function Navbar() {
   const toggleRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 12);
-    onScroll();
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      setScrolled(window.scrollY > 12);
+    };
+    const onScroll = () => {
+      if (!frame) frame = requestAnimationFrame(update);
+    };
+    update();
     window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", onScroll);
+    };
   }, []);
 
   useEffect(() => {
@@ -43,14 +52,13 @@ export function Navbar() {
         toggleRef.current?.focus();
       }
     };
-    const onResize = () => {
-      if (window.matchMedia("(min-width: 1024px)").matches) setOpen(false);
-    };
+    const desktop = window.matchMedia("(min-width: 1024px)");
+    const onBreakpoint = () => desktop.matches && setOpen(false);
     window.addEventListener("keydown", onKey);
-    window.addEventListener("resize", onResize);
+    desktop.addEventListener("change", onBreakpoint);
     return () => {
       window.removeEventListener("keydown", onKey);
-      window.removeEventListener("resize", onResize);
+      desktop.removeEventListener("change", onBreakpoint);
     };
   }, [open]);
 
@@ -64,17 +72,15 @@ export function Navbar() {
     history.replaceState(null, "", `#${id}`);
   };
 
-  const solid = scrolled || open;
-
   return (
     <header className="fixed inset-x-0 top-0 z-50">
       <div
-        className={`border-b transition-[background-color,border-color,backdrop-filter] duration-500 ${
+        className={`border-b transition-[background-color,border-color] duration-500 ${
           open
-            ? "border-line bg-ink-950/95 backdrop-blur-xl"
-            : solid
-            ? "border-line bg-ink-950/80 backdrop-blur-xl"
-            : "border-transparent bg-transparent"
+            ? "border-line bg-ink-950/[0.97]"
+            : scrolled
+              ? "border-line bg-ink-950/90"
+              : "border-transparent bg-transparent"
         }`}
       >
         <nav
@@ -82,7 +88,7 @@ export function Navbar() {
           className="mx-auto flex h-16 max-w-7xl items-center justify-between px-5 sm:px-8 md:h-[4.5rem]"
         >
           <a href="#inicio" className="rounded-md" aria-label="Salva Systems, ir al inicio">
-            <BrandMark />
+            <BrandMark animated />
           </a>
 
           <ul className="hidden items-center gap-1 lg:flex">
@@ -134,46 +140,42 @@ export function Navbar() {
           </div>
         </nav>
 
-        <AnimatePresence initial={false}>
-          {open && (
-            <motion.div
-              id="menu-movil"
-              key="menu-movil"
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: "auto", opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.35 }}
-              className="overflow-hidden lg:hidden"
-            >
-              <ul className="space-y-1 px-5 pt-2 pb-6">
-                {navLinks.map((link) => (
-                  <li key={link.id}>
-                    <a
-                      href={`#${link.id}`}
-                      onClick={(event) => goTo(event, link.id)}
-                      aria-current={active === link.id ? "true" : undefined}
-                      className={`flex min-h-12 items-center justify-between rounded-xl px-4 text-base transition-colors ${
-                        active === link.id ? "bg-white/[0.04] text-bone" : "text-mist hover:text-bone"
-                      }`}
-                    >
-                      {link.label}
-                      {active === link.id && <span aria-hidden="true" className="size-1.5 rounded-full bg-gold-400" />}
-                    </a>
-                  </li>
-                ))}
-                <li className="pt-3">
+        <div
+          id="menu-movil"
+          inert={!open}
+          className={`grid transition-[grid-template-rows,opacity] duration-300 ease-out lg:hidden ${
+            open ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0"
+          }`}
+        >
+          <div className="overflow-hidden">
+            <ul className="space-y-1 px-5 pt-2 pb-6">
+              {navLinks.map((link) => (
+                <li key={link.id}>
                   <a
-                    href="#contacto"
-                    onClick={(event) => goTo(event, "contacto")}
-                    className="flex min-h-12 items-center justify-center rounded-full border border-gold-500/40 bg-gold-500/10 text-base font-medium text-gold-300"
+                    href={`#${link.id}`}
+                    onClick={(event) => goTo(event, link.id)}
+                    aria-current={active === link.id ? "true" : undefined}
+                    className={`flex min-h-12 items-center justify-between rounded-xl px-4 text-base transition-colors ${
+                      active === link.id ? "bg-white/[0.04] text-bone" : "text-mist hover:text-bone"
+                    }`}
                   >
-                    Hablemos
+                    {link.label}
+                    {active === link.id && <span aria-hidden="true" className="size-1.5 rounded-full bg-gold-400" />}
                   </a>
                 </li>
-              </ul>
-            </motion.div>
-          )}
-        </AnimatePresence>
+              ))}
+              <li className="pt-3">
+                <a
+                  href="#contacto"
+                  onClick={(event) => goTo(event, "contacto")}
+                  className="flex min-h-12 items-center justify-center rounded-full border border-gold-500/40 bg-gold-500/10 text-base font-medium text-gold-300"
+                >
+                  Hablemos
+                </a>
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </header>
   );

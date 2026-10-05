@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <title>SalvaOps</title>
+  <defs>
+    <linearGradient id="salvaops-tile" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1F2735"/>
+      <stop offset="1" stop-color="#0B0F15"/>
+    </linearGradient>
+    <linearGradient id="salvaops-core" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#6385B2"/>
+      <stop offset="1" stop-color="#28405F"/>
+    </linearGradient>
+  </defs>
+  <rect x="1" y="1" width="126" height="126" rx="30" fill="url(#salvaops-tile)" stroke="#94A3B8" stroke-opacity="0.28" stroke-width="1.5"/>
+  <path d="M72.47 30.04A35 35 0 0 1 97.64 73.65M89.18 88.31A35 35 0 0 1 38.82 88.31M30.36 73.65A35 35 0 0 1 55.53 30.04" fill="none" stroke="#748299" stroke-width="4.5" stroke-linecap="round"/>
+  <path d="M64 47L64 38.5M78.72 72.5L86.08 76.75M49.28 72.5L41.92 76.75" fill="none" stroke="#516077" stroke-width="4" stroke-linecap="round"/>
+  <g fill="#0D1219" stroke="#BFCBDB" stroke-width="4"><circle cx="64" cy="29" r="7.5"/><circle cx="94.31" cy="81.5" r="7.5"/><circle cx="33.69" cy="81.5" r="7.5"/></g>
+  <rect x="52.5" y="52.5" width="23" height="23" rx="5.5" transform="rotate(45 64 64)" fill="url(#salvaops-core)" stroke="#CDD8E6" stroke-width="2.5"/>
+</svg>

@@ -20,7 +20,7 @@ export function About() {
             </h2>
           </Reveal>
 
-          <Reveal delay={0.1} className="space-y-6 text-base leading-relaxed text-pretty text-mist sm:text-lg lg:pt-12">
+          <Reveal delay={100} className="space-y-6 text-base leading-relaxed text-pretty text-mist sm:text-lg lg:pt-12">
             <p>
               Salva Systems desarrolla soluciones digitales orientadas a resolver necesidades reales de empresas y
               negocios. Nuestro trabajo parte de comprender el problema, estructurar los requerimientos y diseñar una

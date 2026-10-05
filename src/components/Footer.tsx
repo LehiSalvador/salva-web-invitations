@@ -1,4 +1,4 @@
-import { BrandMark } from "@/components/BrandMark";
+import { BrandMark } from "@/components/brand/BrandMark";
 import { footerLinks, site } from "@/data/site";
 
 export function Footer() {
