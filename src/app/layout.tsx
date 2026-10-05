@@ -4,6 +4,7 @@ import { Footer } from "@/components/Footer";
 import { Ambient } from "@/components/motion/Ambient";
 import { InteractionEngine } from "@/components/motion/InteractionEngine";
 import { MotionObserver } from "@/components/motion/MotionObserver";
+import { ScrollReset } from "@/components/motion/ScrollReset";
 import { Navbar } from "@/components/Navbar";
 import { site } from "@/data/site";
 import "./globals.css";
@@ -84,6 +85,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         </div>
         <MotionObserver />
         <InteractionEngine />
+        <ScrollReset />
       </body>
     </html>
   );
