@@ -1,0 +1,250 @@
+/* Vista previa de Atenor: llena su caja (16:10 o 16:11). Posiciones en % del sistema 640×400. */
+.preview {
+  --signal: #6fd6b0;
+  --gold: #dcc59a;
+  --bone: #eeebe4;
+  --mist: #a3a9ab;
+  --fog: #7a8285;
+  --ink: #0b0f10;
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  font-family: var(--font-plex-mono), ui-monospace, SFMono-Regular, monospace;
+  background:
+    radial-gradient(closest-side, rgb(111 214 176 / 0.1), transparent 70%) 50% 50% / 60% 90% no-repeat,
+    radial-gradient(rgb(226 236 232 / 0.06) 1px, transparent 1.3px) 0 0 / 18px 18px;
+}
+
+.lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.line {
+  fill: none;
+  stroke: rgb(226 236 232 / 0.22);
+  stroke-width: 1.1;
+  vector-effect: non-scaling-stroke;
+}
+
+.lineOut {
+  stroke: rgb(220 197 154 / 0.34);
+}
+
+.bubble,
+.lane,
+.core {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+}
+
+.bubble {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 26%;
+  padding: 6px 8px 7px;
+  transform: translate(-100%, -50%);
+  border: 1px solid rgb(226 236 232 / 0.16);
+  border-radius: 8px 8px 8px 2px;
+  background: rgb(22 28 32 / 0.92);
+}
+
+.bubbleHead {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10px;
+  line-height: 12px;
+  color: var(--bone);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.bubbleN {
+  color: var(--signal);
+}
+
+.bubbleText {
+  overflow: hidden;
+  font-family: var(--font-plex-sans), ui-sans-serif, system-ui, sans-serif;
+  font-size: 11px;
+  line-height: 14px;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--bone);
+}
+
+.bubbleBody {
+  display: none;
+  gap: 4px;
+}
+
+.bubbleBody i {
+  display: block;
+  height: 3px;
+  border-radius: 2px;
+  background: rgb(226 236 232 / 0.22);
+}
+
+.bubbleBody i:last-child {
+  width: 60%;
+}
+
+.core {
+  width: 0;
+  height: 0;
+}
+
+.coreLabel {
+  position: absolute;
+  left: 0;
+  bottom: 46px;
+  padding: 2px 6px;
+  transform: translateX(-50%);
+  border-radius: 3px;
+  background: rgb(8 14 13 / 0.9);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--signal);
+}
+
+.glow {
+  position: absolute;
+  width: 140px;
+  height: 140px;
+  margin: -70px 0 0 -70px;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(111 214 176 / 0.16), transparent);
+}
+
+.ring {
+  position: absolute;
+  width: 62px;
+  height: 62px;
+  margin: -31px 0 0 -31px;
+  border-radius: 50%;
+  border: 1px dashed rgb(111 214 176 / 0.6);
+}
+
+.node {
+  position: absolute;
+  display: grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  margin: -19px 0 0 -19px;
+  border-radius: 50%;
+  border: 1.5px solid var(--signal);
+  background: #0f201c;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: var(--signal);
+}
+
+.chipSlot {
+  position: absolute;
+  left: 0;
+  top: 46px;
+  display: grid;
+  transform: translateX(-50%);
+}
+
+.chip {
+  grid-area: 1 / 1;
+  justify-self: center;
+  padding: 2px 7px;
+  border: 1px solid var(--signal);
+  border-radius: 3px;
+  background: #12302a;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--signal);
+}
+
+.lane {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  width: 26%;
+  padding: 6px 8px 7px;
+  transform: translate(0, -50%);
+  border: 1px solid rgb(226 236 232 / 0.14);
+  border-radius: 5px;
+  background: rgb(11 15 16 / 0.85);
+}
+
+.laneName {
+  font-size: 10px;
+  line-height: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--bone);
+  white-space: nowrap;
+}
+
+.laneSlot {
+  display: flex;
+  align-items: center;
+  height: 19px;
+  padding: 0 2px;
+  border: 1px dashed rgb(226 236 232 / 0.14);
+  border-radius: 3px;
+}
+
+.tag {
+  padding: 1px 6px;
+  border-left: 2px solid var(--gold);
+  background: rgb(220 197 154 / 0.12);
+  font-size: 10px;
+  line-height: 13px;
+  color: var(--gold);
+  white-space: nowrap;
+}
+
+@media (width < 40rem) {
+  .bubbleText {
+    display: none;
+  }
+
+  .bubbleBody {
+    display: grid;
+  }
+
+  .bubble,
+  .lane {
+    width: 28%;
+    padding: 5px 6px 6px;
+  }
+
+  .bubbleHead {
+    gap: 4px;
+  }
+
+  .coreLabel {
+    bottom: 36px;
+  }
+
+  .ring {
+    width: 50px;
+    height: 50px;
+    margin: -25px 0 0 -25px;
+  }
+
+  .node {
+    width: 32px;
+    height: 32px;
+    margin: -16px 0 0 -16px;
+  }
+
+  .chipSlot {
+    top: 34px;
+  }
+}

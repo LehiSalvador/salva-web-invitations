@@ -1,0 +1,1758 @@
+/*
+ * Salva Exclusive Caps · recorrido de compra.
+ * Diseño "m" (teléfono, < 40rem) y "w" (tablet y escritorio). Los elementos del visor se colocan en % con
+ * variables (--mx/--wx…) que vienen de caps/timeline.ts, la misma fuente que mueve el cursor.
+ * Solo se animan transform y opacity; los keyframes sincronizados con el ciclo se generan en timeline.ts.
+ */
+
+/* ---------- escena y distribución ---------- */
+
+.scene {
+  padding: 12px;
+}
+
+.layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  row-gap: 40px;
+}
+
+/* ---------- recorrido (etapas) ---------- */
+
+.tracker {
+  margin-bottom: 14px;
+}
+
+.stageLabel {
+  position: relative;
+  z-index: 1;
+  padding: 9px 12px;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+  white-space: nowrap;
+}
+
+.mark {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 25%;
+  border-left: 1px solid var(--color-signal);
+  background: linear-gradient(90deg, rgb(111 214 176 / 0.09), rgb(111 214 176 / 0.015));
+}
+
+.stageSlot {
+  display: block;
+  height: 16px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-bone);
+}
+
+.stageSlot .ticker > span {
+  height: 16px;
+  justify-content: flex-end;
+}
+
+.track {
+  position: relative;
+  display: block;
+  height: 1px;
+  margin-top: 8px;
+  background: var(--color-line-strong);
+}
+
+.fill {
+  position: absolute;
+  inset: 0;
+  background: var(--color-signal);
+  transform-origin: left;
+}
+
+/* Ticker vertical (estados, rutas): una columna de líneas que sube con transform. */
+.ticker {
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.ticker > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+/* ---------- ventana de la tienda ---------- */
+
+.window {
+  position: relative;
+  min-width: 0;
+  max-width: 30rem;
+  width: 100%;
+  margin-inline: auto;
+  border: 1px solid var(--color-line-strong);
+  background: rgb(11 15 16 / 0.78);
+  box-shadow: 0 30px 60px -30px rgb(0 0 0 / 0.7);
+}
+
+.chrome {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 34px;
+  padding: 0 10px;
+  border-bottom: 1px solid var(--color-line);
+  background: rgb(16 21 26 / 0.85);
+}
+
+.chromeDot {
+  display: block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-ink-700);
+}
+
+.address {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  height: 22px;
+  padding: 0 9px;
+  border: 1px solid var(--color-line);
+  background: rgb(6 8 9 / 0.6);
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--color-fog);
+}
+
+.address .icon {
+  width: 12px;
+  height: 12px;
+  color: var(--color-signal);
+}
+
+.addressSlot {
+  display: block;
+  min-width: 0;
+  height: 14px;
+  overflow: hidden;
+  color: var(--color-bone);
+}
+
+.addressSlot .ticker > span {
+  height: 14px;
+}
+
+.viewport {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 3 / 4;
+  container-type: inline-size;
+  background:
+    radial-gradient(120% 70% at 30% 40%, rgb(111 214 176 / 0.035), transparent 60%),
+    rgb(6 8 9 / 0.55);
+}
+
+.box {
+  position: absolute;
+  left: var(--mx);
+  top: var(--my);
+  width: var(--mw);
+  height: var(--mh);
+}
+
+.icon {
+  display: block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Tipografía del visor: escala con el ancho de la tienda y nunca baja de 10px. */
+.tl {
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.95cqw, 11px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.storeHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 0 4%;
+  border-bottom: 1px solid var(--color-line);
+  background: rgb(11 15 16 / 0.6);
+}
+
+.wordmark {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: clamp(11px, 1.2cqw, 14px);
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--color-bone);
+  white-space: nowrap;
+}
+
+.nav {
+  gap: 2.6cqw;
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.95cqw, 11px);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-fog);
+}
+
+.headIcons {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  color: var(--color-mist);
+}
+
+.badge {
+  position: absolute;
+  top: -3px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--color-gold-300);
+  box-shadow: 0 0 0 2px var(--color-ink-950);
+}
+
+/* ---------- catálogo ---------- */
+
+.titleRow {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.title {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 600;
+  font-size: clamp(17px, 2.3cqw, 26px);
+  letter-spacing: -0.02em;
+  color: var(--color-bone);
+}
+
+.filters {
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.filter,
+.filterOn {
+  padding: 4px 9px;
+  border: 1px solid var(--color-line);
+  font-family: var(--font-mono);
+  font-size: clamp(10px, 0.95cqw, 11px);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fog);
+}
+
+.filterOn {
+  border-color: rgb(238 235 228 / 0.4);
+  background: rgb(238 235 228 / 0.06);
+  color: var(--color-bone);
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-line);
+  background:
+    linear-gradient(180deg, rgb(238 235 228 / 0.04), transparent 65%),
+    rgb(11 15 16 / 0.5);
+}
+
+.cardArt {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  place-items: center;
+  padding: 10% 12% 2%;
+}
+
+.cardArt .art {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: 100%;
+}
+
+.cardMeta {
+  padding: 0 7% 7%;
+  font-size: clamp(10.5px, 1.15cqw, 13px);
+  white-space: nowrap;
+}
+
+.cardTag {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  padding: 2px 6px;
+  border: 1px solid rgb(111 214 176 / 0.3);
+  background: rgb(6 8 9 / 0.6);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-signal);
+}
+
+.hover,
+.picked {
+  pointer-events: none;
+  border: 1px solid rgb(111 214 176 / 0.5);
+  background: rgb(111 214 176 / 0.035);
+}
+
+.picked {
+  border-color: rgb(238 235 228 / 0.75);
+  background: rgb(238 235 228 / 0.035);
+}
+
+.hoverChip,
+.pickedChip {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  display: none;
+  padding: 3px 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.hoverChip {
+  border: 1px solid rgb(111 214 176 / 0.4);
+  background: rgb(6 8 9 / 0.75);
+  color: var(--color-signal);
+}
+
+.pickedChip {
+  background: var(--color-bone);
+  color: var(--color-ink-950);
+}
+
+/* ---------- producto ---------- */
+
+.stageBox {
+  --R: 14.5cqw;
+}
+
+.viewChip {
+  position: absolute;
+  top: 7%;
+  left: 7%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-mist);
+}
+
+.stageBox::before {
+  --c: rgb(238 235 228 / 0.22);
+  content: "";
+  position: absolute;
+  inset: 3% 3% 2%;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--c), var(--c)) 0 0 / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 0 / 1px 12px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 0 / 1px 12px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 100% / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) 0 100% / 1px 12px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 12px 1px no-repeat,
+    linear-gradient(var(--c), var(--c)) 100% 100% / 1px 12px no-repeat;
+}
+
+.viewHint {
+  position: absolute;
+  bottom: 6%;
+  left: 50%;
+  align-items: center;
+  gap: 6px;
+  translate: -50% 0;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-fog);
+  white-space: nowrap;
+}
+
+.viewDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+
+.productName {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 600;
+  font-size: clamp(17px, 2.4cqw, 28px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  color: var(--color-bone);
+  white-space: nowrap;
+}
+
+.desc {
+  font-size: clamp(11px, 1.2cqw, 14px);
+  line-height: 1.5;
+  color: var(--color-mist);
+}
+
+.swatch {
+  border-radius: 50%;
+  background: var(--cap);
+  box-shadow: inset 0 0 0 1px rgb(238 235 228 / 0.28);
+}
+
+.swatchOn {
+  outline: 1px solid var(--color-bone);
+  outline-offset: 3px;
+}
+
+.chipSize {
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--color-line-strong);
+  background: rgb(11 15 16 / 0.6);
+  font-family: var(--font-mono);
+  font-size: clamp(10.5px, 1.1cqw, 12.5px);
+  color: var(--color-mist);
+}
+
+.chipSizeOn {
+  font-weight: 600;
+  border-color: var(--color-bone);
+  background: var(--color-bone);
+  color: var(--color-ink-950);
+}
+
+.button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background: var(--color-bone);
+  font-size: clamp(11.5px, 1.25cqw, 14.5px);
+  font-weight: 500;
+  color: var(--color-ink-950);
+  white-space: nowrap;
+}
+
+.buttonDone {
+  border: 1px solid rgb(111 214 176 / 0.5);
+  background: var(--color-ink-850);
+  color: var(--color-signal);
+}
+
+.buttonLight {
+  background: var(--color-bone);
+}
+
+.buttonOk {
+  background: var(--color-signal);
+  color: var(--color-ink-950);
+}
+
+.scrim {
+  background: rgb(6 8 9 / 0.62);
+}
+
+/* ---------- cajón del carrito y comprobante ---------- */
+
+.drawer {
+  --hide-x: 0%;
+  --hide-y: 104%;
+  border-top: 1px solid var(--color-line-strong);
+  border-radius: 14px 14px 0 0;
+  background: var(--color-ink-900);
+  box-shadow: 0 -24px 48px rgb(0 0 0 / 0.45);
+  will-change: transform;
+}
+
+.handle {
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 36px;
+  height: 3px;
+  margin-left: -18px;
+  border-radius: 2px;
+  background: var(--color-line-strong);
+}
+
+.drawerHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-line);
+  color: var(--color-mist);
+}
+
+.drawerTitle {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 600;
+  font-size: clamp(15px, 1.7cqw, 19px);
+  letter-spacing: -0.01em;
+  color: var(--color-bone);
+}
+
+.line {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: clamp(12px, 1.2cqw, 14px);
+}
+
+.lineThumb {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 30%;
+  height: 100%;
+  padding: 4px 6px;
+  border: 1px solid var(--color-line);
+  background: var(--color-ink-850);
+}
+
+.lineThumb .art {
+  width: 100%;
+  height: 100%;
+}
+
+.delivery {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-block: 1px solid var(--color-line);
+  font-size: clamp(12px, 1.15cqw, 13.5px);
+}
+
+.radio {
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  border: 1px solid var(--color-bone);
+  background: var(--color-bone);
+  box-shadow: inset 0 0 0 2.5px var(--color-ink-900);
+}
+
+.slot {
+  border-radius: 2px;
+  background: var(--color-ink-950);
+  box-shadow:
+    0 -1px 0 rgb(238 235 228 / 0.16),
+    inset 0 1px 2px rgb(0 0 0 / 0.9);
+}
+
+.receiptClip {
+  overflow: hidden;
+  container-type: size;
+}
+
+.paperThanks {
+  margin-top: auto;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: rgb(11 15 16 / 0.6);
+}
+
+.paperThanks + .barcode {
+  margin-top: 0;
+}
+
+@container (height < 176px) {
+  .paperThanks {
+    display: none;
+  }
+
+  .paperThanks + .barcode {
+    margin-top: auto;
+  }
+}
+
+@container (height < 150px) {
+  .paperBrand {
+    display: none;
+  }
+}
+
+@container (height < 112px) {
+  .paperDelivery {
+    display: none;
+  }
+}
+
+.receiptFeed {
+  height: 100%;
+  will-change: transform;
+}
+
+.paper {
+  --zig: 9px;
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+  gap: 5px;
+  padding: calc(var(--zig) + 5px) 11px 9px;
+  background: linear-gradient(0deg, #c9c3b6, #e9e4d8 16px);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.25;
+  color: var(--color-ink-900);
+  mask: conic-gradient(from 135deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% / var(--zig) 100%;
+}
+
+.paperBrand {
+  font-family: var(--font-display);
+  font-stretch: 125%;
+  font-weight: 700;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.paperTitle {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.paperRule {
+  border-top: 1px dashed rgb(11 15 16 / 0.35);
+}
+
+.paperRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.paperOk {
+  font-weight: 600;
+  color: var(--color-signal-600);
+}
+
+.barcode {
+  flex: none;
+  height: 14px;
+  margin-top: auto;
+  background: repeating-linear-gradient(90deg, #0b0f10 0 1px, transparent 1px 3px, #0b0f10 3px 5px, transparent 5px 6px, #0b0f10 6px 7px, transparent 7px 10px);
+  opacity: 0.75;
+}
+
+/* ---------- cursor y artículo que vuela al carrito ---------- */
+
+.layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  container-type: size;
+  pointer-events: none;
+}
+
+.cursor,
+.flyX {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  will-change: transform, opacity;
+}
+
+.press {
+  display: block;
+  transform-origin: 1px 1px;
+}
+
+.arrow {
+  display: none;
+  width: 17px;
+  height: 23px;
+  margin: -1px 0 0 -1px;
+  fill: var(--color-bone);
+  stroke: var(--color-ink-950);
+  stroke-width: 1.3;
+  stroke-linejoin: round;
+}
+
+.touch {
+  display: block;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(238 235 228 / 0.85);
+  background: rgb(238 235 228 / 0.2);
+}
+
+.ripple {
+  position: absolute;
+  top: -16px;
+  left: -16px;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-signal);
+  opacity: 0;
+}
+
+.flyY {
+  display: block;
+}
+
+.flyDot {
+  display: block;
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: var(--color-gold-300);
+  box-shadow: 0 0 0 3px rgb(6 8 9 / 0.85);
+}
+
+/* ---------- panel de automatizaciones ---------- */
+
+.auto {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 14px;
+  padding: 14px;
+  border: 1px solid var(--color-line);
+  background: rgb(11 15 16 / 0.62);
+}
+
+.connector {
+  --emit-x: 0px;
+  --emit-y: 40px;
+  position: absolute;
+  top: -41px;
+  left: 50%;
+  width: 1px;
+  height: 40px;
+}
+
+.connectorLine {
+  position: absolute;
+  inset: 0;
+  border-left: 1px dashed rgb(238 235 228 / 0.28);
+}
+
+.connectorLine::before,
+.connectorLine::after {
+  content: "";
+  position: absolute;
+  left: -3.5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-ink-900);
+}
+
+.connectorLine::before {
+  top: -3px;
+}
+
+.connectorLine::after {
+  bottom: -3px;
+}
+
+.emit {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 9px;
+  height: 9px;
+  margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%;
+  background: var(--color-signal);
+  box-shadow: 0 0 0 3px rgb(6 8 9 / 0.9);
+  opacity: 0;
+}
+
+.autoHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--color-line);
+}
+
+.trigger {
+  position: relative;
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid var(--color-line);
+  background: rgb(16 21 26 / 0.6);
+}
+
+.triggerGlow {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgb(111 214 176 / 0.55);
+  background: rgb(111 214 176 / 0.05);
+  pointer-events: none;
+}
+
+.triggerIcon,
+.rowIcon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--color-line);
+  color: var(--color-signal);
+}
+
+.status {
+  display: block;
+  height: 16px;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  letter-spacing: 0.04em;
+}
+
+.status .ticker > span {
+  height: 16px;
+  justify-content: flex-end;
+}
+
+.runDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px rgb(143 184 216 / 0.2);
+}
+
+.waitDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-fog);
+}
+
+.pipe {
+  position: relative;
+}
+
+.rail,
+.railFill {
+  position: absolute;
+  left: 15px;
+  width: 1px;
+  background: var(--color-line-strong);
+}
+
+.railFill {
+  background: var(--color-signal);
+  transform-origin: top;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 10px;
+}
+
+.row > .rowIcon {
+  display: none;
+}
+
+.node {
+  position: relative;
+  justify-self: center;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-ink-900);
+}
+
+.rowIcon {
+  width: 28px;
+  height: 28px;
+  color: var(--color-mist);
+}
+
+.rowTitle {
+  display: block;
+  font-size: 13px;
+  line-height: 1.3;
+  color: var(--color-bone);
+}
+
+.rowDetail {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  line-height: 1.35;
+  color: var(--color-fog);
+}
+
+.done {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border: 1px solid rgb(111 214 176 / 0.3);
+  background: rgb(111 214 176 / 0.06);
+  font-size: 12.5px;
+  color: var(--color-bone);
+}
+
+.log {
+  padding-top: 12px;
+  border-top: 1px solid var(--color-line);
+}
+
+.logWindow {
+  position: relative;
+  margin-top: 8px;
+  overflow: hidden;
+  mask: linear-gradient(180deg, transparent, #000 45%);
+}
+
+.logWindow::after {
+  content: "";
+  position: absolute;
+  inset: auto 0 0;
+  height: 20px;
+  border-left: 1px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.06);
+}
+
+.logColumn {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.logLine {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr);
+  align-items: center;
+  padding-left: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+}
+
+.logTag {
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ---------- gorra 2D (catálogo, carrito) ---------- */
+
+.art {
+  display: block;
+  overflow: visible;
+}
+
+.artFloor {
+  fill: rgb(0 0 0 / 0.45);
+}
+
+.artUnder {
+  fill: color-mix(in oklab, var(--cap) 55%, #000);
+  stroke: rgb(238 235 228 / 0.2);
+  stroke-width: 0.6;
+}
+
+.artBrim {
+  fill: color-mix(in oklab, var(--cap) 90%, #000);
+  stroke: rgb(238 235 228 / 0.3);
+  stroke-width: 0.7;
+}
+
+.artCrown {
+  fill: var(--cap);
+  stroke: rgb(238 235 228 / 0.32);
+  stroke-width: 0.7;
+}
+
+.artShade {
+  fill: rgb(0 0 0 / 0.2);
+}
+
+.artGloss {
+  fill: none;
+  stroke: rgb(255 255 255 / 0.3);
+  stroke-width: 1.4;
+  stroke-linecap: round;
+}
+
+.artSeam {
+  fill: none;
+  stroke: rgb(0 0 0 / 0.3);
+  stroke-width: 0.7;
+}
+
+.artStitch {
+  fill: none;
+  stroke: rgb(238 235 228 / 0.32);
+  stroke-width: 0.5;
+  stroke-dasharray: 1.6 1.6;
+}
+
+.artButton {
+  fill: color-mix(in oklab, var(--cap) 72%, #fff);
+  stroke: rgb(0 0 0 / 0.25);
+  stroke-width: 0.5;
+}
+
+.artEyelet {
+  fill: rgb(0 0 0 / 0.45);
+}
+
+.artEmblem {
+  fill: var(--color-gold-300);
+}
+
+/* ---------- gorra 3D sobre tornamesa ---------- */
+
+.turntable {
+  position: absolute;
+  inset: 0;
+  perspective: calc(var(--R) * 9);
+  pointer-events: none;
+}
+
+.floor {
+  position: absolute;
+  top: 67%;
+  left: 50%;
+  width: calc(var(--R) * 3.8);
+  height: calc(var(--R) * 1.1);
+  margin: calc(var(--R) * -0.55) 0 0 calc(var(--R) * -1.9);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.6), rgb(0 0 0 / 0.25) 60%, transparent);
+}
+
+.stage {
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  transform-style: preserve-3d;
+  transform: rotateX(-16deg);
+}
+
+.rig {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-style: preserve-3d;
+  transform: rotateY(-32deg);
+  animation: cap-spin 14s linear infinite;
+  will-change: transform;
+}
+
+@keyframes cap-spin {
+  from {
+    transform: rotateY(-32deg);
+  }
+  to {
+    transform: rotateY(328deg);
+  }
+}
+
+.panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  transform-origin: 50% 100%;
+  backface-visibility: hidden;
+}
+
+.panel svg,
+.brim svg,
+.disc svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.tier0 {
+  --fill: color-mix(in oklab, var(--cap) 80%, #000);
+}
+
+.tier1 {
+  --fill: var(--cap);
+}
+
+.tier2 {
+  --fill: color-mix(in oklab, var(--cap) 90%, #fff);
+}
+
+.tier3 {
+  --fill: color-mix(in oklab, var(--cap) 78%, #fff);
+}
+
+.alt.tier0 {
+  --fill: color-mix(in oklab, var(--cap) 70%, #000);
+}
+
+.alt.tier1 {
+  --fill: color-mix(in oklab, var(--cap) 88%, #000);
+}
+
+.alt.tier2 {
+  --fill: color-mix(in oklab, var(--cap) 97%, #fff);
+}
+
+.alt.tier3 {
+  --fill: color-mix(in oklab, var(--cap) 86%, #fff);
+}
+
+.panelFace {
+  fill: var(--fill);
+  stroke: rgb(238 235 228 / 0.3);
+  stroke-width: 1;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+}
+
+.panelStitch,
+.brimStitch {
+  fill: none;
+  stroke: rgb(238 235 228 / 0.34);
+  stroke-dasharray: 3 3;
+  vector-effect: non-scaling-stroke;
+}
+
+.panelEmblem {
+  fill: var(--color-gold-300);
+}
+
+.panelEyelet {
+  fill: rgb(6 8 9 / 0.7);
+  stroke: rgb(238 235 228 / 0.3);
+  vector-effect: non-scaling-stroke;
+}
+
+.capButton {
+  position: absolute;
+  top: 0;
+  left: 0;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--cap) 70%, #fff);
+  box-shadow: inset 0 0 0 1px rgb(238 235 228 / 0.35);
+}
+
+.brim {
+  position: absolute;
+  top: 0;
+  left: 0;
+  transform-origin: 50% 0;
+}
+
+.brimFace {
+  fill: color-mix(in oklab, var(--cap) 86%, #000);
+  stroke: rgb(238 235 228 / 0.32);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+.disc {
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+.discRim {
+  fill: rgb(111 214 176 / 0.025);
+  stroke: rgb(238 235 228 / 0.2);
+  vector-effect: non-scaling-stroke;
+}
+
+.discRing {
+  fill: none;
+  stroke: rgb(111 214 176 / 0.3);
+  stroke-dasharray: 2 4;
+  vector-effect: non-scaling-stroke;
+}
+
+.discTicks {
+  stroke: rgb(238 235 228 / 0.3);
+  vector-effect: non-scaling-stroke;
+}
+
+.discMark {
+  fill: var(--color-signal);
+}
+
+/* ---------- vista previa ---------- */
+
+.preview {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  gap: clamp(8px, 1.8cqw, 14px);
+  padding: clamp(10px, 2.4cqw, 18px);
+  container-type: inline-size;
+}
+
+.pvStore {
+  display: flex;
+  min-width: 0;
+  flex: 1 1 62%;
+  flex-direction: column;
+  border: 1px solid var(--color-line-strong);
+  background: rgb(11 15 16 / 0.75);
+}
+
+.pvChrome {
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  height: 22px;
+  padding: 0 8px;
+  border-bottom: 1px solid var(--color-line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-fog);
+}
+
+.pvChrome .chromeDot {
+  width: 5px;
+  height: 5px;
+}
+
+.pvView {
+  position: relative;
+  min-height: 0;
+  flex: 1;
+  overflow: hidden;
+}
+
+.pvGrid {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  gap: clamp(5px, 1cqw, 8px);
+  padding: clamp(7px, 1.4cqw, 11px);
+}
+
+.pvCard {
+  position: relative;
+  display: flex;
+  min-height: 0;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  padding: 6% 6% 5%;
+  border: 1px solid var(--color-line);
+  background: rgb(16 21 26 / 0.55);
+}
+
+.pvCard .art {
+  min-height: 0;
+  max-width: 100%;
+  flex: 1;
+  width: auto;
+  height: 100%;
+}
+
+.pvName {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  color: var(--color-mist);
+  white-space: nowrap;
+}
+
+.pvPicked {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgb(238 235 228 / 0.8);
+}
+
+.pvTap {
+  position: absolute;
+  top: 42%;
+  left: 50%;
+  width: 26px;
+  height: 26px;
+  margin: -13px 0 0 -13px;
+  border-radius: 50%;
+  border: 1.5px solid rgb(238 235 228 / 0.85);
+  background: rgb(238 235 228 / 0.22);
+}
+
+.pvProduct {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 8px;
+  padding: 8px clamp(8px, 1.6cqw, 14px) 8px 4px;
+}
+
+.pvTurntable {
+  --R: clamp(22px, 6.6cqw, 50px);
+  position: relative;
+  align-self: stretch;
+}
+
+.pvTurntable .disc {
+  display: none;
+}
+
+.pvInfo {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: clamp(6px, 1.2cqw, 9px);
+}
+
+.pvTitle {
+  font-family: var(--font-display);
+  font-stretch: 112%;
+  font-weight: 600;
+  font-size: clamp(12.5px, 2.2cqw, 18px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--color-bone);
+}
+
+.pvSwatches {
+  display: flex;
+  gap: clamp(4px, 0.8cqw, 6px);
+}
+
+.pvSwatch {
+  width: clamp(8px, 1.5cqw, 12px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--cap);
+  box-shadow: inset 0 0 0 1px rgb(238 235 228 / 0.28);
+}
+
+.pvSwatch.swatchOn {
+  outline-offset: 2px;
+}
+
+.pvSizes {
+  display: flex;
+  gap: 4px;
+}
+
+.pvSizes > span {
+  min-width: clamp(22px, 4cqw, 30px);
+  padding: 2px 0;
+  border: 1px solid var(--color-line-strong);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  text-align: center;
+  color: var(--color-mist);
+}
+
+.pvSizes > .pvSizeOn {
+  border-color: var(--color-bone);
+  background: var(--color-bone);
+  color: var(--color-ink-950);
+}
+
+.pvButton {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: clamp(5px, 1cqw, 8px) 6px;
+  background: var(--color-bone);
+  font-size: clamp(10px, 1.6cqw, 12.5px);
+  font-weight: 500;
+  line-height: 1.2;
+  text-align: center;
+  color: var(--color-ink-950);
+}
+
+.pvButtonDone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgb(111 214 176 / 0.5);
+  background: var(--color-ink-850);
+  color: var(--color-signal);
+}
+
+.pvTapRing {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 28px;
+  height: 28px;
+  margin: -14px 0 0 -14px;
+  border-radius: 50%;
+  border: 1.5px solid var(--color-bone);
+  background: rgb(238 235 228 / 0.2);
+}
+
+.pvToast {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  left: 8px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: clamp(6px, 1.2cqw, 10px) 10px;
+  border: 1px solid rgb(220 197 154 / 0.45);
+  background: var(--color-ink-900);
+  box-shadow: 0 12px 30px rgb(0 0 0 / 0.55);
+  font-size: clamp(11px, 1.7cqw, 13px);
+}
+
+.pvToastIcon {
+  display: grid;
+  flex: none;
+  place-items: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: var(--color-gold-300);
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-ink-950);
+}
+
+.pvToastSub {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 10px;
+  color: var(--color-fog);
+}
+
+.pvPanel {
+  display: flex;
+  min-width: 0;
+  flex: 0 0 36%;
+  flex-direction: column;
+  gap: clamp(6px, 1.2cqw, 10px);
+  padding: clamp(7px, 1.4cqw, 12px) clamp(7px, 1.4cqw, 12px);
+  border: 1px solid var(--color-line);
+  background: rgb(11 15 16 / 0.6);
+}
+
+.pvPanelTitle {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--color-bone);
+}
+
+.pvTrigger {
+  position: relative;
+  display: block;
+  padding: 5px 7px;
+  border: 1px solid var(--color-line);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  line-height: 1.3;
+  color: var(--color-bone);
+}
+
+.pvTriggerOn {
+  position: absolute;
+  inset: -1px;
+  border: 1px solid rgb(111 214 176 / 0.55);
+  background: rgb(111 214 176 / 0.06);
+}
+
+.pvTriggerLabel {
+  display: block;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-fog);
+}
+
+.pvRows {
+  position: relative;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+}
+
+.pvRows::before {
+  content: "";
+  position: absolute;
+  top: 10%;
+  bottom: 10%;
+  left: 6px;
+  width: 1px;
+  background: var(--color-line-strong);
+}
+
+.pvRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: clamp(10px, 1.5cqw, 12.5px);
+  line-height: 1.2;
+  color: var(--color-mist);
+}
+
+.pvNode {
+  position: relative;
+  flex: none;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  border: 1px solid var(--color-line-strong);
+  background: var(--color-ink-900);
+}
+
+.pvCheck {
+  position: absolute;
+  inset: -1px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--color-signal);
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-ink-950);
+}
+
+/* ---------- breakpoints ---------- */
+
+@media (width >= 40rem) {
+  .scene {
+    padding: 20px;
+  }
+
+  .box {
+    left: var(--wx);
+    top: var(--wy);
+    width: var(--ww);
+    height: var(--wh);
+  }
+
+  .window {
+    max-width: none;
+  }
+
+  .viewport {
+    aspect-ratio: 16 / 9.5;
+  }
+
+  .storeHead {
+    padding: 0 3%;
+  }
+
+  .stageBox {
+    --R: 10.6cqw;
+  }
+
+  .arrow {
+    display: block;
+  }
+
+  .touch {
+    display: none;
+  }
+
+  .hoverChip,
+  .pickedChip {
+    display: block;
+  }
+
+  .drawer {
+    --hide-x: 104%;
+    --hide-y: 0%;
+    border-top: 0;
+    border-left: 1px solid var(--color-line-strong);
+    border-radius: 0;
+    box-shadow: -24px 0 48px rgb(0 0 0 / 0.45);
+  }
+
+  .lineThumb {
+    width: 34%;
+  }
+
+  .row {
+    grid-template-columns: 30px 28px minmax(0, 1fr) auto;
+  }
+
+  .row > .rowIcon {
+    display: grid;
+  }
+
+  .stageLabel {
+    padding: 9px 8px;
+    letter-spacing: 0.06em;
+  }
+
+  .auto {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: 28px;
+  }
+
+  .autoHead,
+  .trigger {
+    grid-column: 1 / -1;
+  }
+
+  .pipe,
+  .done {
+    grid-column: 1;
+  }
+
+  .log {
+    grid-column: 2;
+    grid-row: 3 / span 2;
+    align-self: start;
+    padding-top: 0;
+    border-top: 0;
+  }
+}
+
+@media (width >= 64rem) {
+  .scene {
+    padding: 24px;
+  }
+
+  .stageLabel {
+    padding: 9px 12px;
+    letter-spacing: 0.12em;
+  }
+}
+
+@media (width >= 80rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 336px;
+    column-gap: 40px;
+    align-items: start;
+  }
+
+  .auto {
+    display: flex;
+    height: 100%;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .log {
+    display: flex;
+    min-height: 0;
+    flex: 1;
+    flex-direction: column;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-line);
+  }
+
+  .log {
+    align-self: stretch;
+  }
+
+  .logWindow {
+    min-height: 64px;
+    flex: 1;
+    height: auto !important;
+  }
+
+  .connector {
+    --emit-x: 40px;
+    --emit-y: 0px;
+    top: 86px;
+    left: -41px;
+    width: 40px;
+    height: 1px;
+  }
+
+  .connectorLine {
+    border-top: 1px dashed rgb(238 235 228 / 0.28);
+    border-left: 0;
+  }
+
+  .connectorLine::before,
+  .connectorLine::after {
+    top: -3.5px;
+    bottom: auto;
+  }
+
+  .connectorLine::before {
+    left: -3px;
+  }
+
+  .connectorLine::after {
+    right: -3px;
+    left: auto;
+  }
+}
+
+/* Sin JS: la composición estática (estado final) sin estados intermedios encimados. */
+@media (scripting: none) {
+  .scene [data-rm="hide"],
+  .preview [data-rm="hide"] {
+    display: none;
+  }
+}

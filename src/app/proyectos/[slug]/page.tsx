@@ -68,7 +68,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                 <span className="h-px w-8 bg-line-strong" />
                 <span className="text-mist">{project.category}</span>
               </p>
-              <div className="mt-6 flex items-center gap-5">
+              <div className="mt-6 flex min-w-0 flex-col items-start gap-5 sm:flex-row sm:items-center">
                 {project.logo && (
                   <span className="rise flex size-16 shrink-0 items-center justify-center border border-line bg-ink-900 p-2.5 sm:size-20" style={delay(100)}>
                     <Image
@@ -84,7 +84,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
                   </span>
                 )}
                 <ViewTransition name={`project-title-${project.id}`} share="morph" default="none">
-                  <h1 className="display text-[clamp(2.6rem,8vw,6rem)] leading-[0.95] text-bone">{project.name}</h1>
+                  <h1 className="display min-w-0 text-[clamp(2.25rem,8.6vw,6rem)] leading-[0.95] [overflow-wrap:anywhere] text-bone">{project.name}</h1>
                 </ViewTransition>
               </div>
             </div>

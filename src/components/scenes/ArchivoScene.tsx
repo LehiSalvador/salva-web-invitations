@@ -60,36 +60,35 @@ const RECORD = [
 
 function SystemLog({ className = "" }: { className?: string }) {
   return (
-    <div className={`grid border border-line bg-ink-900/60 md:grid-cols-[1.4fr_1fr] xl:grid-cols-1 ${className}`}>
-      <div>
-        <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
-          <span className="label text-mist">Registro del sistema</span>
-          <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fog">
-            <span className="live-dot" />
-            en línea
-          </span>
-        </div>
-        <ol>
-          {LOG.map((entry, index) => (
-            <li key={entry.title} className="grid min-h-[3.6rem] grid-cols-[1.4rem_1fr] items-start gap-x-2 border-b border-line px-4 py-2.5 last:border-b-0 xl:last:border-b">
-              <span className="pt-px font-mono text-[10px] text-fog/70">{String(index + 1).padStart(2, "0")}</span>
-              <Step at={[entry.at, OUT]} fx="left" className="block">
+    <div className={`border border-line bg-ink-900/60 ${className}`}>
+      <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
+        <span className="label text-mist">Registro</span>
+        <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fog">
+          <span className="live-dot" />
+          en línea
+        </span>
+      </div>
+      <ol className="md:grid md:grid-cols-2 xl:block">
+        {LOG.map((entry) => (
+          <li key={entry.title} className="min-h-[3.5rem] border-b border-line px-4 py-2.5 md:odd:border-r xl:odd:border-r-0">
+            <Step at={[entry.at, OUT]} fx="left" className="grid grid-cols-[3.7rem_minmax(0,1fr)] items-start gap-x-2">
+              <span className="pt-px font-mono text-[10px] text-fog">{entry.time}</span>
+              <span className="min-w-0">
                 <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-bone">
                   <span className={`size-1.5 shrink-0 ${entry.tone}`} />
                   <span className="truncate">{entry.title}</span>
-                  <span className="ml-auto shrink-0 text-[10px] tracking-normal text-fog">{entry.time}</span>
                 </span>
-                <span className="mt-1.5 block truncate font-mono text-[10.5px] text-mist">{entry.detail}</span>
-              </Step>
-            </li>
-          ))}
-        </ol>
-      </div>
-      <div className="border-t border-line px-4 py-3 md:border-t-0 md:border-l xl:border-l-0">
-        <p className="label flex items-center justify-between text-fog">
+                <span className="mt-1.5 block truncate pl-3.5 font-mono text-[10.5px] text-mist">{entry.detail}</span>
+              </span>
+            </Step>
+          </li>
+        ))}
+      </ol>
+      <div className="px-4 py-3 md:flex md:items-center md:gap-6 xl:block">
+        <p className="label flex shrink-0 items-center justify-between gap-3 text-fog">
           Ficha <span className="text-signal">D-0418</span>
         </p>
-        <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10.5px] sm:grid-cols-4 md:grid-cols-2">
+        <dl className="mt-2.5 grid flex-1 grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10.5px] sm:grid-cols-4 md:mt-0 xl:mt-2.5 xl:grid-cols-2">
           {RECORD.map(([key, value]) => (
             <div key={key} className="flex items-baseline justify-between gap-2 border-b border-dashed border-line pb-1">
               <dt className="uppercase tracking-[0.1em] text-fog">{key}</dt>
@@ -137,12 +136,12 @@ function Timeline() {
         </Step>
 
         <Step at={[T.timelineStory, OUT]} fx="grow-x" className={`${styles.span} ${styles.spanStory}`} style={{ left: year(1955), width: `calc(${year(1971)} - ${year(1955)})` }} />
-        <Step at={[T.timelineStory + 0.015, OUT]} fx="fade" className={`${styles.spanLabel} text-signal`} style={{ left: `calc(${year(1971)} + 6px)`, top: 39 }}>
+        <Step at={[T.timelineStory + 0.015, OUT]} fx="fade" className={`${styles.spanLabel} text-signal`} style={{ left: `calc(${year(1971)} + 6px)`, top: 34 }}>
           H-112
         </Step>
 
         <Step at={[T.timelineCollection, OUT]} fx="grow-x" className={`${styles.span} ${styles.spanCollection}`} style={{ left: year(1938), width: `calc(${year(1994)} - ${year(1938)})` }} />
-        <Step at={[T.timelineCollection + 0.015, OUT]} fx="fade" className={`${styles.spanLabel} text-gold-300`} style={{ left: `calc(${year(1994)} + 6px)`, top: 50 }}>
+        <Step at={[T.timelineCollection + 0.015, OUT]} fx="fade" className={`${styles.spanLabel} text-gold-300`} style={{ left: year(1938), top: 57 }}>
           C-07 publicada
         </Step>
 
@@ -160,7 +159,7 @@ export function ArchivoScene() {
   return (
     <div aria-hidden="true" data-live data-cycle={CYCLE} style={cycleVar(CYCLE)} className="select-none">
       <Phases />
-      <div className="grid items-center gap-x-6 gap-y-4 px-4 pt-3 pb-5 sm:px-6 md:grid-cols-2 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_17.5rem] xl:gap-x-8 xl:pt-5">
+      <div className="grid items-center gap-x-6 gap-y-4 px-4 pt-3 pb-5 sm:px-6 md:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_17.5rem] xl:gap-x-8 xl:pt-5">
         <ArchiveStack />
         <KnowledgeGraph className="mx-auto max-w-[30rem]" />
         <SystemLog className="md:col-span-2 xl:col-span-1" />
@@ -178,6 +177,9 @@ export function ArchivoPreview() {
         <ArchiveStack compact />
         <KnowledgeGraph compact />
       </div>
+      <p className={`${styles.previewLegend} absolute top-[6%] left-[4%] font-mono text-[10px] uppercase tracking-[0.14em] text-fog`}>
+        Documento <span className="text-signal">→</span> Historia <span className="text-signal">→</span> Colección
+      </p>
     </div>
   );
 }

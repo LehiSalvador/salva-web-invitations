@@ -20,14 +20,6 @@ export function SalvaOpsScene() {
         <Ledger />
         <Terminal />
       </div>
-      <div className={`${s.status} ${s.cap} text-fog`}>
-        <span className="flex items-center gap-2.5 text-mist">
-          <span className="live-dot" />
-          broker activo
-        </span>
-        <span className="hidden sm:inline">2 proyectos aislados · 4 agentes · 2 proveedores</span>
-        <span>simulación · ids ilustrativos</span>
-      </div>
     </div>
   );
 }

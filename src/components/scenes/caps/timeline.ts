@@ -88,26 +88,26 @@ export const L = {
   card: (index: number): Pair => ({ w: grid(index, "w"), m: grid(index, "m") }),
   crumb: { w: [3, 12.5, 47, 5], m: [4, 10.5, 92, 4] },
   turntable: { w: [2, 17, 50, 82], m: [0, 13, 100, 38] },
-  name: { w: [55, 17, 42, 10], m: [4, 50.5, 92, 7] },
-  desc: { w: [55, 28, 40, 12], m: [4, 57, 92, 5] },
-  colorLabel: { w: [55, 42, 30, 4], m: [4, 60, 40, 4] },
-  colorDot: (index: number): Pair => ({ w: [55 + index * 4.4, 47, 3.1, 5.22], m: [4 + index * 9, 64.5, 6.4, 4.8] }),
-  tallaLabel: { w: [55, 57, 30, 4], m: [4, 70, 40, 4] },
-  talla: (index: number): Pair => ({ w: [55 + index * 10.5, 62, 9.5, 9], m: [4 + index * 21.5, 74.5, 19.5, 7.5] }),
-  add: { w: [55, 76, 42, 10], m: [4, 84.5, 92, 10] },
-  fine: { w: [55, 89.5, 42, 5], m: [4, 96, 92, 3] },
+  name: { w: [55, 20, 42, 8], m: [4, 50.5, 92, 7] },
+  desc: { w: [55, 28.5, 38, 10], m: [4, 57, 92, 5] },
+  colorLabel: { w: [55, 40.5, 30, 4], m: [4, 60, 40, 4] },
+  colorDot: (index: number): Pair => ({ w: [55 + index * 4.4, 45.5, 3.1, 5.22], m: [4 + index * 9, 64.5, 6.4, 4.8] }),
+  tallaLabel: { w: [55, 55, 30, 4], m: [4, 70, 40, 4] },
+  talla: (index: number): Pair => ({ w: [55 + index * 10.5, 60, 9.5, 9], m: [4 + index * 21.5, 74.5, 19.5, 7.5] }),
+  add: { w: [55, 73.5, 42, 10], m: [4, 84.5, 92, 10] },
+  fine: { w: [55, 87, 42, 5], m: [4, 96, 92, 3] },
   scrim: { w: [0, 10, 60, 90], m: [0, 9, 100, 91] },
   drawer: { w: [60, 10, 40, 90], m: [0, 23, 100, 77] },
 } satisfies Record<string, Pair | ((index: number) => Pair)>;
 
 /* Contenido del cajón, en porcentajes del propio cajón. */
 export const D = {
-  head: { w: [7, 3.5, 86, 8], m: [5, 4, 90, 8] },
-  item: { w: [7, 14, 86, 19], m: [5, 13.5, 90, 16] },
-  delivery: { w: [7, 36, 86, 9], m: [5, 31.5, 90, 9] },
-  confirm: { w: [7, 48.5, 86, 11], m: [5, 43, 90, 12] },
-  slot: { w: [4, 64, 92, 2], m: [4, 59.5, 92, 2] },
-  receipt: { w: [11, 65.2, 78, 34.8], m: [10, 60.7, 80, 39.3] },
+  head: { w: [7, 2.5, 86, 8.5], m: [5, 4, 90, 8] },
+  item: { w: [7, 13, 86, 17], m: [5, 13.5, 90, 16] },
+  delivery: { w: [7, 32, 86, 8], m: [5, 31.5, 90, 9] },
+  confirm: { w: [7, 43, 86, 10.5], m: [5, 43, 90, 12] },
+  receipt: { w: [11, 57, 78, 39.4], m: [10, 59, 80, 37.6] },
+  slot: { w: [4, 96.4, 92, 1.8], m: [4, 96.6, 92, 1.8] },
 } satisfies Record<string, Pair>;
 
 /** Centro de una caja del cajón en coordenadas del visor. */
@@ -244,8 +244,8 @@ export const LOG_ROWS = 5;
 export const LOG_LINE = 20;
 
 function logFrames(): Frame[] {
-  // El evento más reciente queda en la última fila de la ventana; el bloque sube una línea por evento.
-  const y = (index: number) => `transform:translate3d(0,${(LOG_ROWS - 1 - index) * LOG_LINE}px,0)`;
+  // La columna está anclada abajo: el evento `index` queda en la última fila y el bloque sube una línea por evento.
+  const y = (index: number) => `transform:translate3d(0,${(LOG.length - 1 - index) * LOG_LINE}px,0)`;
   const frames: Frame[] = [[0, `${y(0)};opacity:1`]];
   LOG.forEach((event, index) => {
     if (index === 0) return;
@@ -293,23 +293,23 @@ function drawerFrames(): Frame[] {
 }
 
 function printFrames(): Frame[] {
-  // Alimentación por tramos, como una impresora térmica.
+  // Alimentación por tramos, como una impresora térmica: el papel sube desde la ranura.
   const y = (value: number) => `transform:translate3d(0,${value}%,0)`;
   const span = T.printEnd - T.print;
-  const feed = [-101, -80, -58, -36, -16, 0];
-  const frames: Frame[] = [[0, `${y(-101)};opacity:1`]];
+  const feed = [101, 80, 58, 36, 16, 0];
+  const frames: Frame[] = [[0, `${y(101)};opacity:1`]];
   feed.forEach((value, index) => {
     if (index === 0) return;
     const start = T.print + ((index - 1) / (feed.length - 1)) * span;
     frames.push([start, y(feed[index - 1]), "cubic-bezier(.3,0,.2,1)"], [start + (span / (feed.length - 1)) * 0.55, y(value)]);
   });
-  frames.push([T.out, `${y(0)};opacity:1`, "ease-in"], [T.out + 0.02, `${y(0)};opacity:0`], [T.out + 0.024, `${y(-101)};opacity:0`], [1, `${y(-101)};opacity:1`]);
+  frames.push([T.out, `${y(0)};opacity:1`, "ease-in"], [T.out + 0.02, `${y(0)};opacity:0`], [T.out + 0.024, `${y(101)};opacity:0`], [1, `${y(101)};opacity:1`]);
   return frames;
 }
 
 function flyFrames(axis: "x" | "y"): Frame[] {
   const from = axis === "x" ? "translate3d(var(--add-x),0,0)" : "translate3d(0,var(--add-y),0)";
-  const to = axis === "x" ? "translate3d(var(--cart-x),0,0) scale(.55)" : "translate3d(0,var(--cart-y),0)";
+  const to = axis === "x" ? "translate3d(var(--cart-x),0,0)" : "translate3d(0,var(--cart-y),0) scale(.5)";
   const start = T.click3 + 0.004;
   const ease = axis === "x" ? "cubic-bezier(.45,0,.75,1)" : "cubic-bezier(.12,.75,.3,1)";
   return [

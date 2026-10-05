@@ -151,7 +151,7 @@ function Phone() {
           ))}
         </Step>
       </Step>
-      <Step at={[0.78, 0.94]} fx="up" className={`${MICRO} absolute -bottom-px left-1/2 hidden -translate-x-1/2 translate-y-1/2 items-center gap-1 border border-signal/50 bg-ink-900 px-1.5 py-1 whitespace-nowrap text-signal @lg:flex`}>
+      <Step at={[0.78, 0.94]} fx="up" className={`${MICRO} absolute -top-px left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-1 border border-signal/50 bg-ink-900 px-1.5 py-1 whitespace-nowrap text-signal @lg:flex`}>
         <Check /> adaptado
       </Step>
     </div>

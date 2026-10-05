@@ -13,7 +13,7 @@ import styles from "@/components/scenes/ArchivoScene.module.css";
 
 type Thumb = "text" | "photo" | "audio" | "slot";
 
-const DOCS: Thumb[] = ["photo", "text", "audio", "text", "slot", "photo", "audio", "text", "photo"];
+const DOCS: Thumb[] = ["photo", "text", "audio", "text", "photo", "text", "slot", "audio", "photo"];
 
 const TAGS = [
   { key: "Fecha", value: "1962" },
@@ -21,11 +21,12 @@ const TAGS = [
   { key: "Tema", value: "Oficios" },
 ];
 
+/** Carpetas de la colección: [left, top, width, height]. C-07 ocupa el frente, bajo el documento. */
 const FOLDERS = [
-  ["7%", "7%"],
-  ["54%", "7%"],
-  ["7%", "73%"],
-  ["54%", "73%"],
+  ["7%", "7%", "55%", "40%"],
+  ["67%", "7%", "26%", "24.5%"],
+  ["67%", "37.5%", "26%", "24.5%"],
+  ["67%", "68.5%", "26%", "24.5%"],
 ];
 
 const thumbClass: Record<Exclude<Thumb, "slot">, string> = {
@@ -34,23 +35,24 @@ const thumbClass: Record<Exclude<Thumb, "slot">, string> = {
   audio: styles.thumbAudio,
 };
 
-/** Elemento que queda de frente a la cámara, anclado a un punto de su capa. */
-function Billboard({ x, y, children }: { x: string; y: string; children: ReactNode }) {
+/**
+ * Elemento que queda de frente a la cámara, anclado a un punto de su capa. Gira sobre su ancla
+ * (transform-origin) y su caja contiene todo lo que dibuja: Chrome recorta lo que sobresale de una
+ * caja con transformación 3D dentro de un contexto preserve-3d.
+ */
+function Billboard({ x, y, anchor, children }: { x: string; y: string; anchor: "left" | "up"; children: ReactNode }) {
   return (
-    <div className={styles.billboard} style={{ left: x, top: y }}>
+    <div className={`${styles.billboard} ${anchor === "left" ? styles.billboardLeft : styles.billboardUp}`} style={{ left: x, top: y }}>
       {children}
     </div>
   );
 }
 
-function LayerLabel({ n, name, state }: { n: string; name: string; state: string }) {
+function LayerLabel({ n, name }: { n: string; name: string }) {
   return (
-    <Billboard x="0%" y="0%">
-      <span className={styles.layerLabel}>
-        <span className={styles.layerName}>
-          <b>{n}</b> {name}
-        </span>
-        <span className={styles.layerState}>{state}</span>
+    <Billboard x="0%" y="0%" anchor="left">
+      <span className={styles.layerName}>
+        <b>{n}</b> {name}
       </span>
     </Billboard>
   );
@@ -72,9 +74,10 @@ function DocumentLayer({ compact }: { compact: boolean }) {
           ),
         )}
       </div>
-      {!compact && <LayerLabel n="01" name="Documento" state="pieza" />}
+      <span className={`${styles.scan} motion-only`} />
+      {!compact && <LayerLabel n="01" name="Documento" />}
       {!compact && (
-        <Billboard x="50%" y="50%">
+        <Billboard x="19.6%" y="80.3%" anchor="up">
           <div className={styles.tags}>
             <span className={styles.tagStem} />
             {TAGS.map((tag, index) => (
@@ -102,7 +105,7 @@ function StoryLayer({ compact }: { compact: boolean }) {
       ))}
       {!compact && <Step at={[T.storySlot, OUT]} fx="fade" className={styles.storyCardLit} />}
       <span className={styles.storyNotes} />
-      {!compact && <LayerLabel n="02" name="Historia" state="relato" />}
+      {!compact && <LayerLabel n="02" name="Historia" />}
     </div>
   );
 }
@@ -110,14 +113,14 @@ function StoryLayer({ compact }: { compact: boolean }) {
 function CollectionLayer({ compact }: { compact: boolean }) {
   return (
     <div className={`${styles.plane} ${styles.planeCol}`}>
-      {FOLDERS.map(([x, y]) => (
-        <span key={x + y} className={styles.folder} style={{ "--x": x, "--y": y } as CSSProperties} />
+      {FOLDERS.map(([x, y, w, h]) => (
+        <span key={x + y} className={styles.folder} style={{ "--x": x, "--y": y, "--w": w, "--h": h } as CSSProperties} />
       ))}
       <span className={styles.folderMain}>
         <span className={styles.planeText}>C-07 · Fondo familiar</span>
       </span>
       <Step at={[T.coleccion, OUT]} fx="fade" className={styles.folderLit} />
-      {!compact && <LayerLabel n="03" name="Colección" state="publicación" />}
+      {!compact && <LayerLabel n="03" name="Colección" />}
     </div>
   );
 }

@@ -15,11 +15,11 @@ const H = 460;
 
 type Key = "contenido" | "historias" | "conocimiento";
 
-const INDEX: Point = [16, 236];
+const INDEX: Point = [16, 230];
 
-const MAIN: Record<Key, { p: Point; label: string; side: "below" | "right" }> = {
-  contenido: { p: [132, 170], label: "Contenido", side: "below" },
-  historias: { p: [356, 150], label: "Historias", side: "below" },
+const MAIN: Record<Key, { p: Point; label: string; side: "mainBelow" | "right" }> = {
+  contenido: { p: [132, 170], label: "Contenido", side: "mainBelow" },
+  historias: { p: [356, 150], label: "Historias", side: "mainBelow" },
   conocimiento: { p: [246, 320], label: "Conocimiento", side: "right" },
 };
 
@@ -36,20 +36,21 @@ const SUBS: Record<Key, Sub[]> = {
     { p: [420, 86], label: "Entrevista", side: "above" },
   ],
   conocimiento: [
-    { p: [154, 410], label: "Época", side: "below", lit: true, value: "1962" },
-    { p: [250, 424], label: "Lugar", side: "below", lit: true, value: "Oaxaca" },
-    { p: [346, 410], label: "Tema", side: "below", lit: true, value: "Oficios" },
+    { p: [150, 388], label: "Época", side: "below", lit: true, value: "1962" },
+    { p: [250, 400], label: "Lugar", side: "below", lit: true, value: "Oaxaca" },
+    { p: [350, 388], label: "Tema", side: "below", lit: true, value: "Oficios" },
   ],
 };
 
 type Edge = { from: Point; c1: Point; c2: Point; to: Point };
 
 const EDGES = {
-  indexContenido: { from: INDEX, c1: [72, 236], c2: [78, 170], to: MAIN.contenido.p },
-  indexConocimiento: { from: INDEX, c1: [112, 236], c2: [150, 320], to: MAIN.conocimiento.p },
-  contenidoHistorias: { from: MAIN.contenido.p, c1: [240, 170], c2: [250, 150], to: MAIN.historias.p },
-  historiasConocimiento: { from: MAIN.historias.p, c1: [356, 246], c2: [246, 228], to: MAIN.conocimiento.p },
-  contenidoConocimiento: { from: MAIN.contenido.p, c1: [132, 252], c2: [246, 236], to: MAIN.conocimiento.p },
+  indexContenido: { from: INDEX, c1: [72, 230], c2: [78, 170], to: MAIN.contenido.p },
+  indexConocimiento: { from: INDEX, c1: [112, 230], c2: [150, 320], to: MAIN.conocimiento.p },
+  contenidoHistorias: { from: MAIN.contenido.p, c1: [230, 170], c2: [280, 118], to: MAIN.historias.p },
+  // Sale casi en horizontal hacia la izquierda para no cruzar el rótulo de Historias.
+  historiasConocimiento: { from: MAIN.historias.p, c1: [270, 168], c2: [246, 236], to: MAIN.conocimiento.p },
+  contenidoConocimiento: { from: MAIN.contenido.p, c1: [132, 252], c2: [196, 262], to: MAIN.conocimiento.p },
 } satisfies Record<string, Edge>;
 
 const d = ({ from, c1, c2, to }: Edge) => `M${from}C${c1} ${c2} ${to}`;
@@ -63,12 +64,10 @@ const sample = ({ from, c1, c2, to }: Edge, steps = 12): Point[] =>
 
 const pos = ([x, y]: Point): CSSProperties => ({ left: `${(x / W) * 100}%`, top: `${(y / H) * 100}%` });
 
-/** Rótulo HTML colocado en coordenadas del grafo. */
-function Tag({ at, side, className, children }: { at: Point; side: "above" | "below" | "right" | "center"; className: string; children: ReactNode }) {
-  const [x, y] = at;
-  const shifted: Point = side === "above" ? [x, y - 17] : side === "below" ? [x, y + 19] : side === "right" ? [x + 19, y] : at;
+/** Rótulo HTML anclado a un nodo; el desplazamiento va en px para no depender de la escala del grafo. */
+function Tag({ at, side, className, children }: { at: Point; side: "above" | "below" | "mainBelow" | "right" | "index"; className: string; children: ReactNode }) {
   return (
-    <span className={`${styles.gLabel} ${styles[`gLabel_${side}`]} ${className}`} style={pos(shifted)}>
+    <span className={`${styles.gLabel} ${styles[`gLabel_${side}`]} ${className}`} style={pos(at)}>
       {children}
     </span>
   );
@@ -116,9 +115,14 @@ function Lit({ at, edges, node, subs, gold = false, compact }: { at: number; edg
             <Tag at={sub.p} side={sub.side} className={styles.gSubLabelLit}>
               {sub.label}
             </Tag>
-            {(sub.value ?? sub.badge) && (
-              <span className={`${styles.gValue} ${sub.badge ? styles.gBadge : ""}`} style={pos([sub.p[0] + 9, sub.p[1]])}>
-                {sub.value ?? sub.badge}
+            {sub.badge && (
+              <span className={`${styles.gValue} ${styles.gBadge}`} style={pos(sub.p)}>
+                {sub.badge}
+              </span>
+            )}
+            {sub.value && (
+              <span className={`${styles.gValue} ${styles.gValueBelow}`} style={pos(sub.p)}>
+                {sub.value}
               </span>
             )}
           </span>
@@ -150,7 +154,7 @@ export function KnowledgeGraph({ compact = false, className = "" }: { compact?: 
         <rect x={INDEX[0] - 6} y={INDEX[1] - 6} width="12" height="12" transform={`rotate(45 ${INDEX[0]} ${INDEX[1]})`} className={styles.gIndex} />
       </svg>
 
-      <Tag at={[INDEX[0] - 8, INDEX[1] + 4]} side="below" className={`${styles.gIndexLabel}`}>
+      <Tag at={INDEX} side="index" className={styles.gIndexLabel}>
         Índice
       </Tag>
       {(Object.keys(MAIN) as Key[]).map((key) => (

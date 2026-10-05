@@ -15,7 +15,7 @@ export function ProjectCard({ project }: { project: Project }) {
       href={projectHref(project)}
       transitionTypes={["nav-forward"]}
       data-spotlight
-      className="group surface flex h-full flex-col transition-colors duration-500 hover:border-signal/40"
+      className="group surface flex h-full min-w-0 flex-col transition-colors duration-500 hover:border-signal/40"
     >
       <span className="label flex items-center justify-between gap-4 border-b border-line px-4 py-3 text-fog">
         <span className="truncate">{project.scene}</span>
@@ -46,7 +46,7 @@ export function ProjectCard({ project }: { project: Project }) {
           <span className="label text-mist">{project.category}</span>
         </span>
         <ViewTransition name={`project-title-${project.id}`} share="morph" default="none">
-          <span className="display mt-4 block text-[clamp(1.8rem,3.4vw,2.6rem)] leading-[1] text-bone">{project.name}</span>
+          <span className="display mt-4 block text-[clamp(1.7rem,3.4vw,2.6rem)] leading-[1] [overflow-wrap:anywhere] text-bone">{project.name}</span>
         </ViewTransition>
         <span className="mt-3 block max-w-md leading-relaxed text-mist">{project.pitch}</span>
         <span className="label mt-auto flex items-center gap-2 pt-6 text-bone">

@@ -10,6 +10,12 @@
   aspect-ratio: 1 / 0.84;
 }
 
+@media (width < 48rem) {
+  .stackBox {
+    aspect-ratio: 1 / 0.8;
+  }
+}
+
 .stage {
   position: absolute;
   inset: 0;
@@ -24,13 +30,17 @@
 }
 
 .rig {
-  --P: 44cqw;
-  --g: 12.5cqw;
-  --ag: 0.22;
+  --P: 49cqw;
+  --g: 16cqw;
+  --ag: 0.25;
   --a: calc(var(--g) * var(--ag));
+  /* Celda activa (frente de la pila): el documento, su historia y su colección quedan alineados. */
+  --ax: 7%;
+  --ay: 67.7%;
+  --as: 25.2%;
   position: absolute;
-  left: var(--cx, 57%);
-  top: var(--cy, 55%);
+  left: var(--cx, 58%);
+  top: var(--cy, 53%);
   width: var(--P);
   height: var(--P);
   margin: calc(var(--P) / -2) 0 0 calc(var(--P) / -2);
@@ -39,10 +49,33 @@
 }
 
 @container archivo-stack (max-width: 460px) {
+  /* Ensamblada deja ~16 px entre capas para que los rótulos sigan legibles. */
   .rig {
-    --cx: 60%;
-    --P: 41cqw;
-    --g: 12cqw;
+    --cx: 61%;
+    --P: 45cqw;
+    --g: 15cqw;
+    --ag: 0.4;
+  }
+
+  .stampWrap {
+    right: 1%;
+    bottom: 2%;
+  }
+
+  .stamp {
+    gap: 4px;
+    padding: 6px 10px 5px;
+  }
+
+  .stampTitle {
+    font-size: 11px;
+  }
+}
+
+@container archivo-stack (max-width: 340px) {
+  .rig {
+    --cx: 63%;
+    --P: 44cqw;
   }
 }
 
@@ -68,7 +101,7 @@
 
 .planeDoc {
   --dir: 1;
-  background: rgb(11 15 16 / 0.76);
+  background: rgb(11 15 16 / 0.58);
   border-color: rgb(226 236 232 / 0.3);
 }
 
@@ -76,13 +109,13 @@
   --dir: 0;
   background:
     radial-gradient(rgb(111 214 176 / 0.16) 1px, transparent 1.4px) 0 0 / 6cqw 6cqw,
-    rgb(8 15 14 / 0.8);
+    rgb(8 15 14 / 0.62);
   border-color: rgb(111 214 176 / 0.4);
 }
 
 .planeCol {
   --dir: -1;
-  background: rgb(12 14 14 / 0.72);
+  background: rgb(12 14 14 / 0.66);
   border-color: rgb(220 197 154 / 0.3);
 }
 
@@ -173,30 +206,75 @@
     rgb(14 30 26 / 0.95);
 }
 
-/* Rótulos y etiquetas de frente a la cámara: deshacen la rotación de .rig. */
+/* Escaneo del documento mientras se indexa (7–19 %). */
+.scan {
+  position: absolute;
+  left: var(--ax);
+  top: var(--ay);
+  width: var(--as);
+  height: var(--as);
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.scan::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, transparent 38%, rgb(111 214 176 / 0.55) 49%, rgb(226 236 232 / 0.9) 50%, transparent 52%);
+  opacity: 0;
+  transform: translateY(-60%);
+  animation: scan var(--cycle, 15s) linear infinite;
+}
+
+@keyframes scan {
+  0%,
+  7% {
+    opacity: 0;
+    transform: translateY(-60%);
+    animation-timing-function: ease-in-out;
+  }
+  8% {
+    opacity: 1;
+  }
+  13% {
+    transform: translateY(60%);
+    animation-timing-function: ease-in-out;
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(-60%);
+  }
+  19.5%,
+  100% {
+    opacity: 0;
+    transform: translateY(-60%);
+  }
+}
+
+/* Rótulos y etiquetas de frente a la cámara: deshacen la rotación de .rig y giran sobre su ancla. */
 .billboard {
   position: absolute;
-  width: 0;
-  height: 0;
   transform: rotateZ(42deg) rotateX(-56deg);
 }
 
-.layerLabel {
-  position: absolute;
-  right: 2cqw;
-  top: 0;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 4px;
-  transform: translateY(-0.6em);
-  white-space: nowrap;
-  font-family: var(--font-mono);
-  line-height: 1;
+.billboardLeft {
+  translate: -100% -50%;
+  transform-origin: 100% 50%;
+  padding-right: 2.4cqw;
+}
+
+.billboardUp {
+  translate: 0 -100%;
+  transform-origin: 0 100%;
 }
 
 .layerName {
   position: relative;
+  display: block;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  line-height: 1;
   font-size: 10.5px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -212,28 +290,20 @@
 .layerName::after {
   content: "";
   position: absolute;
-  left: calc(100% + 4px);
+  left: calc(100% + 0.6cqw);
   top: 50%;
-  width: 1.4cqw;
+  width: 1.6cqw;
   height: 1px;
-  background: rgb(226 236 232 / 0.4);
-}
-
-.layerState {
-  font-size: 10px;
-  letter-spacing: 0.06em;
-  color: var(--color-fog);
+  background: rgb(226 236 232 / 0.45);
 }
 
 .tags {
-  position: absolute;
-  left: -1px;
-  bottom: 0;
+  position: relative;
   display: flex;
   flex-direction: column-reverse;
   align-items: flex-start;
   gap: 4px;
-  padding-bottom: 3.6cqw;
+  padding: 14px 0 3.6cqw;
 }
 
 .tagStem {
@@ -243,17 +313,6 @@
   width: 1px;
   height: 3.6cqw;
   background: linear-gradient(to top, var(--color-signal), rgb(111 214 176 / 0.25));
-}
-
-.tagStem::before {
-  content: "";
-  position: absolute;
-  left: -2.5px;
-  bottom: -2.5px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-signal);
 }
 
 .tag {
@@ -278,6 +337,18 @@
   background: var(--color-gold-300);
 }
 
+@container archivo-stack (max-width: 460px) {
+  .tags {
+    gap: 3px;
+  }
+
+  .tag {
+    gap: 5px;
+    padding: 3px 6px 3px 5px;
+    font-size: 10px;
+  }
+}
+
 .tagKey {
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -289,14 +360,14 @@
 .storyTitle {
   position: absolute;
   left: 8%;
-  top: 9%;
+  top: 8%;
 }
 
 .thread {
   position: absolute;
   left: 7%;
   right: 7%;
-  top: 50%;
+  top: calc(var(--ay) + var(--as) / 2);
   border-top: 1px dashed rgb(226 236 232 / 0.32);
 }
 
@@ -304,7 +375,7 @@
   position: absolute;
   left: 7%;
   right: 7%;
-  top: 50%;
+  top: calc(var(--ay) + var(--as) / 2);
   height: 2px;
   margin-top: -1px;
   background: linear-gradient(90deg, rgb(111 214 176 / 0.4), var(--color-signal));
@@ -313,10 +384,10 @@
 
 .storyCard {
   position: absolute;
-  top: 37.5%;
-  left: calc(7% + var(--i) * 31.25%);
-  width: 24.5%;
-  height: 25%;
+  top: var(--ay);
+  left: calc(7% + var(--i) * 30.4%);
+  width: var(--as);
+  height: var(--as);
   border: 1px solid rgb(226 236 232 / 0.22);
   background:
     linear-gradient(rgb(226 236 232 / 0.2), rgb(226 236 232 / 0.2)) 16% 22% / 52% 8% no-repeat,
@@ -326,10 +397,10 @@
 
 .storyCardLit {
   position: absolute;
-  top: 37.5%;
-  left: 38.25%;
-  width: 24.5%;
-  height: 25%;
+  top: var(--ay);
+  left: var(--ax);
+  width: var(--as);
+  height: var(--as);
   border: 1px solid var(--color-signal);
   background: rgb(111 214 176 / 0.2);
 }
@@ -337,10 +408,10 @@
 .storyNotes {
   position: absolute;
   left: 8%;
-  right: 36%;
-  bottom: 9%;
-  height: 12%;
-  background: repeating-linear-gradient(180deg, rgb(226 236 232 / 0.12) 0 10%, transparent 10% 30%);
+  right: 30%;
+  top: 22%;
+  height: 32%;
+  background: repeating-linear-gradient(180deg, rgb(226 236 232 / 0.13) 0 4%, transparent 4% 13%);
 }
 
 /* Colección */
@@ -348,8 +419,8 @@
   position: absolute;
   left: var(--x);
   top: var(--y);
-  width: 39%;
-  height: 20%;
+  width: var(--w);
+  height: var(--h);
   border: 1px solid rgb(220 197 154 / 0.22);
   background:
     linear-gradient(rgb(220 197 154 / 0.24), rgb(220 197 154 / 0.24)) 10% 50% / 44% 12% no-repeat,
@@ -359,15 +430,15 @@
 .folderMain {
   position: absolute;
   left: 7%;
-  top: 33%;
-  width: 86%;
-  height: 34%;
+  top: 53%;
+  width: 55%;
+  height: 40%;
   display: flex;
   align-items: flex-end;
   padding: 3% 4%;
   border: 1px solid rgb(220 197 154 / 0.4);
   background:
-    repeating-linear-gradient(90deg, rgb(220 197 154 / 0.14) 0 1px, transparent 1px 12.5%) 0 0 / 100% 62% no-repeat,
+    repeating-linear-gradient(90deg, rgb(220 197 154 / 0.14) 0 1px, transparent 1px 16%) 0 0 / 100% 58% no-repeat,
     rgb(20 19 15 / 0.92);
 }
 
@@ -378,9 +449,9 @@
 .folderLit {
   position: absolute;
   left: 7%;
-  top: 33%;
-  width: 86%;
-  height: 34%;
+  top: 53%;
+  width: 55%;
+  height: 40%;
   border: 1.5px solid var(--color-gold-300);
   background: rgb(220 197 154 / 0.14);
 }
@@ -388,9 +459,9 @@
 /* Haz vertical que une el documento con sus capas y copia que desciende. */
 .beam {
   position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 1px;
+  left: calc(var(--ax) + var(--as) / 2);
+  top: calc(var(--ay) + var(--as) / 2);
+  width: 1.5px;
   height: calc(var(--g) * 2);
   transform-origin: 0 0;
   transform: translate3d(0, 0, var(--g)) rotateX(-90deg);
@@ -420,12 +491,14 @@
 
 .drop {
   position: absolute;
-  left: 38%;
-  top: 38%;
-  width: 24%;
-  height: 24%;
-  border: 1px solid var(--color-signal);
-  background: rgb(111 214 176 / 0.12);
+  left: var(--ax);
+  top: var(--ay);
+  width: var(--as);
+  height: var(--as);
+  border: 1.5px solid var(--color-signal);
+  background:
+    repeating-linear-gradient(180deg, rgb(111 214 176 / 0.5) 0 6%, transparent 6% 15%) 14% 30% / 70% 40% no-repeat,
+    rgb(111 214 176 / 0.24);
   opacity: 0;
   animation: drop var(--cycle, 15s) linear infinite;
 }
@@ -473,7 +546,7 @@
   position: absolute;
   left: 90%;
   right: -1.5rem;
-  top: var(--cy, 55%);
+  top: 50%;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgb(226 236 232 / 0.3));
 }
@@ -481,6 +554,12 @@
 @media (min-width: 48rem) {
   .connector {
     display: block;
+  }
+}
+
+@media (min-width: 80rem) {
+  .connector {
+    right: -2rem;
   }
 }
 
@@ -531,10 +610,11 @@
 }
 
 .stackCompact .rig {
-  --cx: 52%;
-  --cy: 54%;
-  --P: 46cqw;
-  --g: 13cqw;
+  --cx: 50%;
+  --cy: 52%;
+  --P: 56cqw;
+  --g: 14cqw;
+  --ag: 0.25;
 }
 
 .stackCompact .stampWrap {
@@ -545,8 +625,20 @@
 /* ───────── Grafo ───────── */
 .graphBox {
   position: relative;
+  container: archivo-graph / inline-size;
   width: 100%;
   aspect-ratio: 480 / 460;
+}
+
+/* En anchos chicos los distintivos D-0418 / H-112 chocarían con los rótulos vecinos. */
+@container archivo-graph (max-width: 420px) {
+  .gValueBelow {
+  transform: translate(-50%, 24px);
+}
+
+.gBadge {
+    display: none;
+  }
 }
 
 .gLayer {
@@ -609,14 +701,24 @@
   line-height: 1;
 }
 
-.gLabel_above,
-.gLabel_below,
-.gLabel_center {
-  transform: translate(-50%, -50%);
+.gLabel_above {
+  transform: translate(-50%, calc(-100% - 9px));
+}
+
+.gLabel_below {
+  transform: translate(-50%, 9px);
+}
+
+.gLabel_mainBelow {
+  transform: translate(-50%, 21px);
 }
 
 .gLabel_right {
-  transform: translate(0, -50%);
+  transform: translate(22px, -50%);
+}
+
+.gLabel_index {
+  transform: translate(-8px, 13px);
 }
 
 .gMain,
@@ -636,7 +738,6 @@
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-gold-300);
-  transform: translate(0, -50%);
 }
 
 .gSubLabel,
@@ -652,7 +753,7 @@
 
 .gValue {
   position: absolute;
-  transform: translate(0, -50%);
+  transform: translate(9px, -50%);
   padding: 2px 4px;
   border: 1px solid rgb(220 197 154 / 0.4);
   border-radius: 2px;
@@ -662,6 +763,10 @@
   line-height: 1;
   white-space: nowrap;
   color: var(--color-gold-300);
+}
+
+.gValueBelow {
+  transform: translate(-50%, 24px);
 }
 
 .gBadge {
@@ -688,9 +793,9 @@
 
 .snapshotLabel {
   position: absolute;
-  right: 0;
+  right: 22px;
   top: 0;
-  transform: translateY(-140%);
+  transform: translateY(-50%);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -797,9 +902,6 @@
 
 .spanLabel {
   position: absolute;
-  left: calc(100% + 6px);
-  top: 50%;
-  transform: translateY(-50%);
   font-family: var(--font-mono);
   font-size: 10px;
   letter-spacing: 0.08em;
@@ -818,6 +920,7 @@
 }
 
 @container archivo-preview (max-width: 520px) {
+  .previewLegend,
   .gMain,
   .gMainLit,
   .gIndexLabel {

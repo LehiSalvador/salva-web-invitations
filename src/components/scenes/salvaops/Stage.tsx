@@ -116,7 +116,8 @@ function WiresOver() {
         <rect x={d.brokerIn} y={d.channelY - 12} width={d.gateOut - d.brokerIn} height="24" className={s.track} />
         <path d={`M${d.brokerIn + 6} ${d.channelY}H${d.gateOut - 6}`} className={s.ticks} />
         {/* Compuerta: dos postes a los lados del canal. */}
-        <path d={`M616 ${d.channelY - 44}V${d.channelY - 16}M616 ${d.channelY + 16}V${d.channelY + 44}`} className={s.post} />
+        <path d={`M616 ${d.channelY - 40}V${d.channelY - 16}M616 ${d.channelY + 16}V${d.channelY + 40}`} className={s.post} />
+        <path d={`M616 ${d.channelY - 11}V${d.channelY + 11}`} className={s.beam} />
         {(Object.keys(wiresD.ports) as AgentId[]).map((agent) => (
           <circle key={agent} cx={wiresD.ports[agent][0]} cy={wiresD.ports[agent][1]} r="3.2" className={s.port} />
         ))}
@@ -126,15 +127,16 @@ function WiresOver() {
         <circle cx="800" cy={d.laneY.ia2} r="3.2" className={s.port} />
       </svg>
       <svg viewBox={`0 0 ${M.w} ${M.h}`} preserveAspectRatio="none" className={cx(s.svg, "md:hidden")} aria-hidden="true">
-        <rect x={m.channelX - 12} y="200" width="24" height={m.gateOut - 200} className={s.track} />
-        <path d={`M${m.channelX} 206V${m.gateOut - 6}`} className={s.ticks} />
-        <path d={`M${m.channelX - 36} 410H${m.channelX - 16}M${m.channelX + 16} 410H${m.channelX + 36}`} className={s.post} />
+        <rect x={m.channelX - 12} y={m.brokerIn} width="24" height={m.gateOut - m.brokerIn} className={s.track} />
+        <path d={`M${m.channelX} ${m.brokerIn + 6}V${m.gateOut - 6}`} className={s.ticks} />
+        <path d={`M${m.channelX - 34} ${m.postY}H${m.channelX - 16}M${m.channelX + 16} ${m.postY}H${m.channelX + 34}`} className={s.post} />
+        <path d={`M${m.channelX - 11} ${m.postY}H${m.channelX + 11}`} className={s.beam} />
         {(Object.keys(wiresM.ports) as AgentId[]).map((agent) => (
           <circle key={agent} cx={wiresM.ports[agent][0]} cy={wiresM.ports[agent][1]} r="3" className={s.port} />
         ))}
-        <circle cx={m.channelX} cy="200" r="3" className={s.port} />
-        <circle cx={m.laneX.ia1} cy="520" r="3" className={s.port} />
-        <circle cx={m.laneX.ia2} cy="520" r="3" className={s.port} />
+        <circle cx={m.channelX} cy={m.brokerIn} r="3" className={s.port} />
+        <circle cx={m.laneX.ia1} cy={m.providerY} r="3" className={s.port} />
+        <circle cx={m.laneX.ia2} cy={m.providerY} r="3" className={s.port} />
       </svg>
     </>
   );
@@ -150,11 +152,11 @@ function Project({ id }: { id: "a" | "b" }) {
         <span className={cx(s.fsM, "font-medium text-bone")}>Proyecto {id.toUpperCase()}</span>
         <span className={cap("flex items-center gap-1.5")}>
           <Lock />
-          aislado
+          <span className={s.wide}>aislado</span>
         </span>
       </div>
-      <p className={cx(s.mono, s.fsS, "px-2.5 pt-1.5 text-mist")}>~/proyectos/{id}</p>
-      <p className={cap("absolute bottom-2.5 left-3 hidden md:block")}>contexto y reglas propios</p>
+      <p className={cx(s.mono, s.fsS, "px-2.5 pt-1 text-mist")}>~/proyectos/{id}</p>
+      <p className={cap(cx("absolute bottom-2.5 left-3", s.wide))}>contexto y reglas propios</p>
     </At>
   );
 }
@@ -163,7 +165,7 @@ function Agent({ id }: { id: AgentId }) {
   const agent = agents[id];
   return (
     <At d={agent.d} m={agent.m} className={s.badge}>
-      <span className="hidden md:contents">
+      <span className={s.wideContents}>
         <AgentGlyph />
       </span>
       <span className="min-w-0 leading-tight md:flex md:flex-1 md:items-baseline md:justify-between md:gap-2">
@@ -184,7 +186,7 @@ function Broker() {
             <span className="size-1.5 rounded-full bg-signal" />
             Broker
           </span>
-          <span className={s.tag}>orquestador</span>
+          <span className={cx(s.tag, s.wideFlex)}>orquestador</span>
         </div>
       </At>
       <At d={layout.inspectTop.d} m={layout.inspectTop.m}>
@@ -197,6 +199,20 @@ function Broker() {
         <p className={cap("mt-3")}>alcance</p>
         <p className={cx(s.mono, s.fsS, "mt-1 text-fog")}>—</p>
       </At>
+      <At d={layout.brokerFoot.d} m={layout.brokerFoot.m} className={cx(s.brokerFoot, s.wideBlock)}>
+        <p className={cap()}>proveedores</p>
+        <p className={cx(s.mono, s.fsS, "mt-1.5 flex items-center gap-3 text-mist")}>
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-signal" />
+            IA 1
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="size-1.5 rounded-full bg-cool" />
+            IA 2
+          </span>
+          <span className="text-fog">disponibles</span>
+        </p>
+      </At>
     </>
   );
 }
@@ -205,7 +221,7 @@ function LampRow({ label, children }: { label: string; children: React.ReactNode
   return (
     <>
       <p className={cap()}>{label}</p>
-      <div className="mt-1.5 flex items-center gap-2">{children}</div>
+      <div className="mt-1.5 flex items-center gap-1.5">{children}</div>
     </>
   );
 }
@@ -219,13 +235,14 @@ function Gate() {
             <Shield />
             Política
           </span>
+          <span className={cap("md:hidden")}>compuerta</span>
         </div>
       </At>
       {(["permisos", "alcance"] as const).map((key) => (
         <At key={key} d={layout.lamps[key].d} m={layout.lamps[key].m}>
           <LampRow label={key}>
             <span className={s.lamp} />
-            <span className={cx(s.mono, s.fsS, "text-fog")}>pendiente</span>
+            <span className={cx(s.mono, s.fsS, "text-fog")}>espera</span>
           </LampRow>
         </At>
       ))}
@@ -233,23 +250,34 @@ function Gate() {
   );
 }
 
+/** Caja del estado de un proveedor: la comparten el estado base y el paso que recibe la operación. */
+const statusBox = (id: ProviderId) => {
+  const [x, y, w, h] = layout.providers[id].d;
+  const [mx, my, mw, mh] = layout.providers[id].m;
+  return { d: [x + 24, y + h - 46, w - 34, 36] as Box, m: [mx + 10, my + mh - 38, mw - 18, 30] as Box };
+};
+
 function Provider({ id }: { id: ProviderId }) {
   const box = layout.providers[id];
+  const status = statusBox(id);
   return (
-    <At d={box.d} m={box.m} className={s.node}>
-      <div className="flex h-full flex-col justify-between p-2.5 md:py-3 md:pr-3 md:pl-6">
-        <div>
-          <p className={cap()}>
-            carril {id === "ia1" ? "01" : "02"} <span className="hidden md:inline">· remoto</span>
+    <>
+      <At d={box.d} m={box.m} className={s.node}>
+        <div className={s.provider}>
+          <p className={cap("hidden md:block")}>
+            carril {id === "ia1" ? "01" : "02"} <span className={s.wide}>· remoto</span>
           </p>
-          <p className={cx(s.fsM, "mt-1.5 font-medium text-bone")}>{providerName[id]}</p>
+          <p className={cx(s.fsM, "font-medium text-bone md:mt-1")}>{providerName[id]}</p>
         </div>
-        <p className={cx(s.mono, s.fsS, "flex items-center gap-2 text-mist")}>
+      </At>
+      <At d={status.d} m={status.m} className={cx(s.mono, s.fsS, s.status)}>
+        <p className="flex items-center gap-2 text-mist">
           <span className="size-1.5 rounded-full bg-fog" />
           listo
         </p>
-      </div>
-    </At>
+        <p className="text-fog">contexto · —</p>
+      </At>
+    </>
   );
 }
 
@@ -258,7 +286,6 @@ function Provider({ id }: { id: ProviderId }) {
 function Inspector({ op, index }: { op: Op; index: number }) {
   const agent = agents[op.agent];
   const blocked = op.to === "bloqueada";
-  const own = `~/proyectos/${agent.project}`;
   const target: ProviderId = op.to === "bloqueada" ? "ia2" : op.to;
   const [x, y, w, h] = agent.d;
   const [mx, my, mw, mh] = agent.m;
@@ -281,7 +308,7 @@ function Inspector({ op, index }: { op: Op; index: number }) {
         <p className={cap("mt-3")}>alcance</p>
         <p className={cx(s.mono, s.fsS, "mt-1", blocked ? "text-rose" : "text-bone")}>{op.scope}</p>
         {blocked ? (
-          <p className={cx(s.mono, s.fsS, "text-rose/80")}>fuera de {own.slice(2)}</p>
+          <p className={cx(s.mono, s.fsS, "text-rose/80")}>fuera de proyecto {agent.project}</p>
         ) : (
           <p className={cx(s.mono, s.fsS, "hidden text-fog md:block")}>dentro del proyecto</p>
         )}
@@ -298,21 +325,21 @@ function Verdict({ op }: { op: Op }) {
       {lane && (
         <>
           <svg viewBox={`0 0 ${D.w} ${D.h}`} preserveAspectRatio="none" className={cx(s.svg, "hidden md:block")} aria-hidden="true">
-            <path d={wiresD.lanes[lane]} className={lane === "ia1" ? s.laneSignal : s.laneCool} />
+            <path d={wiresD.open[lane]} className={lane === "ia1" ? s.laneSignal : s.laneCool} />
           </svg>
           <svg viewBox={`0 0 ${M.w} ${M.h}`} preserveAspectRatio="none" className={cx(s.svg, "md:hidden")} aria-hidden="true">
-            <path d={wiresM.lanes[lane]} className={lane === "ia1" ? s.laneSignal : s.laneCool} />
+            <path d={wiresM.open[lane]} className={lane === "ia1" ? s.laneSignal : s.laneCool} />
           </svg>
         </>
       )}
       {(["permisos", "alcance"] as const).map((key) => {
         const denied = blocked && key === "alcance";
-        const [x, y, w] = layout.lamps[key].d;
-        const [mx, my, mw] = layout.lamps[key].m;
         return (
-          <At key={key} d={[x, y + 20, w, 22]} m={[mx, my + 19, mw, 22]} className={cx(s.cover, "flex items-center gap-2")}>
-            <span className={cx(s.lamp, denied ? s.lampNo : s.lampOk)}>{denied ? "✕" : "✓"}</span>
-            <span className={cx(s.mono, s.fsS, denied ? "text-rose" : "text-signal")}>{denied ? "denegado" : "permitido"}</span>
+          <At key={key} d={layout.lamps[key].d} m={layout.lamps[key].m} className={s.cover}>
+            <LampRow label={key}>
+              <span className={cx(s.lamp, denied ? s.lampNo : s.lampOk)}>{denied ? "✕" : "✓"}</span>
+              <span className={cx(s.mono, s.fsS, denied ? "text-rose" : "text-signal")}>{denied ? "denegado" : "permitido"}</span>
+            </LampRow>
           </At>
         );
       })}
@@ -323,9 +350,12 @@ function Verdict({ op }: { op: Op }) {
             <rect x={geo.d.hold - 34} y={geo.d.channelY - 15} width="68" height="30" rx="6" className={s.ring} />
           </svg>
           <svg viewBox={`0 0 ${M.w} ${M.h}`} preserveAspectRatio="none" className={cx(s.svg, "md:hidden")} aria-hidden="true">
-            <path d={`M${geo.m.channelX - 15} 410H${geo.m.channelX + 15}`} className={s.barrier} />
+            <path d={`M${geo.m.channelX - 15} ${geo.m.postY}H${geo.m.channelX + 15}`} className={s.barrier} />
             <rect x={geo.m.channelX - 34} y={geo.m.hold - 13} width="68" height="26" rx="6" className={s.ring} />
           </svg>
+          <At d={[geo.d.hold - 30, geo.d.channelY - 10, 60, 20]} m={[geo.m.channelX - 30, geo.m.hold - 10, 60, 20]} className={s.stillCard}>
+            {op.id}
+          </At>
           <At d={layout.stamp.d} m={layout.stamp.m} className={s.stamp}>
             <span>✕ Bloqueada</span>
             <span>por política</span>
@@ -336,23 +366,25 @@ function Verdict({ op }: { op: Op }) {
   );
 }
 
+/** Última operación que recibe cada proveedor: es la que queda en la vista estática. */
+const latest = new Set((["ia1", "ia2"] as const).map((id) => ops.filter((op) => op.to === id).at(-1)?.id));
+
 function Receive({ op }: { op: Op }) {
   if (op.to === "bloqueada") return null;
   const box = layout.providers[op.to];
-  const latest = op.id === "op-014" || op.id === "op-016";
   const cool = op.to === "ia2";
+  const status = statusBox(op.to);
   return (
-    <Step at={receiveWindow(op)} fx="fade" rm={latest ? undefined : "hide"} className={s.layer}>
+    <Step at={receiveWindow(op)} fx="fade" rm={latest.has(op.id) ? undefined : "hide"} className={s.layer}>
       <At d={box.d} m={box.m} className={cx(s.receive, cool && s.receiveCool)} />
-      <At
-        d={[box.d[0] + 24, box.d[1] + box.d[3] - 34, box.d[2] - 30, 24]}
-        m={[box.m[0] + 8, box.m[1] + box.m[3] - 28, box.m[2] - 14, 22]}
-        className={cx(s.cover, s.mono, s.fsS, "flex items-center gap-2", cool ? "text-cool" : "text-signal")}
-      >
-        <span className={cx("size-1.5 shrink-0 rounded-full", cool ? "bg-cool" : "bg-signal")} />
-        <span className="truncate">
-          {op.id} <span className="text-mist">· en proceso</span>
-        </span>
+      <At d={status.d} m={status.m} className={cx(s.cover, s.mono, s.fsS, s.status)}>
+        <p className={cx("flex items-center gap-2", cool ? "text-cool" : "text-signal")}>
+          <span className={cx("size-1.5 shrink-0 rounded-full", cool ? "bg-cool" : "bg-signal")} />
+          <span className="truncate">
+            {op.id} <span className="text-mist">· en proceso</span>
+          </span>
+        </p>
+        <p className="truncate text-mist">contexto · proyecto {agents[op.agent].project}</p>
       </At>
     </Step>
   );
@@ -398,7 +430,7 @@ export function Stage() {
       <Provider id="ia2" />
       <At d={[812, 190, 180, 64]} m={[0, 0, 0, 0]} className="hidden flex-col justify-center gap-1 md:flex">
         <p className={cap()}>fuera del equipo</p>
-        <p className={cx(s.mono, s.fsS, "text-fog")}>solo recibe lo que la política permite</p>
+        <p className={cx(s.fsS, "text-fog")}>Solo recibe lo que la política permite, con el contexto de un proyecto.</p>
       </At>
 
       <WiresOver />

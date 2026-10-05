@@ -12,7 +12,7 @@ export const CYCLE = 18000;
 
 /** Sistema de coordenadas de cada composición. */
 export const D = { w: 1000, h: 420 } as const;
-export const M = { w: 360, h: 612 } as const;
+export const M = { w: 360, h: 630 } as const;
 
 export type Box = readonly [x: number, y: number, w: number, h: number];
 
@@ -38,42 +38,44 @@ export type AgentId = "a1" | "a2" | "b1" | "b2";
 export type ProviderId = "ia1" | "ia2";
 
 export const agents: Record<AgentId, { project: "a" | "b"; name: string; role: string; d: Box; m: Box }> = {
-  a1: { project: "a", name: "agt-a1", role: "refactor", d: [30, 98, 192, 40], m: [22, 86, 72, 44] },
-  a2: { project: "a", name: "agt-a2", role: "pruebas", d: [30, 144, 192, 40], m: [98, 86, 72, 44] },
-  b1: { project: "b", name: "agt-b1", role: "docs", d: [30, 290, 192, 40], m: [194, 86, 72, 44] },
-  b2: { project: "b", name: "agt-b2", role: "migración", d: [30, 336, 192, 40], m: [270, 86, 72, 44] },
+  a1: { project: "a", name: "agt-a1", role: "refactor", d: [30, 102, 192, 38], m: [18, 90, 76, 44] },
+  a2: { project: "a", name: "agt-a2", role: "pruebas", d: [30, 146, 192, 38], m: [96, 90, 76, 44] },
+  b1: { project: "b", name: "agt-b1", role: "docs", d: [30, 294, 192, 38], m: [190, 90, 76, 44] },
+  b2: { project: "b", name: "agt-b2", role: "datos", d: [30, 338, 192, 38], m: [268, 90, 76, 44] },
 };
 
 export const layout = {
-  boundary: { d: [2, 14, 724, 402] as Box, m: [2, 14, 356, 482] as Box },
+  boundary: { d: [2, 14, 724, 402] as Box, m: [2, 14, 356, 494] as Box },
   boundaryChip: { d: [16, 5, 228, 19] as Box, m: [12, 5, 214, 19] as Box },
   projects: {
-    a: { d: [18, 36, 220, 180] as Box, m: [12, 34, 164, 132] as Box },
-    b: { d: [18, 228, 220, 180] as Box, m: [184, 34, 164, 132] as Box },
+    a: { d: [18, 36, 220, 180] as Box, m: [12, 34, 164, 136] as Box },
+    b: { d: [18, 228, 220, 180] as Box, m: [184, 34, 164, 136] as Box },
   },
-  broker: { d: [296, 36, 236, 372] as Box, m: [12, 200, 336, 150] as Box },
+  broker: { d: [296, 36, 236, 372] as Box, m: [12, 204, 336, 150] as Box },
   /** Inspector del broker: zona superior (operación) e inferior (ruta y alcance). */
-  inspectTop: { d: [308, 80, 212, 118] as Box, m: [22, 228, 126, 114] as Box },
-  inspectLow: { d: [308, 246, 212, 150] as Box, m: [212, 228, 128, 114] as Box },
-  gate: { d: [548, 36, 136, 372] as Box, m: [12, 362, 336, 76] as Box },
+  inspectTop: { d: [308, 80, 212, 118] as Box, m: [22, 232, 126, 114] as Box },
+  inspectLow: { d: [308, 246, 212, 92] as Box, m: [206, 232, 136, 114] as Box },
+  /** Disponibilidad de proveedores (pie del broker, solo desde md). */
+  brokerFoot: { d: [308, 344, 212, 54] as Box, m: [0, 0, 0, 0] as Box },
+  gate: { d: [548, 36, 136, 372] as Box, m: [12, 366, 336, 88] as Box },
   lamps: {
-    permisos: { d: [558, 112, 116, 58] as Box, m: [22, 382, 124, 48] as Box },
-    alcance: { d: [558, 276, 116, 58] as Box, m: [214, 382, 124, 48] as Box },
+    permisos: { d: [556, 112, 124, 58] as Box, m: [20, 394, 120, 48] as Box },
+    alcance: { d: [556, 276, 124, 58] as Box, m: [222, 394, 120, 48] as Box },
   },
-  stamp: { d: [558, 344, 116, 54] as Box, m: [196, 441, 150, 34] as Box },
+  stamp: { d: [554, 344, 124, 54] as Box, m: [196, 458, 150, 34] as Box },
   providers: {
-    ia1: { d: [800, 36, 200, 136] as Box, m: [12, 520, 164, 88] as Box },
-    ia2: { d: [800, 272, 200, 136] as Box, m: [184, 520, 164, 88] as Box },
+    ia1: { d: [800, 46, 200, 116] as Box, m: [12, 536, 164, 88] as Box },
+    ia2: { d: [800, 282, 200, 116] as Box, m: [184, 536, 164, 88] as Box },
   },
 };
 
 /** Puertos de salida de cada agente (D: borde derecho del proyecto; M: bajo la insignia). */
-const portD: Record<AgentId, Point> = { a1: [238, 118], a2: [238, 164], b1: [238, 310], b2: [238, 356] };
-const portM: Record<AgentId, Point> = { a1: [58, 130], a2: [134, 130], b1: [230, 130], b2: [306, 130] };
+const portD: Record<AgentId, Point> = { a1: [238, 121], a2: [238, 165], b1: [238, 313], b2: [238, 357] };
+const portM: Record<AgentId, Point> = { a1: [56, 134], a2: [134, 134], b1: [228, 134], b2: [306, 134] };
 
 export const geo = {
   d: { busX: 264, channelY: 222, brokerIn: 296, gateIn: 548, gateOut: 684, splitX: 704, laneY: { ia1: 104, ia2: 340 }, end: 772, hold: 580 },
-  m: { busY: 184, channelX: 180, gateIn: 362, gateOut: 438, splitY: 478, laneX: { ia1: 94, ia2: 266 }, end: 512, hold: 382 },
+  m: { busY: 188, channelX: 180, brokerIn: 204, gateIn: 366, gateOut: 454, postY: 424, splitY: 500, laneX: { ia1: 94, ia2: 266 }, providerY: 536, end: 528, hold: 394 },
 };
 
 /** Ruta y el índice del punto donde la tarjeta entra a la compuerta de política. */
@@ -134,11 +136,11 @@ export type Op = {
 const PASS = 0.07; // tiempo entre la compuerta y el proveedor
 
 export const ops: Op[] = [
-  { id: "op-012", agent: "a1", to: "ia1", gate: 0.11, end: 0.11 + PASS, out: 0.192, task: "refactor", scope: "~/proyectos/a", hash: "7c1e" },
-  { id: "op-013", agent: "b1", to: "ia2", gate: 0.265, end: 0.265 + PASS, out: 0.347, task: "docs", scope: "~/proyectos/b", hash: "a94f" },
-  { id: "op-014", agent: "a2", to: "ia1", gate: 0.42, end: 0.42 + PASS, out: 0.502, task: "pruebas", scope: "~/proyectos/a", hash: "3d08" },
-  { id: "op-015", agent: "b2", to: "bloqueada", gate: 0.63, end: 0.63, out: 0.705, task: "migración", scope: "~/proyectos/a", hash: "e5b2" },
-  { id: "op-016", agent: "a1", to: "ia2", gate: 0.82, end: 0.82 + PASS, out: 0.902, task: "refactor", scope: "~/proyectos/a", hash: "41fa" },
+  { id: "op-014", agent: "a2", to: "ia1", gate: 0.13, end: 0.13 + PASS, out: 0.212, task: "pruebas", scope: "~/proyectos/a", hash: "3d08" },
+  { id: "op-015", agent: "b2", to: "bloqueada", gate: 0.345, end: 0.345, out: 0.42, task: "migración", scope: "~/proyectos/a", hash: "e5b2" },
+  { id: "op-016", agent: "b1", to: "ia2", gate: 0.525, end: 0.525 + PASS, out: 0.607, task: "docs", scope: "~/proyectos/b", hash: "a94f" },
+  { id: "op-017", agent: "a1", to: "ia2", gate: 0.685, end: 0.685 + PASS, out: 0.767, task: "refactor", scope: "~/proyectos/a", hash: "7c1e" },
+  { id: "op-018", agent: "b1", to: "ia1", gate: 0.84, end: 0.84 + PASS, out: 0.922, task: "docs", scope: "~/proyectos/b", hash: "41fa" },
 ];
 
 const lengths = (points: Point[]) => {
@@ -222,17 +224,26 @@ export const wiresD = {
     ia1: orth([[geo.d.gateOut, geo.d.channelY], [geo.d.splitX, geo.d.channelY], [geo.d.splitX, geo.d.laneY.ia1], [800, geo.d.laneY.ia1]], 12),
     ia2: orth([[geo.d.gateOut, geo.d.channelY], [geo.d.splitX, geo.d.channelY], [geo.d.splitX, geo.d.laneY.ia2], [800, geo.d.laneY.ia2]], 12),
   },
+  /** Carril abierto por la compuerta (resaltado del veredicto): desde la entrada de la compuerta. */
+  open: {
+    ia1: orth([[geo.d.gateIn, geo.d.channelY], [geo.d.splitX, geo.d.channelY], [geo.d.splitX, geo.d.laneY.ia1], [800, geo.d.laneY.ia1]], 12),
+    ia2: orth([[geo.d.gateIn, geo.d.channelY], [geo.d.splitX, geo.d.channelY], [geo.d.splitX, geo.d.laneY.ia2], [800, geo.d.laneY.ia2]], 12),
+  },
   ports: portD,
 };
 
 export const wiresM = {
   agents: (Object.keys(portM) as AgentId[]).map((agent) => {
     const [px, py] = portM[agent];
-    return orth([[px, py], [px, geo.m.busY], [geo.m.channelX, geo.m.busY], [geo.m.channelX, 200]], 10);
+    return orth([[px, py], [px, geo.m.busY], [geo.m.channelX, geo.m.busY], [geo.m.channelX, geo.m.brokerIn]], 10);
   }),
   lanes: {
-    ia1: orth([[geo.m.channelX, geo.m.gateOut], [geo.m.channelX, geo.m.splitY], [geo.m.laneX.ia1, geo.m.splitY], [geo.m.laneX.ia1, 520]], 10),
-    ia2: orth([[geo.m.channelX, geo.m.gateOut], [geo.m.channelX, geo.m.splitY], [geo.m.laneX.ia2, geo.m.splitY], [geo.m.laneX.ia2, 520]], 10),
+    ia1: orth([[geo.m.channelX, geo.m.gateOut], [geo.m.channelX, geo.m.splitY], [geo.m.laneX.ia1, geo.m.splitY], [geo.m.laneX.ia1, geo.m.providerY]], 10),
+    ia2: orth([[geo.m.channelX, geo.m.gateOut], [geo.m.channelX, geo.m.splitY], [geo.m.laneX.ia2, geo.m.splitY], [geo.m.laneX.ia2, geo.m.providerY]], 10),
+  },
+  open: {
+    ia1: orth([[geo.m.channelX, geo.m.gateIn], [geo.m.channelX, geo.m.splitY], [geo.m.laneX.ia1, geo.m.splitY], [geo.m.laneX.ia1, geo.m.providerY]], 10),
+    ia2: orth([[geo.m.channelX, geo.m.gateIn], [geo.m.channelX, geo.m.splitY], [geo.m.laneX.ia2, geo.m.splitY], [geo.m.laneX.ia2, geo.m.providerY]], 10),
   },
   ports: portM,
 };

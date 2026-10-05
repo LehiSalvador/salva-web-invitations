@@ -44,7 +44,7 @@ function Rail({ phases }: { phases: Phase[] }) {
   return (
     <div className="relative hidden shrink-0 @lg:block">
       <div className="h-px bg-line-strong" />
-      <div className="grid" style={{ gridTemplateColumns: phases.map((phase) => `${(phase.at[1] - phase.at[0]).toFixed(3)}fr`).join(" ") }}>
+      <div className="grid" style={{ gridTemplateColumns: phases.map((phase) => `${((phase.at[1] - phase.at[0]) * 100).toFixed(2)}fr`).join(" ") }}>
         {phases.map((phase, index) => (
           <Step key={phase.label} at={phase.at} fx="fade" min={0.34} className="relative min-w-0 pt-2 pr-2">
             <span className="absolute inset-x-0 -top-px h-px bg-signal" />

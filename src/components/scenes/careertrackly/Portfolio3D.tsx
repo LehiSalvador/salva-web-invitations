@@ -20,6 +20,8 @@ export type PortfolioTimes = {
   stamp?: number;
   /** Perfiles de la cuadrícula Descubrir (solo escena principal). */
   floor?: number;
+  /** Anillo en la celda propia cuando el portfolio aterriza en Descubrir. */
+  landed?: number;
 };
 
 const z = (value: number) => ({ "--z": value }) as CSSProperties;
@@ -63,13 +65,14 @@ export function Portfolio3D({ times, end, preview = false, style }: { times: Por
           </>
         )}
         <div className={s.shadow3d} />
+        {times.landed !== undefined && <Step at={[times.landed, end]} fx="pop" className={s.slotRing} />}
 
         <div className={`${s.cardGroup} ${preview ? s.cardGroupPreview : s.cardGroupScene}`}>
-          {times.plate === undefined ? (
-            <div className={`${s.layer} ${s.plate} ${s.plateIdle}`} style={z(0)}>
-              <Plate />
-            </div>
-          ) : (
+          {/* Marco vacío: el portfolio espera datos; la placa real lo cubre al aparecer. */}
+          <div className={`${s.layer} ${s.plate} ${s.plateIdle}`} style={z(0)}>
+            <Plate />
+          </div>
+          {times.plate !== undefined && (
             <Step at={[times.plate, end]} fx="scale" className={`${s.layer} ${s.plate}`} style={z(0)}>
               <Plate />
             </Step>

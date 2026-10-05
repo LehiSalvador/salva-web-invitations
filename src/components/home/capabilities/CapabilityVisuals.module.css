@@ -119,21 +119,11 @@
 }
 
 .toggleOn {
-  position: absolute;
-  inset: -1px;
+  width: 22px;
+  height: 12px;
   border-radius: 999px;
   border: 1px solid var(--color-signal);
-  background: color-mix(in srgb, var(--color-signal) 22%, var(--color-ink-900));
-}
-
-.knob {
-  position: absolute;
-  top: 2px;
-  right: 2px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: var(--color-signal);
+  background: color-mix(in srgb, var(--color-signal) 24%, var(--color-ink-900));
 }
 
 /* Retícula de 12 columnas que aparece al diseñar la estructura del sitio. */

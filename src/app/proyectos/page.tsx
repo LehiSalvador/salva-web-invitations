@@ -37,7 +37,7 @@ export default function ProjectsPage() {
           </p>
         </header>
 
-        <ul className="mt-16 grid gap-5 md:grid-cols-2 lg:mt-20 lg:gap-6">
+        <ul className="mt-16 grid gap-5 md:grid-cols-2 lg:mt-20 lg:gap-6 [&>li]:min-w-0">
           {projects.map((project, index) => (
             <Reveal as="li" key={project.id} variant="scale" delay={(index % 2) * 90}>
               <ProjectCard project={project} />
