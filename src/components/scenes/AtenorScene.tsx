@@ -2,12 +2,14 @@ import type { CSSProperties } from "react";
 import { Packet, PacketLayer } from "@/components/motion/Packet";
 import { Step } from "@/components/motion/Step";
 import {
+  BAND,
   BAND_SIZE,
   BUS_L,
   BUS_R,
   COLS,
   CYCLE,
   END,
+  FINAL,
   INTENTS,
   LANES,
   LOG_FINAL,
@@ -21,6 +23,7 @@ import {
   WIRES,
   Y0,
   Y1,
+  arrivalClock,
   win,
   type Message,
 } from "@/components/scenes/atenor/timeline";
@@ -33,11 +36,14 @@ export { AtenorPreview } from "@/components/scenes/atenor/Preview";
  * Tres negocios escriben por WhatsApp; cada mensaje viaja al núcleo (Recepción → Comprensión con IA → Regla → Ruta),
  * se clasifica por intención, cae como tarjeta en su área (Atención, Clientes u Operación) y la respuesta vuelve
  * al chat de origen. Un registro del sistema acompaña cada evento. Los tiempos salen de timeline.ts.
+ *
+ * Animaciones (escritorio): 12 de paquetes, 9 Step, 4 nodos, 1 tarjeta en proceso, 3 chats, 3 estados,
+ * 3 indicadores de "escribiendo", 1 registro y 1 anillo = 37.
  */
 
 const vars = (values: Record<string, string | number>) => values as CSSProperties;
 const at = (x: number, y: number) => vars({ "--x": `${x / 10}%`, "--y": `${y}px` });
-/** Siguiente mensaje en llegar al núcleo (para relevar la tarjeta en proceso y la intención encendida). */
+/** Siguiente mensaje en llegar al núcleo (para relevar la intención encendida). */
 const nextArrival = (index: number) => (index < MESSAGES.length - 1 ? MESSAGES[index + 1].times.portIn - 0.3 : END);
 
 const STAGES = [
@@ -66,44 +72,61 @@ function Ticks() {
 }
 
 function Thread({ message }: { message: Message }) {
-  const { times } = message;
+  const { times, index } = message;
   return (
     <div className={s.thread}>
-      <Step at={win(times.bubble + 0.2, times.replyArrive + 0.1)} fx="fade" rm="hide" className={s.threadLive}>
-        <span className={s.threadLiveTag}>IA procesando…</span>
-      </Step>
+      <Step at={win(times.bubble + 0.2, times.replyArrive + 0.1)} fx="fade" rm="hide" className={s.threadLive} />
       <div className={s.threadHead}>
         <span className={s.avatar}>{message.initial}</span>
         <span className={s.threadName}>
-          Negocio {message.n} <span>· {message.biz}</span>
+          <span className={s.nameLong}>Negocio {message.n} · </span>
+          <span className={s.nameShort}>N{message.n} · </span>
+          <span className={s.nameBiz}>{message.biz}</span>
         </span>
-        <span className={s.threadMeta}>
-          <span className={s.onlineDot} />
-          en línea
+        <span className={s.status}>
+          <span data-atn={`status-${index}`} className={s.statusList} style={vars({ "--final": `${FINAL.status}px` })}>
+            <span>
+              <i className={s.onlineDot} />
+              en línea
+            </span>
+            <span className={s.statusTyping}>
+              escribiendo
+              <span className={s.dots}>
+                <i />
+                <i />
+                <i />
+                <b data-atn={`dots-${index}`} />
+              </span>
+            </span>
+            <span className={s.statusBusy}>
+              <i className={s.busyDot} />
+              procesando
+            </span>
+            <span className={s.statusDone}>
+              <Ticks />
+              respondido
+            </span>
+          </span>
         </span>
       </div>
-      <div className={s.threadBody}>
-        <div className={s.slotIn}>
-          <Step at={win(times.typing, times.bubble + 0.15)} fx="fade" rm="hide" className={s.typing}>
-            <span className={s.typingBubble}>
-              <i />
-              <i />
-              <i />
+      <div className={s.chat}>
+        <div data-atn={`chat-${index}`} className={s.chatList} style={vars({ "--final": `${FINAL.chat}px` })}>
+          <span className={`${s.bubbleIn} ${s.old}`}>{message.history.in}</span>
+          <span className={`${s.bubbleOut} ${s.old}`}>
+            <span className={s.bubbleText}>{message.history.out}</span>
+            <span className={`${s.sent} ${s.sentOld}`}>
+              {message.history.when}
+              <Ticks />
             </span>
-            escribiendo…
-          </Step>
-          <Step at={win(times.bubble, END)} fx="up" className={s.bubbleIn}>
-            {message.text}
-          </Step>
-        </div>
-        <div className={s.slotOut}>
-          <Step at={win(times.replyArrive - 0.05, END)} fx="right" className={s.bubbleOut}>
+          </span>
+          <span className={s.bubbleIn}>{message.text}</span>
+          <span className={s.bubbleOut}>
             <span className={s.bubbleText}>{message.reply}</span>
             <span className={s.sent}>
               <Ticks />
               Respuesta enviada
             </span>
-          </Step>
+          </span>
         </div>
       </div>
     </div>
@@ -146,6 +169,8 @@ function Lane({ index }: { index: number }) {
 }
 
 function Core() {
+  const y0 = BAND.y0 * 10;
+  const y1 = BAND.y1 * 10;
   return (
     <div className={s.core}>
       <div className={s.coreHead}>
@@ -156,35 +181,32 @@ function Core() {
         <span className={s.coreHeadNote}>4 etapas</span>
       </div>
 
+      {/* Tarjeta en proceso: una tira que avanza al llegar cada mensaje (la anterior sale por arriba). */}
       <div className={s.cardSlot}>
-        <span className={s.cardIdle}>esperando mensajes</span>
-        {MESSAGES.map((message) => (
-          <Step
-            key={message.op}
-            at={win(message.times.portIn - 0.1, nextArrival(message.index))}
-            fx="left"
-            rm={message.index < MESSAGES.length - 1 ? "hide" : undefined}
-            className={s.card}
-          >
-            <span className={s.cardTop}>
-              <span>
-                <span className="text-bone">{message.op}</span> · N{message.n} {message.biz}
+        <div data-atn="card" className={s.cardStrip} style={vars({ "--final": `${FINAL.card}px` })}>
+          <div className={s.cardIdle}>esperando mensajes</div>
+          {MESSAGES.map((message) => (
+            <div key={message.op} className={s.card}>
+              <span className={s.cardTop}>
+                <span>
+                  <span className="text-bone">{message.op}</span> · N{message.n} {message.biz}
+                </span>
+                <span className={s.cardTime}>{arrivalClock(message)}</span>
               </span>
-              <span className={s.cardState}>en proceso</span>
-            </span>
-            <span className={s.cardText}>“{message.text}”</span>
-            <span className={s.cardMeta}>contexto del cliente cargado</span>
-          </Step>
-        ))}
+              <span className={s.cardText}>“{message.text}”</span>
+              <span className={s.cardMeta}>contexto del cliente cargado</span>
+            </div>
+          ))}
+        </div>
       </div>
 
       <div className={s.band}>
-        <svg viewBox={`0 0 ${BAND_SIZE[0]} ${BAND_SIZE[1]}`} preserveAspectRatio="none" className={s.bandLines} aria-hidden="true">
-          <path d={`M0 590H1000`} className={s.mainLine} />
-          <path d={`M${NODES[3] * 10} 590V930H0`} className={s.returnLine} />
+        <svg viewBox={`0 0 1000 ${BAND.height * 10}`} preserveAspectRatio="none" className={s.bandLines} aria-hidden="true">
+          <path d={`M0 ${y0}H1000`} className={s.mainLine} />
+          <path d={`M${NODES[3] * 10} ${y0}V${y1}H0`} className={s.returnLine} />
         </svg>
         <span className={s.iaGlow} style={vars({ "--x": `${NODES[1]}%` })} />
-        <span className={`${s.iaRing} spin`} style={vars({ "--x": `${NODES[1]}%`, "--dur": "7s" })} />
+        <span className={`${s.iaRing} spin`} style={vars({ "--x": `${NODES[1]}%`, "--dur": "9s" })} />
         {STAGES.map((stage, index) => (
           <div key={stage.name} className={`${s.node} ${index === 1 ? s.nodeIa : ""}`} style={vars({ "--x": `${NODES[index]}%` })}>
             <span className={s.nodeLabel}>
@@ -205,10 +227,10 @@ function Core() {
         <div className={s.bandPackets}>
           <PacketLayer>
             {MESSAGES.map((message) => (
-              <Packet key={message.op} size={BAND_SIZE} kind="msg" tone="signal" className={s.pkMain} route={message.packets.mobile.route} at={message.packets.mobile.at} />
+              <Packet key={message.op} size={BAND_SIZE} kind="msg" tone="signal" className={s.pkMain} route={message.packets.band.route} at={message.packets.band.at} />
             ))}
             {MESSAGES.map((message) => (
-              <Packet key={`${message.op}-r`} size={BAND_SIZE} kind="msg" tone="gold" route={message.packets.mobileReply.route} at={message.packets.mobileReply.at} />
+              <Packet key={`${message.op}-r`} size={BAND_SIZE} kind="msg" tone="gold" route={message.packets.bandReply.route} at={message.packets.bandReply.at} />
             ))}
           </PacketLayer>
         </div>
@@ -223,9 +245,8 @@ function Core() {
             </span>
           ))}
         </div>
-        <div className={s.entities}>
-          <span className={s.entitiesLabel}>Datos</span>
-        </div>
+        <span className={s.blockLabel}>Datos extraídos</span>
+        <span className={s.dataLine} />
         {MESSAGES.map((message) => (
           <Step
             key={message.op}
@@ -245,27 +266,10 @@ function Core() {
                 ),
               )}
             </span>
-            <span className={s.entities}>
-              <span className={`${s.entitiesLabel} invisible`}>Datos</span>
-              {message.data.map(([key, value]) => (
-                <span key={key} className={s.entity}>
-                  {key} <span className="text-bone">{value}</span>
-                </span>
-              ))}
-            </span>
+            <span className={`${s.blockLabel} invisible`}>Datos extraídos</span>
+            <span className={`${s.dataLine} ${s.dataOn}`}>{message.data}</span>
           </Step>
         ))}
-      </div>
-
-      <div className={s.providers}>
-        <span>
-          <span className={s.providerDot} />
-          Proveedor IA 1
-        </span>
-        <span>
-          <span className={`${s.providerDot} ${s.providerDotIdle}`} />
-          Proveedor IA 2
-        </span>
       </div>
     </div>
   );
@@ -378,14 +382,14 @@ function SystemStatus() {
     ["Historial", "por cliente"],
   ];
   return (
-    <div className={s.status}>
+    <div className={s.system}>
       <div className={s.panelHead}>
         <span>Sistema</span>
         <span className={s.panelHeadNote}>simulación</span>
       </div>
-      <dl className={s.statusList}>
+      <dl className={s.systemList}>
         {rows.map(([key, value]) => (
-          <div key={key} className={s.statusRow}>
+          <div key={key} className={s.systemRow}>
             <dt>{key}</dt>
             <dd>{value}</dd>
           </div>

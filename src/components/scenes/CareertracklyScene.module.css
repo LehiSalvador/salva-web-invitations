@@ -52,6 +52,12 @@
   display: none;
 }
 
+.traces {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
 .track {
   stroke: rgb(226 236 232 / 0.34);
   stroke-width: 1.4;
@@ -363,6 +369,7 @@
 }
 
 .cardBars i + i {
+  display: none;
   width: 56%;
 }
 
@@ -1049,6 +1056,10 @@
     display: block;
   }
 
+  .cardBars i + i {
+    display: block;
+  }
+
   .connector {
     right: auto;
     left: 50%;
@@ -1102,7 +1113,6 @@
 @container ctk-scene (min-width: 900px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) 15rem;
-    align-items: center;
     gap: 20px;
     padding: 20px;
   }
@@ -1135,7 +1145,6 @@
 @container ctk-scene (min-width: 1180px) {
   .layout {
     grid-template-columns: minmax(0, 1fr) 18.5rem;
-    align-items: start;
     gap: 22px;
     padding: 20px 20px 20px 22px;
   }
@@ -1206,6 +1215,10 @@
 
 .pCard .cardBars i {
   height: calc(6 * var(--u));
+}
+
+.pCard .cardBars i + i {
+  display: block;
 }
 
 .pCardIcon {
@@ -1279,7 +1292,7 @@
   }
 
   .rigPreview {
-    scale: 0.86;
+    scale: 0.9;
   }
 }
 

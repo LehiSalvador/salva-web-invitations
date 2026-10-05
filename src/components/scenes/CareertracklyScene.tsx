@@ -98,8 +98,8 @@ function slotCenter(x: number, y: number, w: number, kind: Evidence): Point {
 
 /** Puntos de llegada en el portfolio 3D (proyección medida de las capas). */
 const DOCK = {
-  wide: { sections: [824, 240] as Point, thumbs: [858, 217] as Point },
-  tall: { sections: [195, 688] as Point, thumbs: [225, 668] as Point },
+  wide: { sections: [819, 187] as Point, thumbs: [860, 160] as Point },
+  tall: { sections: [195, 593] as Point, thumbs: [224, 574] as Point },
 };
 
 /* ───────── Contenido ───────── */
@@ -241,17 +241,35 @@ function Tracks() {
           <path key={x} d={`M${x} ${W.trackY - 3}v6`} className={s.tick} />
         ))}
         <path d={`M${W.trackX[0]} ${W.trackY}H${W.trackX[1]}`} pathLength={1} className={`draw ${s.track}`} />
-        <path d={curvePath(curves.wide.trajectory)} className={s.export} />
-        <path d={curvePath(curves.wide.projects)} className={s.exportGold} />
+        <path d={`M${W.trackX[1]} ${W.trackY}C690 ${W.trackY} 712 350 734 328`} className={s.export} />
         <path d={`M${W.trackX[1] - 8} ${W.trackY - 5}l8 5-8 5`} className={s.track} />
       </svg>
       <svg viewBox={`0 0 ${TALL[0]} ${TALL[1]}`} className={`${s.svg} ${s.tallOnly}`} fill="none" aria-hidden="true">
         <path d="M20 101H380M20 496H380" className={s.rule} />
         <path d={`M${M.trackX} ${M.trackY[0]}V${M.trackY[1]}`} pathLength={1} className={`draw ${s.track}`} />
-        <path d={curvePath(curves.tall.trajectory)} className={s.export} />
-        <path d={curvePath(curves.tall.projects)} className={s.exportGold} />
+        <path d={`M${M.trackX} ${M.trackY[1]}C${M.trackX} 556 70 636 110 662`} className={s.export} />
       </svg>
     </>
+  );
+}
+
+/** Trazos de los paquetes hacia las capas del portfolio: visibles mientras se arma, hasta que aterriza. */
+function Traces() {
+  return (
+    <Step at={[T.plate - 0.01, T.landed]} fx="fade" className={s.traces}>
+      {(["wide", "tall"] as const).map((layout) => (
+        <svg
+          key={layout}
+          viewBox={`0 0 ${(layout === "wide" ? WIDE : TALL).join(" ")}`}
+          className={`${s.svg} ${layout === "wide" ? s.wideOnly : s.tallOnly}`}
+          fill="none"
+          aria-hidden="true"
+        >
+          <path d={curvePath(curves[layout].trajectory)} className={s.export} />
+          <path d={curvePath(curves[layout].projects)} className={s.exportGold} />
+        </svg>
+      ))}
+    </Step>
   );
 }
 
@@ -338,7 +356,7 @@ function Cards() {
 function Stage() {
   return (
     <>
-      <Lane n="04" name="Portfolio" wide={[672, 26]} tall={[20, 508]} />
+      <Lane n="04" name="Portfolio" wide={[672, 26]} tall={[46, 508]} />
       <div className={`${s.at} ${s.status}`} style={place([980, 24], [380, 504])}>
         <span className={s.chip}>
           <i className={s.chipDot} />
@@ -365,8 +383,10 @@ function Stage() {
 /** Resalta el origen (proyectos y trayectoria) mientras sus datos viajan al portfolio. */
 function Origin() {
   return (
-    <Step at={T.origin} fx="fade" rm="hide" className={`${s.at} ${s.origin}`} style={place([138, 140, 510, 282], [12, 114, 380, 382])}>
-      <span className={s.originTag}>Exportando al portfolio →</span>
+    <Step at={T.origin} fx="fade" rm="hide" className={`${s.at} ${s.origin}`} style={place([138, 140, 510, 282], [12, 134, 380, 362])}>
+      <span className={s.originTag}>
+        Exportando<span className={s.floorMore}> al portfolio</span> →
+      </span>
     </Step>
   );
 }
@@ -437,6 +457,7 @@ export function CareertracklyScene() {
         <Reveal variant="group" className={s.canvas}>
           <div className={s.grid} />
           <Tracks />
+          <Traces />
           <Lane n="03" name="Evidencia" wide={[20, 56]} tall={[20, 12]} />
           <Lane n="02" name="Proyectos" wide={[20, 207]} tall={[0, 0]} className={s.laneWideOnly} />
           <Lane n="01" name="Trayectoria" wide={[20, 357]} tall={[20, 108]} />

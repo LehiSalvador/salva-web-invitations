@@ -22,16 +22,18 @@ function timelineOf(element: HTMLElement) {
 
 /**
  * Paquete que recorre una ruta (coordenadas del viewBox). Las posiciones van en píxeles para que
- * el navegador las anime en el compositor; si la figura cambia de tamaño se vuelven a armar.
+ * el navegador las anime en el compositor; si la figura cambia de tamaño se actualizan sus keyframes.
  * Con data-in/data-out el recorrido ocurre dentro de esa ventana del ciclo de la escena.
  */
-function animatePacket(packet: HTMLElement): Animation[] {
+type PacketPlan = { motion: Keyframe[]; visibility: Keyframe[]; turns: Keyframe[] | null; timing: KeyframeAnimationOptions };
+
+function planPacket(packet: HTMLElement): PacketPlan | null {
   const route: Point[] = (packet.dataset.route ?? "")
     .split(";")
     .map((pair) => pair.split(",").map(Number) as Point)
     .filter((pair) => pair.length === 2 && pair.every(Number.isFinite));
   const layer = packet.parentElement;
-  if (route.length < 2 || !layer || !layer.clientWidth) return [];
+  if (route.length < 2 || !layer || !layer.clientWidth) return null;
 
   const sx = layer.clientWidth / num(packet.dataset.w, 640);
   const sy = layer.clientHeight / num(packet.dataset.h, 400);
@@ -69,23 +71,29 @@ function animatePacket(packet: HTMLElement): Animation[] {
     ...(end < 1 ? [{ opacity: 0, offset: 1 }] : []),
   ];
 
-  const animations = [packet.animate(motion, timing), packet.animate(visibility, timing)];
-
   // Vehículos: giran según el tramo que recorren.
-  const body = packet.querySelector<HTMLElement>("[data-heading]");
-  if (body) {
-    const turns: Keyframe[] = [];
+  let turns: Keyframe[] | null = null;
+  if (packet.querySelector("[data-heading]")) {
+    const list: Keyframe[] = [];
+    turns = list;
     lengths.forEach((_, index) => {
       const [x1, y1] = route[index];
       const [x2, y2] = route[index + 1];
       const angle = `${Math.round((Math.atan2(y2 - y1, x2 - x1) * 180) / Math.PI)}deg`;
       const from = index === 0 ? offsets[0] : Math.min(offsets[index] + 0.012, offsets[index + 1]);
-      turns.push({ rotate: angle, offset: from }, { rotate: angle, offset: offsets[index + 1] });
+      list.push({ rotate: angle, offset: from }, { rotate: angle, offset: offsets[index + 1] });
     });
-    if (turns[0].offset !== 0) turns.unshift({ rotate: turns[0].rotate, offset: 0 });
-    if (turns[turns.length - 1].offset !== 1) turns.push({ rotate: turns[turns.length - 1].rotate, offset: 1 });
-    animations.push(body.animate(turns, timing));
+    if (list[0].offset !== 0) list.unshift({ rotate: list[0].rotate, offset: 0 });
+    if (list[list.length - 1].offset !== 1) list.push({ rotate: list[list.length - 1].rotate, offset: 1 });
   }
+  return { motion, visibility, turns, timing };
+}
+
+/** Crea las animaciones de un paquete. La primera es siempre el recorrido (la única que depende del tamaño). */
+function animatePacket(packet: HTMLElement, plan: PacketPlan): Animation[] {
+  const animations = [packet.animate(plan.motion, plan.timing), packet.animate(plan.visibility, plan.timing)];
+  const body = packet.querySelector<HTMLElement>("[data-heading]");
+  if (body && plan.turns) animations.push(body.animate(plan.turns, plan.timing));
   return animations;
 }
 
@@ -204,20 +212,30 @@ export function MotionObserver() {
     );
     pending.forEach((element) => revealObserver.observe(element));
 
-    const running = new Map<Element, Animation[]>();
+    type Block = { animations: Animation[]; packets: Map<HTMLElement, Animation[]> };
+    const blocks = new Map<Element, Block>();
     const widths = new Map<Element, number>();
 
     // Solo los elementos de este bloque, no los de bloques [data-live] anidados.
-    const build = (element: HTMLElement) => {
-      const owned = (selector: string) =>
-        [...element.querySelectorAll<HTMLElement>(selector)].filter((node) => node.parentElement?.closest("[data-live]") === element);
-      return [...owned("[data-route]").flatMap(animatePacket), ...owned("[data-step]").flatMap(animateStep)];
+    const owned = (element: HTMLElement, selector: string) =>
+      [...element.querySelectorAll<HTMLElement>(selector)].filter((node) => node.parentElement?.closest("[data-live]") === element);
+
+    const build = (element: HTMLElement): Block => {
+      const packets = new Map<HTMLElement, Animation[]>();
+      for (const packet of owned(element, "[data-route]")) {
+        const plan = planPacket(packet);
+        if (plan) packets.set(packet, animatePacket(packet, plan));
+      }
+      const animations = [...[...packets.values()].flat(), ...owned(element, "[data-step]").flatMap(animateStep)];
+      return { animations, packets };
     };
 
+    const clock = (block: Block) => block.animations.find((animation) => animation.currentTime !== null)?.currentTime ?? null;
+
     /*
-     * Las escenas pueden mezclar keyframes CSS propios con Web Animations. Si un bloque se oculta con
-     * display: none (carrusel, pestañas), el navegador reinicia sus animaciones CSS; al volver a pantalla
-     * se alinean con el tiempo de la línea de tiempo del bloque para que la coreografía siga sincronizada.
+     * Las escenas pueden mezclar keyframes CSS propios con Web Animations. Si una parte se oculta con
+     * display: none (carrusel, pestañas, breakpoints), el navegador reinicia sus animaciones CSS; se alinean
+     * con el reloj del bloque al volver a pantalla y después de cada cambio de tamaño.
      */
     const syncCss = (element: HTMLElement, time: CSSNumberish | null) => {
       if (time === null) return;
@@ -230,24 +248,37 @@ export function MotionObserver() {
       }
     };
 
+    /*
+     * Al cambiar de tamaño no se recrea nada: los Step no dependen del tamaño y los paquetes solo
+     * actualizan los keyframes de su recorrido (setKeyframes), así el reloj del bloque no se mueve.
+     */
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const element = entry.target as HTMLElement;
-        const previous = running.get(element);
+        const block = blocks.get(element);
         const width = Math.round(entry.contentRect.width);
-        // Ancho 0 (oculto o en transición): se conservan las animaciones actuales.
-        if (!previous || !width || widths.get(element) === width) continue;
+        if (!block || !width || widths.get(element) === width) continue;
         widths.set(element, width);
+        const time = clock(block);
         const paused = !element.hasAttribute("data-inview");
-        // Todas las animaciones de un bloque nacen juntas y se pausan juntas: comparten el mismo tiempo.
-        const time = previous.find((animation) => animation.currentTime !== null)?.currentTime ?? 0;
-        previous.forEach((animation) => animation.cancel());
-        const next = build(element);
-        next.forEach((animation) => {
-          animation.currentTime = time;
-          if (paused) animation.pause();
-        });
-        running.set(element, next);
+        for (const packet of owned(element, "[data-route]")) {
+          const plan = planPacket(packet);
+          if (!plan) continue;
+          const existing = block.packets.get(packet);
+          if (existing?.length) {
+            (existing[0].effect as KeyframeEffect).setKeyframes(plan.motion);
+            continue;
+          }
+          // Paquete que no tenía tamaño al armarse: se crea ahora, alineado con el reloj del bloque.
+          const created = animatePacket(packet, plan);
+          created.forEach((animation) => {
+            if (time !== null) animation.currentTime = time;
+            if (paused) animation.pause();
+          });
+          block.packets.set(packet, created);
+          block.animations.push(...created);
+        }
+        syncCss(element, time);
       }
     });
 
@@ -257,22 +288,22 @@ export function MotionObserver() {
         if (entry.isIntersecting) {
           element.setAttribute("data-inview", "");
           if (reduced) continue;
-          const animations = running.get(element);
-          if (animations) {
+          const block = blocks.get(element);
+          if (block) {
             // Dentro de [data-restart] (diapositivas del showcase) la escena vuelve a empezar desde cero.
-            if (element.closest("[data-restart]")) animations.forEach((animation) => (animation.currentTime = 0));
-            animations.forEach((animation) => animation.play());
-            syncCss(element, animations[0]?.currentTime ?? null);
+            if (element.closest("[data-restart]")) block.animations.forEach((animation) => (animation.currentTime = 0));
+            block.animations.forEach((animation) => animation.play());
+            syncCss(element, clock(block));
           } else {
             const built = build(element);
-            running.set(element, built);
+            blocks.set(element, built);
             widths.set(element, Math.round(element.getBoundingClientRect().width));
             resizeObserver.observe(element);
-            if (built.length) syncCss(element, 0);
+            if (built.animations.length) syncCss(element, 0);
           }
         } else {
           element.removeAttribute("data-inview");
-          running.get(element)?.forEach((animation) => animation.pause());
+          blocks.get(element)?.animations.forEach((animation) => animation.pause());
         }
       }
     });
@@ -282,7 +313,7 @@ export function MotionObserver() {
       revealObserver.disconnect();
       liveObserver.disconnect();
       resizeObserver.disconnect();
-      running.forEach((animations) => animations.forEach((animation) => animation.cancel()));
+      blocks.forEach((block) => block.animations.forEach((animation) => animation.cancel()));
     };
   }, [pathname]);
 
