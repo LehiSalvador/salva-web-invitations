@@ -81,7 +81,7 @@ export function Capabilities() {
           intro="Combinamos desarrollo, diseño de procesos y tecnología según lo que cada problema necesita."
         />
 
-        <Reveal variant="scale" className="mt-14 grid gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
+        <Reveal variant="scale" className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-6 lg:mt-20 lg:grid-cols-12 lg:gap-8">
           <div data-live role="tablist" aria-label="Capacidades" aria-orientation="vertical" className="cap-list order-2 lg:order-1 lg:col-span-5">
             {capabilities.map((capability, index) => {
               const selected = capability.id === active;

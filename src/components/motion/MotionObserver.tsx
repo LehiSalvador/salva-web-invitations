@@ -213,6 +213,22 @@ export function MotionObserver() {
       return [...owned("[data-route]").flatMap(animatePacket), ...owned("[data-step]").flatMap(animateStep)];
     };
 
+    /*
+     * Las escenas pueden mezclar keyframes CSS propios con Web Animations. Si un bloque se oculta con
+     * display: none (carrusel, pestañas), el navegador reinicia sus animaciones CSS; al volver a pantalla
+     * se alinean con el tiempo de la línea de tiempo del bloque para que la coreografía siga sincronizada.
+     */
+    const syncCss = (element: HTMLElement, time: CSSNumberish | null) => {
+      if (time === null) return;
+      for (const animation of element.getAnimations({ subtree: true })) {
+        if (!(animation instanceof CSSAnimation)) continue;
+        const target = (animation.effect as KeyframeEffect | null)?.target;
+        if (!(target instanceof Element)) continue;
+        const owner = target === element ? element : target.parentElement?.closest("[data-live]");
+        if (owner === element) animation.currentTime = time;
+      }
+    };
+
     const resizeObserver = new ResizeObserver((entries) => {
       for (const entry of entries) {
         const element = entry.target as HTMLElement;
@@ -241,11 +257,15 @@ export function MotionObserver() {
           element.setAttribute("data-inview", "");
           if (reduced) continue;
           const animations = running.get(element);
-          if (animations) animations.forEach((animation) => animation.play());
-          else {
-            running.set(element, build(element));
+          if (animations) {
+            animations.forEach((animation) => animation.play());
+            syncCss(element, animations[0]?.currentTime ?? null);
+          } else {
+            const built = build(element);
+            running.set(element, built);
             widths.set(element, Math.round(element.getBoundingClientRect().width));
             resizeObserver.observe(element);
+            if (built.length) syncCss(element, 0);
           }
         } else {
           element.removeAttribute("data-inview");

@@ -50,7 +50,7 @@ const EDGES = {
   contenidoHistorias: { from: MAIN.contenido.p, c1: [230, 170], c2: [280, 118], to: MAIN.historias.p },
   // Sale casi en horizontal hacia la izquierda para no cruzar el rótulo de Historias.
   historiasConocimiento: { from: MAIN.historias.p, c1: [270, 168], c2: [246, 236], to: MAIN.conocimiento.p },
-  contenidoConocimiento: { from: MAIN.contenido.p, c1: [132, 252], c2: [196, 262], to: MAIN.conocimiento.p },
+  contenidoConocimiento: { from: MAIN.contenido.p, c1: [196, 184], c2: [214, 268], to: MAIN.conocimiento.p },
 } satisfies Record<string, Edge>;
 
 const d = ({ from, c1, c2, to }: Edge) => `M${from}C${c1} ${c2} ${to}`;
@@ -170,6 +170,16 @@ export function KnowledgeGraph({ compact = false, className = "" }: { compact?: 
             </Tag>
           )),
         )}
+
+      <Step at={[T.index, OUT]} fx="fade" className={styles.gLayer}>
+        <svg viewBox={`0 0 ${W} ${H}`} className="dg absolute inset-0 size-full" fill="none">
+          <circle cx={INDEX[0]} cy={INDEX[1]} r="14" className={styles.gIndexHalo} />
+          <rect x={INDEX[0] - 6} y={INDEX[1] - 6} width="12" height="12" transform={`rotate(45 ${INDEX[0]} ${INDEX[1]})`} className={styles.gIndexLit} />
+        </svg>
+        <Tag at={INDEX} side="index" className={styles.gIndexLabelLit}>
+          Índice
+        </Tag>
+      </Step>
 
       <Lit at={T.contenido} node="contenido" edges={[EDGES.indexContenido]} subs={lit("contenido")} compact={compact} />
       <Lit at={T.historias} node="historias" edges={[EDGES.contenidoHistorias]} subs={lit("historias")} gold compact={compact} />

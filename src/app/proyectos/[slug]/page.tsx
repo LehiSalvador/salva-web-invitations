@@ -61,7 +61,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             </span>
           </nav>
 
-          <div className="mt-10 grid gap-8 lg:grid-cols-12 lg:items-end">
+          <div className="mt-10 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12 lg:items-end">
             <div className="lg:col-span-8">
               <p className="rise label flex flex-wrap items-center gap-3 text-signal" style={delay(60)}>
                 Caso {pad(position + 1)} / {pad(projects.length)}
@@ -118,7 +118,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
         </section>
 
         <section aria-labelledby="problema-title" className="mx-auto max-w-[90rem] px-5 py-24 sm:px-8 lg:py-32">
-          <div className="grid gap-12 lg:grid-cols-12 lg:gap-8">
+          <div className="grid grid-cols-[minmax(0,1fr)] gap-12 lg:grid-cols-12 lg:gap-8">
             <Reveal className="lg:col-span-5">
               <p className="label text-signal" data-scramble>
                 El problema
@@ -145,7 +145,7 @@ export default async function CaseStudyPage({ params }: { params: Promise<{ slug
             </Reveal>
           </div>
 
-          <Reveal variant="group" className="mt-16 grid gap-6 lg:mt-24 lg:grid-cols-12 lg:items-center">
+          <Reveal variant="group" className="mt-16 grid grid-cols-[minmax(0,1fr)] gap-6 lg:mt-24 lg:grid-cols-12 lg:items-center">
             <figure className="surface frame-marks p-3 sm:p-5 lg:col-span-7">
               <div className="label mb-3 flex items-center justify-between gap-4 border-b border-line pb-3 text-fog">
                 <span>Esquema · {project.slug}</span>

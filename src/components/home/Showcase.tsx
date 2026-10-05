@@ -111,7 +111,7 @@ export function Showcase({ projects }: { projects: Project[] }) {
 
   return (
     <div className="showcase" role="region" aria-roledescription="carrusel" aria-label="Proyectos destacados">
-      <div className="grid gap-8 lg:grid-cols-12 lg:items-center lg:gap-10">
+      <div className="grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-12 lg:items-center lg:gap-10">
         <div ref={infoRef} className="relative order-2 min-h-[19rem] lg:order-1 lg:col-span-5">
           {projects.map((project, position) => (
             <article

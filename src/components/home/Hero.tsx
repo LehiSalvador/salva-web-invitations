@@ -9,7 +9,7 @@ const delay = (ms: number) => ({ "--d": `${ms}ms` }) as CSSProperties;
 export function Hero() {
   return (
     <section id="inicio" aria-labelledby="hero-title" className="relative overflow-hidden pt-24 lg:pt-28">
-      <div className="mx-auto grid max-w-[90rem] items-center gap-6 px-5 sm:px-8 lg:min-h-[calc(100svh-11rem)] lg:grid-cols-12 lg:gap-8">
+      <div className="mx-auto grid max-w-[90rem] grid-cols-[minmax(0,1fr)] items-center gap-6 px-5 sm:px-8 lg:min-h-[calc(100svh-11rem)] lg:grid-cols-12 lg:gap-8">
         <div className="relative z-[2] lg:col-span-6">
           <p className="rise label flex items-center gap-3 text-mist" style={delay(80)}>
             <span className="live-dot" aria-hidden="true" />

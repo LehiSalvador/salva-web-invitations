@@ -14,7 +14,7 @@ export function Contact() {
           intro="Cuéntanos qué necesitas. Podemos ayudarte a convertirlo en una solución digital."
         />
 
-        <Reveal variant="scale" className="mt-14 grid gap-4 lg:mt-20 lg:grid-cols-12">
+        <Reveal variant="scale" className="mt-14 grid grid-cols-[minmax(0,1fr)] gap-4 lg:mt-20 lg:grid-cols-12">
           <a
             href={whatsAppUrl}
             target="_blank"

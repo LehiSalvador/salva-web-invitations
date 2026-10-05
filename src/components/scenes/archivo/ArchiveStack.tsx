@@ -74,7 +74,7 @@ function DocumentLayer({ compact }: { compact: boolean }) {
           ),
         )}
       </div>
-      <span className={`${styles.scan} motion-only`} />
+      {!compact && <span className={`${styles.scan} motion-only`} />}
       {!compact && <LayerLabel n="01" name="Documento" />}
       {!compact && (
         <Billboard x="19.6%" y="80.3%" anchor="up">
@@ -99,11 +99,15 @@ function StoryLayer({ compact }: { compact: boolean }) {
     <div className={`${styles.plane} ${styles.planeStory}`}>
       <span className={`${styles.planeText} ${styles.storyTitle}`}>H-112 · Relato</span>
       <span className={styles.thread} />
-      {!compact && <Step at={[T.thread, OUT]} fx="grow-x" className={styles.threadLit} />}
       {[0, 1, 2].map((index) => (
         <span key={index} className={styles.storyCard} style={{ "--i": index } as CSSProperties} />
       ))}
-      {!compact && <Step at={[T.storySlot, OUT]} fx="fade" className={styles.storyCardLit} />}
+      {!compact && (
+        <Step at={[T.story, OUT]} fx="fade" className={styles.storyLit}>
+          <span className={styles.threadLit} />
+          <span className={styles.storyCardLit} />
+        </Step>
+      )}
       <span className={styles.storyNotes} />
       {!compact && <LayerLabel n="02" name="Historia" />}
     </div>

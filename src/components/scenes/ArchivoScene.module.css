@@ -16,6 +16,28 @@
   }
 }
 
+/* Geometría compartida por la pila y el conector (todo en cqw del contenedor). */
+.rig,
+.connector {
+  --P: 55cqw;
+  --g: 15cqw;
+  --ag: 0.25;
+  --cx: 60%;
+  --cy: 48%;
+}
+
+/* Pila angosta (mobile, 1024 con tres columnas): más grande y con más aire entre capas ensambladas. */
+@container archivo-stack (max-width: 460px) {
+  .rig,
+  .connector {
+    --P: 51cqw;
+    --g: 14cqw;
+    --ag: 0.42;
+    --cx: 63.5%;
+    --cy: 50%;
+  }
+}
+
 .stage {
   position: absolute;
   inset: 0;
@@ -30,53 +52,19 @@
 }
 
 .rig {
-  --P: 49cqw;
-  --g: 16cqw;
-  --ag: 0.25;
   --a: calc(var(--g) * var(--ag));
   /* Celda activa (frente de la pila): el documento, su historia y su colección quedan alineados. */
   --ax: 7%;
   --ay: 67.7%;
   --as: 25.2%;
   position: absolute;
-  left: var(--cx, 58%);
-  top: var(--cy, 53%);
+  left: var(--cx);
+  top: var(--cy);
   width: var(--P);
   height: var(--P);
   margin: calc(var(--P) / -2) 0 0 calc(var(--P) / -2);
   transform-style: preserve-3d;
   transform: rotateX(56deg) rotateZ(-42deg);
-}
-
-@container archivo-stack (max-width: 460px) {
-  /* Ensamblada deja ~16 px entre capas para que los rótulos sigan legibles. */
-  .rig {
-    --cx: 61%;
-    --P: 45cqw;
-    --g: 15cqw;
-    --ag: 0.4;
-  }
-
-  .stampWrap {
-    right: 1%;
-    bottom: 2%;
-  }
-
-  .stamp {
-    gap: 4px;
-    padding: 6px 10px 5px;
-  }
-
-  .stampTitle {
-    font-size: 11px;
-  }
-}
-
-@container archivo-stack (max-width: 340px) {
-  .rig {
-    --cx: 63%;
-    --P: 44cqw;
-  }
 }
 
 .ground {
@@ -121,35 +109,45 @@
 
 .planeDoc,
 .planeCol {
-  animation: layer var(--cycle, 15s) linear infinite;
+  animation: layer var(--cycle, 14s) linear infinite;
 }
 
-/* Separar (4–15 %), sostener mientras el documento baja, ensamblar (63–74 %). */
+/* Separar (0–10 %), sostener mientras la copia baja, ensamblar (62–71 %). */
 @keyframes layer {
-  0%,
-  4% {
+  0% {
     transform: translate3d(0, 0, calc(var(--a) * var(--dir)));
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
-  15%,
-  63% {
+  10%,
+  62% {
     transform: translate3d(0, 0, calc(var(--g) * var(--dir)));
     animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
   }
-  74%,
+  71%,
   100% {
     transform: translate3d(0, 0, calc(var(--a) * var(--dir)));
   }
 }
 
+/* Texto sobre las capas: solo donde mide al menos 10 px; en anchos chicos quedan las barras. */
 .planeText {
   font-family: var(--font-mono);
-  font-size: 2.05cqw;
+  font-size: max(10px, 2.05cqw);
   line-height: 1;
   letter-spacing: 0.1em;
   text-transform: uppercase;
   white-space: nowrap;
   color: var(--color-signal);
+}
+
+@container archivo-stack (max-width: 460px) {
+  .planeText {
+    display: none;
+  }
+}
+
+.stackCompact .planeText {
+  display: none;
 }
 
 /* Documentos */
@@ -206,7 +204,7 @@
     rgb(14 30 26 / 0.95);
 }
 
-/* Escaneo del documento mientras se indexa (7–19 %). */
+/* Escaneo del documento: dos pasadas al indexar (6–16 %) y una al verificar la copia (74–81 %). */
 .scan {
   position: absolute;
   left: var(--ax);
@@ -224,31 +222,47 @@
   background: linear-gradient(180deg, transparent 38%, rgb(111 214 176 / 0.55) 49%, rgb(226 236 232 / 0.9) 50%, transparent 52%);
   opacity: 0;
   transform: translateY(-60%);
-  animation: scan var(--cycle, 15s) linear infinite;
+  animation: scan var(--cycle, 14s) linear infinite;
 }
 
 @keyframes scan {
   0%,
-  7% {
+  5.5% {
     opacity: 0;
+    transform: translateY(-60%);
+  }
+  6.5% {
+    opacity: 1;
     transform: translateY(-60%);
     animation-timing-function: ease-in-out;
   }
-  8% {
+  11% {
     opacity: 1;
-  }
-  13% {
     transform: translateY(60%);
     animation-timing-function: ease-in-out;
   }
-  18% {
+  15.5% {
     opacity: 1;
     transform: translateY(-60%);
   }
-  19.5%,
-  100% {
+  16.5%,
+  73% {
     opacity: 0;
     transform: translateY(-60%);
+  }
+  74% {
+    opacity: 1;
+    transform: translateY(-60%);
+    animation-timing-function: ease-in-out;
+  }
+  80% {
+    opacity: 1;
+    transform: translateY(60%);
+  }
+  81%,
+  100% {
+    opacity: 0;
+    transform: translateY(60%);
   }
 }
 
@@ -269,13 +283,15 @@
   transform-origin: 0 100%;
 }
 
+/* line-height holgado: el billboard recorta lo que sobresale de su caja (acentos incluidos). */
 .layerName {
   position: relative;
   display: block;
+  padding-block: 3px;
   white-space: nowrap;
   font-family: var(--font-mono);
-  line-height: 1;
   font-size: 10.5px;
+  line-height: 1.3;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-bone);
@@ -295,6 +311,17 @@
   width: 1.6cqw;
   height: 1px;
   background: rgb(226 236 232 / 0.45);
+}
+
+@container archivo-stack (max-width: 460px) {
+  .billboardLeft {
+    padding-right: 2cqw;
+  }
+
+  .layerName {
+    font-size: 10px;
+    letter-spacing: 0.08em;
+  }
 }
 
 .tags {
@@ -325,7 +352,7 @@
   background: rgb(6 8 9 / 0.9);
   font-family: var(--font-mono);
   font-size: 10.5px;
-  line-height: 1;
+  line-height: 1.2;
   white-space: nowrap;
   color: var(--color-bone);
 }
@@ -337,18 +364,6 @@
   background: var(--color-gold-300);
 }
 
-@container archivo-stack (max-width: 460px) {
-  .tags {
-    gap: 3px;
-  }
-
-  .tag {
-    gap: 5px;
-    padding: 3px 6px 3px 5px;
-    font-size: 10px;
-  }
-}
-
 .tagKey {
   font-size: 10px;
   letter-spacing: 0.12em;
@@ -356,11 +371,52 @@
   color: var(--color-signal);
 }
 
+/* Pila angosta: las tres etiquetas forman un solo chip "1962 · Oaxaca · Oficios" que crece. */
+@container archivo-stack (max-width: 460px) {
+  .tags {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 0;
+    padding: 10px 0 4cqw;
+  }
+
+  .billboardUp {
+    translate: -50% -100%;
+    transform-origin: 50% 100%;
+  }
+
+  .tagStem {
+    left: 50%;
+    height: 4cqw;
+  }
+
+  .tag {
+    gap: 5px;
+    padding: 4px 6px;
+    border-radius: 0;
+    font-size: 10px;
+  }
+
+  .tag + .tag {
+    margin-left: -1px;
+  }
+
+  .tag + .tag .tagPin {
+    width: 3px;
+    height: 3px;
+    background: var(--color-fog);
+  }
+
+  .tagKey {
+    display: none;
+  }
+}
+
 /* Historia */
 .storyTitle {
   position: absolute;
-  left: 8%;
-  top: 8%;
+  left: 37%;
+  bottom: 1.6%;
 }
 
 .thread {
@@ -371,6 +427,11 @@
   border-top: 1px dashed rgb(226 236 232 / 0.32);
 }
 
+.storyLit {
+  position: absolute;
+  inset: 0;
+}
+
 .threadLit {
   position: absolute;
   left: 7%;
@@ -378,8 +439,7 @@
   top: calc(var(--ay) + var(--as) / 2);
   height: 2px;
   margin-top: -1px;
-  background: linear-gradient(90deg, rgb(111 214 176 / 0.4), var(--color-signal));
-  transform-origin: left center;
+  background: linear-gradient(90deg, var(--color-signal), rgb(111 214 176 / 0.35));
 }
 
 .storyCard {
@@ -442,7 +502,29 @@
     rgb(20 19 15 / 0.92);
 }
 
+/* Barra que reemplaza al texto C-07 donde este se oculta. */
+.folderMain::after {
+  content: "";
+  display: none;
+  width: 45%;
+  height: 6%;
+  min-height: 2px;
+  background: rgb(220 197 154 / 0.55);
+}
+
+.stackCompact .folderMain::after {
+  display: block;
+}
+
+@container archivo-stack (max-width: 460px) {
+  .folderMain::after {
+    display: block;
+  }
+}
+
 .folderMain .planeText {
+  padding: 0.2em 0.3em;
+  background: rgb(20 19 15);
   color: var(--color-gold-300);
 }
 
@@ -466,23 +548,22 @@
   transform-origin: 0 0;
   transform: translate3d(0, 0, var(--g)) rotateX(-90deg);
   background: linear-gradient(180deg, var(--color-signal), rgb(111 214 176 / 0.15));
-  animation: beam var(--cycle, 15s) linear infinite;
+  animation: beam var(--cycle, 14s) linear infinite;
 }
 
 @keyframes beam {
-  0%,
-  4% {
+  0% {
     opacity: 0;
     transform: translate3d(0, 0, var(--a)) rotateX(-90deg) scaleY(var(--ag));
     animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
   }
-  15%,
-  63% {
+  10%,
+  62% {
     opacity: 1;
     transform: translate3d(0, 0, var(--g)) rotateX(-90deg) scaleY(1);
     animation-timing-function: cubic-bezier(0.7, 0, 0.2, 1);
   }
-  74%,
+  71%,
   100% {
     opacity: 0;
     transform: translate3d(0, 0, var(--a)) rotateX(-90deg) scaleY(var(--ag));
@@ -500,58 +581,58 @@
     repeating-linear-gradient(180deg, rgb(111 214 176 / 0.5) 0 6%, transparent 6% 15%) 14% 30% / 70% 40% no-repeat,
     rgb(111 214 176 / 0.24);
   opacity: 0;
-  animation: drop var(--cycle, 15s) linear infinite;
+  animation: drop var(--cycle, 14s) linear infinite;
 }
 
-/* Documento → Historia (29–35 %) y Historia → Colección (50,5–56 %). */
+/* Documento → Historia (27,5–32,5 %) e Historia → Colección (47,5–52,5 %). */
 @keyframes drop {
   0%,
-  28.5% {
+  26.5% {
     opacity: 0;
     transform: translate3d(0, 0, calc(var(--g) * 0.96));
   }
-  30% {
+  27.5% {
     opacity: 1;
     transform: translate3d(0, 0, calc(var(--g) * 0.96));
     animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
   }
-  35% {
+  32.5% {
     opacity: 1;
     transform: translate3d(0, 0, 1px);
   }
-  37%,
-  49% {
+  34.5%,
+  46.5% {
     opacity: 0;
     transform: translate3d(0, 0, 1px);
   }
-  50.5% {
+  47.5% {
     opacity: 1;
     transform: translate3d(0, 0, -1px);
     animation-timing-function: cubic-bezier(0.55, 0, 0.3, 1);
   }
-  55.5% {
+  52.5% {
     opacity: 1;
     transform: translate3d(0, 0, calc(var(--g) * -0.96));
   }
-  57.5%,
+  54.5%,
   100% {
     opacity: 0;
     transform: translate3d(0, 0, calc(var(--g) * -0.96));
   }
 }
 
-/* Conector hacia el grafo (cuando están lado a lado). */
+/* Conector hacia el grafo: sale de la esquina derecha de la capa Historia (solo con columnas). */
 .connector {
   display: none;
   position: absolute;
-  left: 90%;
+  left: calc(var(--cx) + var(--P) * 0.72);
   right: -1.5rem;
   top: 50%;
   height: 1px;
   background: linear-gradient(90deg, transparent, rgb(226 236 232 / 0.3));
 }
 
-@media (min-width: 48rem) {
+@media (min-width: 64rem) {
   .connector {
     display: block;
   }
@@ -563,12 +644,12 @@
   }
 }
 
-/* Sello */
+/* Sello: en el hueco libre de la esquina superior izquierda (pila separada o ensamblada). */
 .stampWrap {
   position: absolute;
-  right: 3%;
-  bottom: 5%;
-  transform: rotate(-6deg);
+  left: 5%;
+  top: 6%;
+  transform: rotate(-5deg);
 }
 
 .stamp {
@@ -603,7 +684,23 @@
   color: rgb(220 197 154 / 0.78);
 }
 
-/* Vista previa: la pila llena su columna. */
+@container archivo-stack (max-width: 460px) {
+  .stampWrap {
+    left: 3%;
+    top: 3%;
+  }
+
+  .stamp {
+    gap: 4px;
+    padding: 6px 10px 5px;
+  }
+
+  .stampTitle {
+    font-size: 11px;
+  }
+}
+
+/* Vista previa: la pila llena su columna; el sello va arriba a la derecha, lejos de la leyenda. */
 .stackCompact {
   aspect-ratio: auto;
   height: 100%;
@@ -611,15 +708,16 @@
 
 .stackCompact .rig {
   --cx: 50%;
-  --cy: 52%;
+  --cy: 55%;
   --P: 56cqw;
   --g: 14cqw;
   --ag: 0.25;
 }
 
 .stackCompact .stampWrap {
-  right: 2%;
-  bottom: 6%;
+  left: auto;
+  right: 0;
+  top: 12%;
 }
 
 /* ───────── Grafo ───────── */
@@ -632,11 +730,7 @@
 
 /* En anchos chicos los distintivos D-0418 / H-112 chocarían con los rótulos vecinos. */
 @container archivo-graph (max-width: 420px) {
-  .gValueBelow {
-  transform: translate(-50%, 24px);
-}
-
-.gBadge {
+  .gBadge {
     display: none;
   }
 }
@@ -694,6 +788,18 @@
   stroke-width: var(--dg-stroke);
 }
 
+.gIndexLit {
+  fill: var(--color-gold-300);
+  stroke: var(--color-gold-300);
+  stroke-width: var(--dg-stroke);
+}
+
+.gIndexHalo {
+  fill: none;
+  stroke: rgb(220 197 154 / 0.45);
+  stroke-width: var(--dg-stroke);
+}
+
 .gLabel {
   position: absolute;
   white-space: nowrap;
@@ -710,19 +816,22 @@
 }
 
 .gLabel_mainBelow {
-  transform: translate(-50%, 21px);
+  transform: translate(-50%, 19px);
 }
 
 .gLabel_right {
-  transform: translate(22px, -50%);
+  transform: translate(20px, -50%);
 }
 
 .gLabel_index {
   transform: translate(-8px, 13px);
 }
 
+/* Fondo propio: ninguna arista cruza por encima de un rótulo principal. */
 .gMain,
 .gMainLit {
+  padding: 2px 4px;
+  background: var(--color-ink-900);
   font-size: 10.5px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -733,11 +842,16 @@
   color: var(--color-signal);
 }
 
-.gIndexLabel {
+.gIndexLabel,
+.gIndexLabelLit {
   font-size: 10px;
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--color-gold-300);
+}
+
+.gIndexLabelLit {
+  color: var(--color-bone);
 }
 
 .gSubLabel,
@@ -807,7 +921,7 @@
 /* ───────── Línea de tiempo ───────── */
 .track {
   position: relative;
-  height: 84px;
+  height: 92px;
 }
 
 .axis {
@@ -837,10 +951,6 @@
   color: var(--color-fog);
   transform: translateX(-50%);
   white-space: nowrap;
-}
-
-.eraLabel:first-of-type {
-  transform: none;
 }
 
 .mark {
@@ -880,10 +990,14 @@
   color: var(--color-gold-300);
 }
 
+.eventLabelEnd {
+  left: 5px;
+  transform: translateX(-100%);
+}
+
 .span {
   position: absolute;
   height: 5px;
-  transform-origin: left center;
 }
 
 .spanStory {
@@ -894,7 +1008,7 @@
 }
 
 .spanCollection {
-  top: 48px;
+  top: 50px;
   border: 1px solid rgb(220 197 154 / 0.55);
   border-top: 0;
   background: rgb(220 197 154 / 0.1);
@@ -909,9 +1023,14 @@
   line-height: 1;
 }
 
-.eventLabelEnd {
-  left: 5px;
-  transform: translateX(-100%);
+.spanStory .spanLabel {
+  left: calc(100% + 6px);
+  top: -3px;
+}
+
+.spanCollection .spanLabel {
+  left: -1px;
+  top: 10px;
 }
 
 /* ───────── Vista previa ───────── */
@@ -919,11 +1038,19 @@
   container: archivo-preview / size;
 }
 
+.previewLegend {
+  letter-spacing: 0.14em;
+}
+
 @container archivo-preview (max-width: 520px) {
-  .previewLegend,
+  .previewLegend {
+    letter-spacing: 0.06em;
+  }
+
   .gMain,
   .gMainLit,
-  .gIndexLabel {
+  .gIndexLabel,
+  .gIndexLabelLit {
     display: none;
   }
 }

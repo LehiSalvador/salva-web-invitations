@@ -19,7 +19,7 @@ export default function ProjectsPage() {
       default="none"
     >
       <main id="contenido" className="mx-auto max-w-[90rem] px-5 pt-32 pb-24 sm:px-8 lg:pt-40 lg:pb-32">
-        <header className="grid gap-6 lg:grid-cols-12 lg:items-end">
+        <header className="grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-7">
             <p className="rise label flex items-center gap-3 text-mist">
               <span className="font-mono text-signal">[03]</span>
@@ -37,7 +37,7 @@ export default function ProjectsPage() {
           </p>
         </header>
 
-        <ul className="mt-16 grid gap-5 md:grid-cols-2 lg:mt-20 lg:gap-6 [&>li]:min-w-0">
+        <ul className="mt-16 grid grid-cols-[minmax(0,1fr)] gap-5 md:grid-cols-2 lg:mt-20 lg:gap-6 [&>li]:min-w-0">
           {projects.map((project, index) => (
             <Reveal as="li" key={project.id} variant="scale" delay={(index % 2) * 90}>
               <ProjectCard project={project} />

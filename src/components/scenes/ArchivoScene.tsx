@@ -24,13 +24,14 @@ function Phases() {
           <li key={phase.n} className="flex items-center">
             {index > 0 && <span className="hidden h-px w-5 bg-line-strong sm:block" />}
             <span className="relative block w-full sm:w-auto">
-              <span className="flex items-center gap-2 border border-line px-2.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-fog">
-                <span>{phase.n}</span>
+              <span className="flex items-center gap-2 border border-line px-2.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-fog motion-reduce:border-signal/30 motion-reduce:text-mist">
+                <span className="motion-reduce:text-signal">{phase.n}</span>
                 {phase.name}
               </span>
               <Step
                 at={phase.at}
                 fx="fade"
+                rm="hide"
                 className="absolute inset-0 flex items-center gap-2 border border-signal/55 bg-ink-900 px-2.5 py-1.5 font-mono text-[10.5px] uppercase tracking-[0.14em] text-bone"
               >
                 <span className="text-signal">{phase.n}</span>
@@ -60,19 +61,27 @@ const RECORD = [
 
 function SystemLog({ className = "" }: { className?: string }) {
   return (
-    <div className={`border border-line bg-ink-900/60 ${className}`}>
+    <div className={`border border-line bg-ink-900 ${className}`}>
       <div className="flex items-center justify-between gap-3 border-b border-line px-4 py-2.5">
         <span className="label text-mist">Registro</span>
         <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.14em] text-fog">
-          <span className="live-dot" />
+          <span className="size-1.5 rounded-full bg-signal" />
           en línea
         </span>
       </div>
-      <ol className="md:grid md:grid-cols-2 xl:block">
+      <ol>
         {LOG.map((entry) => (
-          <li key={entry.title} className="min-h-[3.5rem] border-b border-line px-4 py-2.5 md:odd:border-r xl:odd:border-r-0">
-            <Step at={[entry.at, OUT]} fx="left" className="grid grid-cols-[3.7rem_minmax(0,1fr)] items-start gap-x-2">
-              <span className="pt-px font-mono text-[10px] text-fog">{entry.time}</span>
+          <li key={entry.title} className="relative min-h-[3.6rem] border-b border-line px-4 py-2.5">
+            <span className="absolute top-2.5 left-4 flex gap-x-2 font-mono text-[10px] text-fog/55">
+              <span className="w-[3.7rem] lg:hidden xl:block">--:--:--</span>
+              <span className="pl-3.5">— en espera</span>
+            </span>
+            <Step
+              at={[entry.at, OUT]}
+              fx="left"
+              className="relative grid grid-cols-[3.7rem_minmax(0,1fr)] items-start gap-x-2 bg-ink-900 lg:grid-cols-1 xl:grid-cols-[3.7rem_minmax(0,1fr)]"
+            >
+              <span className="pt-px font-mono text-[10px] text-fog lg:hidden xl:block">{entry.time}</span>
               <span className="min-w-0">
                 <span className="flex items-center gap-2 font-mono text-[11px] uppercase tracking-[0.1em] text-bone">
                   <span className={`size-1.5 shrink-0 ${entry.tone}`} />
@@ -84,15 +93,24 @@ function SystemLog({ className = "" }: { className?: string }) {
           </li>
         ))}
       </ol>
-      <div className="px-4 py-3 md:flex md:items-center md:gap-6 xl:block">
-        <p className="label flex shrink-0 items-center justify-between gap-3 text-fog">
+      <div className="px-4 py-3">
+        <p className="label flex items-center justify-between gap-3 text-fog">
           Ficha <span className="text-signal">D-0418</span>
         </p>
-        <dl className="mt-2.5 grid flex-1 grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10.5px] sm:grid-cols-4 md:mt-0 xl:mt-2.5 xl:grid-cols-2">
-          {RECORD.map(([key, value]) => (
+        <dl className="mt-2.5 grid grid-cols-2 gap-x-4 gap-y-1.5 font-mono text-[10.5px]">
+          {RECORD.map(([key, value], index) => (
             <div key={key} className="flex items-baseline justify-between gap-2 border-b border-dashed border-line pb-1">
               <dt className="uppercase tracking-[0.1em] text-fog">{key}</dt>
-              <dd className="text-bone">{value}</dd>
+              {index === 0 ? (
+                <dd className="text-bone">{value}</dd>
+              ) : (
+                <dd className="relative text-fog/60">
+                  —
+                  <Step at={[T.tags[index - 1], OUT]} fx="fade" className="absolute right-0 bottom-0 bg-ink-900 pl-1 text-bone">
+                    {value}
+                  </Step>
+                </dd>
+              )}
             </div>
           ))}
         </dl>
@@ -104,7 +122,8 @@ function SystemLog({ className = "" }: { className?: string }) {
 const year = (value: number) => `${(((value - 1900) / 125) * 100).toFixed(2)}%`;
 
 const ERAS = [1900, 1925, 1950, 1975, 2000, 2025];
-const MARKS = [1908, 1917, 1929, 1936, 1944, 1951, 1957, 1968, 1974, 1983, 1990, 1998, 2006, 2013, 2019];
+/** Otras piezas del fondo (ninguna a menos de 4 años de una era, para no confundirse con sus marcas). */
+const MARKS = [1908, 1917, 1931, 1938, 1944, 1957, 1966, 1981, 1987, 1993, 2006, 2013, 2019];
 
 function Timeline() {
   return (
@@ -135,14 +154,12 @@ function Timeline() {
           <span className={styles.eventLabel}>D-0418 · 1962</span>
         </Step>
 
-        <Step at={[T.timelineStory, OUT]} fx="grow-x" className={`${styles.span} ${styles.spanStory}`} style={{ left: year(1955), width: `calc(${year(1971)} - ${year(1955)})` }} />
-        <Step at={[T.timelineStory + 0.015, OUT]} fx="fade" className={`${styles.spanLabel} text-signal`} style={{ left: `calc(${year(1971)} + 6px)`, top: 34 }}>
-          H-112
+        <Step at={[T.timelineStory, OUT]} fx="left" className={`${styles.span} ${styles.spanStory}`} style={{ left: year(1955), width: `calc(${year(1971)} - ${year(1955)})` }}>
+          <span className={`${styles.spanLabel} text-signal`}>H-112</span>
         </Step>
 
-        <Step at={[T.timelineCollection, OUT]} fx="grow-x" className={`${styles.span} ${styles.spanCollection}`} style={{ left: year(1938), width: `calc(${year(1994)} - ${year(1938)})` }} />
-        <Step at={[T.timelineCollection + 0.015, OUT]} fx="fade" className={`${styles.spanLabel} text-gold-300`} style={{ left: year(1938), top: 57 }}>
-          C-07 publicada
+        <Step at={[T.timelineCollection, OUT]} fx="left" className={`${styles.span} ${styles.spanCollection}`} style={{ left: year(1938), width: `calc(${year(1994)} - ${year(1938)})` }}>
+          <span className={`${styles.spanLabel} text-gold-300`}>C-07 publicada</span>
         </Step>
 
         <Step at={[T.timelineCopy, OUT]} fx="pop" className={styles.event} style={{ left: "100%" }}>
@@ -159,10 +176,10 @@ export function ArchivoScene() {
   return (
     <div aria-hidden="true" data-live data-cycle={CYCLE} style={cycleVar(CYCLE)} className="select-none">
       <Phases />
-      <div className="grid items-center gap-x-6 gap-y-4 px-4 pt-3 pb-5 sm:px-6 md:grid-cols-[minmax(0,1.12fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_17.5rem] xl:gap-x-8 xl:pt-5">
-        <ArchiveStack />
+      <div className="grid items-center gap-x-6 gap-y-4 px-4 pt-3 pb-5 sm:px-6 md:grid-cols-2 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_15rem] xl:grid-cols-[minmax(0,1.1fr)_minmax(0,1fr)_17.5rem] xl:gap-x-8 xl:pt-5">
+        <ArchiveStack className="-mx-4 sm:-mx-6 md:col-span-2 md:mx-auto md:w-full md:max-w-[36rem] lg:col-span-1 lg:max-w-none" />
         <KnowledgeGraph className="mx-auto max-w-[30rem]" />
-        <SystemLog className="md:col-span-2 xl:col-span-1" />
+        <SystemLog />
       </div>
       <Timeline />
     </div>
@@ -177,7 +194,7 @@ export function ArchivoPreview() {
         <ArchiveStack compact />
         <KnowledgeGraph compact />
       </div>
-      <p className={`${styles.previewLegend} absolute top-[6%] left-[4%] font-mono text-[10px] uppercase tracking-[0.14em] text-fog`}>
+      <p className={`${styles.previewLegend} absolute top-[6%] left-[4%] font-mono text-[10px] uppercase text-fog`}>
         Documento <span className="text-signal">→</span> Historia <span className="text-signal">→</span> Colección
       </p>
     </div>

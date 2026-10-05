@@ -13,7 +13,7 @@ type SectionHeadingProps = {
 export function SectionHeading({ section, title, intro, className = "" }: SectionHeadingProps) {
   const { number, label } = sections.find((item) => item.id === section)!;
   return (
-    <header className={`grid gap-6 lg:grid-cols-12 lg:items-end lg:gap-8 ${className}`}>
+    <header className={`grid grid-cols-[minmax(0,1fr)] gap-6 lg:grid-cols-12 lg:items-end lg:gap-8 ${className}`}>
       <div className="lg:col-span-7">
         <Reveal as="p" className="label flex items-center gap-3 text-mist">
           <span className="font-mono text-signal">[{number}]</span>
