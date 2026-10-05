@@ -1,12 +1,42 @@
 /*
- * Visuales de "Qué hacemos". Solo estilos estáticos y formas: el movimiento lo arman Step y Packet
- * (Web Animations sincronizadas con data-cycle) y las clases globales pulse/spin.
+ * Visuales de "Qué hacemos". Formas estáticas y algunas animaciones CSS que MotionObserver alinea con el
+ * reloj de la escena (syncCss); el resto del movimiento lo arman Step y Packet sobre data-cycle.
+ * Regla: solo transform y opacity.
  */
 
+/* Raíz de cada visual: contenedor de tamaño (ancho y alto) para elegir la variante del escenario. */
 .scene {
+  container-type: size;
   background-image: radial-gradient(circle at center, rgb(226 236 232 / 0.075) 1px, transparent 1.4px);
   background-size: 18px 18px;
   background-position: 9px 9px;
+}
+
+/*
+ * Escenario de alto fijo por variante: las capas de paquetes en píxeles nunca dependen del alto del visor
+ * (que cambia unos píxeles al expandir la descripción de cada pestaña). Los umbrales de alto quedan lejos
+ * de esas variaciones: 1440/1280/768 ≈ 315–332 px, 1024 ≈ 390–416 px, mobile ≈ 251 px.
+ */
+.stage {
+  height: 166px;
+}
+
+@container (height >= 236px) {
+  .stage {
+    height: 186px;
+  }
+}
+
+@container (width >= 32rem) {
+  .stage {
+    height: 244px;
+  }
+}
+
+@container (width >= 32rem) and (height >= 360px) {
+  .stage {
+    height: 300px;
+  }
 }
 
 /* Cables de diagramas normalizados (vector-effect: non-scaling-stroke). */
@@ -21,7 +51,7 @@
 }
 
 .line {
-  stroke: rgb(238 235 228 / 0.42);
+  stroke: rgb(238 235 228 / 0.4);
 }
 
 .signal {
@@ -32,12 +62,17 @@
   stroke: rgb(200 173 118 / 0.6);
 }
 
+.bone {
+  stroke: rgb(238 235 228 / 0.55);
+}
+
 .dashed {
   stroke-dasharray: 3 4;
 }
 
 /* Avatares genéricos. */
 .avatar {
+  position: relative;
   display: inline-grid;
   place-items: center;
   flex-shrink: 0;
@@ -74,6 +109,15 @@
   color: var(--color-bone);
 }
 
+/* Anillo que late alrededor del avatar que origina un cambio. */
+.ping {
+  position: absolute;
+  inset: -4px;
+  border-radius: 999px;
+  border: 1px solid var(--color-cool);
+  animation: ping 1.4s ease-out infinite;
+}
+
 /* Cursor del visitante (cuerpo del paquete): la punta queda en el punto de la ruta. */
 .cursor:global(.packet) :global(.packet__body) {
   width: 13px;
@@ -85,14 +129,48 @@
     no-repeat center / contain;
 }
 
-/* Banda de ejecución que recorre el código (cuerpo del paquete). */
+/* Banda de ejecución: el paquete mide el ancho de su capa (el editor) y solo baja de línea en línea. */
+.band:global(.packet) {
+  width: 100%;
+}
+
 .band:global(.packet) :global(.packet__body) {
-  width: 2400px;
-  height: var(--band-h, 14px);
+  left: 0;
+  width: 100%;
+  height: var(--band-h, 13px);
   translate: 0 -50%;
   border-radius: 0;
-  background: linear-gradient(90deg, rgb(111 214 176 / 0.16), rgb(111 214 176 / 0.04) 40%, transparent 80%);
+  background: linear-gradient(90deg, rgb(111 214 176 / 0.16), rgb(111 214 176 / 0.04) 45%, transparent 85%);
   box-shadow: inset 2px 0 0 var(--color-signal);
+}
+
+/* Borde del viewport (reflujo responsive): el paquete mide el alto de su capa. */
+.edge:global(.packet) {
+  height: 100%;
+}
+
+.edge:global(.packet) :global(.packet__body) {
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  height: auto;
+  translate: -50% 0;
+  border-radius: 0;
+  box-shadow: none;
+  background: var(--color-signal);
+}
+
+.edge:global(.packet) :global(.packet__body)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 5px;
+  height: 16px;
+  translate: -50% -50%;
+  border-radius: 3px;
+  border: 1px solid var(--color-signal);
+  background: var(--color-ink-900);
 }
 
 /* Interruptor de una acción automatizada. */
@@ -126,6 +204,17 @@
   background: color-mix(in srgb, var(--color-signal) 24%, var(--color-ink-900));
 }
 
+.toggleOn::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-signal);
+}
+
 /* Retícula de 12 columnas que aparece al diseñar la estructura del sitio. */
 .columns {
   background-image: repeating-linear-gradient(
@@ -148,4 +237,113 @@
 .slot {
   border: 1px dashed rgb(143 184 216 / 0.38);
   border-radius: 2px;
+}
+
+/*
+ * Escritura de código: una máscara opaca cubre cada línea y avanza por caracteres (steps) con el cursor
+ * en su borde izquierdo. El estado base es "escrito" (máscara fuera), así se lee completo sin animación.
+ * Ventanas de escritura: línea i entre 0.20 + 0.034·i y 0.23 + 0.034·i; se borra en el último 1.4 % del ciclo.
+ */
+.mask {
+  position: absolute;
+  inset: 0;
+  background: var(--color-ink-900);
+  transform: translateX(calc(100% + 3px));
+  animation-duration: var(--cycle);
+  animation-iteration-count: infinite;
+}
+
+.mask::before {
+  content: "";
+  position: absolute;
+  top: 12%;
+  bottom: 12%;
+  left: -2px;
+  width: 1.5px;
+  background: var(--color-signal);
+}
+
+.type0 {
+  animation-name: type0;
+}
+.type1 {
+  animation-name: type1;
+}
+.type2 {
+  animation-name: type2;
+}
+.type3 {
+  animation-name: type3;
+}
+.type4 {
+  animation-name: type4;
+}
+.type5 {
+  animation-name: type5;
+}
+.type6 {
+  animation-name: type6;
+}
+
+@keyframes type0 {
+  0%, 20% { transform: translateX(0); }
+  23%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes type1 {
+  0%, 23.4% { transform: translateX(0); }
+  26.4%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes type2 {
+  0%, 26.8% { transform: translateX(0); }
+  29.8%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes type3 {
+  0%, 30.2% { transform: translateX(0); }
+  33.2%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes type4 {
+  0%, 33.6% { transform: translateX(0); }
+  36.6%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes type5 {
+  0%, 37% { transform: translateX(0); }
+  40%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+@keyframes type6 {
+  0%, 40.4% { transform: translateX(0); }
+  41.4%, 98.6% { transform: translateX(calc(100% + 3px)); }
+  100% { transform: translateX(0); }
+}
+
+/*
+ * Historial de notificaciones (automatización): las anteriores bajan una fila cada vez que entra una nueva.
+ * El estado base es el final (ya desplazadas). Entradas nuevas en 0.44, 0.49 y 0.54 del ciclo.
+ */
+.history {
+  animation: history var(--cycle) linear infinite;
+}
+
+@keyframes history {
+  0%, 43% { transform: translateY(calc(var(--row) * -3)); }
+  45%, 48% { transform: translateY(calc(var(--row) * -2)); }
+  50%, 53% { transform: translateY(calc(var(--row) * -1)); }
+  55%, 98.6% { transform: translateY(0); }
+  100% { transform: translateY(calc(var(--row) * -3)); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mask {
+    display: none;
+  }
+
+  .history,
+  .ping {
+    animation: none;
+  }
 }

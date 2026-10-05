@@ -2,18 +2,19 @@ import type { CSSProperties } from "react";
 import { Packet, PacketLayer, type Point } from "@/components/motion/Packet";
 import { Step } from "@/components/motion/Step";
 import s from "../SalvaOpsScene.module.css";
-import { orth } from "./model";
+import { agents, history, keyframes, ops, orth, stair } from "./model";
 
 /*
  * Vista previa compacta: dos proyectos aislados, broker con compuerta de política, dos proveedores
- * y el libro de evidencia que se va llenando. 6 pasos + 3 tarjetas (12 animaciones) + el punto vivo.
+ * y el libro de evidencia. Usa las tres primeras operaciones de la escena (permitida, permitida, bloqueada).
+ * Animaciones: 3 tarjetas (6) + 3 veredictos + 3 registros + la fila "última" del broker (CSS) = 13.
  */
 
 const W = 640;
 const H = 400;
 const CYCLE = 9000;
-const Y = 141; // canal del broker
-const GATE = 400; // compuerta (dentro del broker, a la derecha)
+const Y = 120; // canal del broker
+const GATE = 430; // compuerta (dentro del broker, a la derecha)
 
 const cx = (...names: (string | false | undefined)[]) => names.filter(Boolean).join(" ");
 const cap = (extra = "") => cx(s.pCap, /(^|\s)text-/.test(extra) ? extra : `text-fog ${extra}`);
@@ -31,67 +32,83 @@ function At({ b, className, children }: { b: Box; className?: string; children?:
 }
 
 const nodes = {
-  a: [20, 66, 132, 66] as Box,
-  b: [20, 150, 132, 66] as Box,
-  broker: [218, 66, 204, 150] as Box,
-  ia1: [490, 66, 130, 66] as Box,
-  ia2: [490, 150, 130, 66] as Box,
+  a: [10, 34, 132, 74] as Box,
+  b: [10, 130, 132, 74] as Box,
+  broker: [180, 34, 280, 170] as Box,
+  ia1: [500, 34, 126, 74] as Box,
+  ia2: [500, 130, 126, 74] as Box,
 };
 
-/** Zona del inspector (sobre el canal) y de las lámparas (bajo el canal). */
-const inspect: Box = [230, 98, 160, 30];
-const lamps: Box = [230, 164, 160, 44];
+/** Zonas del broker: operación en curso (sobre el canal), lámparas y última operación (bajo el canal). */
+const inspect: Box = [192, 75, 256, 20];
+const lamps: Box = [188, 140, 266, 24];
+const last: Box = [192, 172, 256, 24];
 
-const port = { a: [152, 99] as Point, b: [152, 183] as Point };
-const lane = { ia1: 99, ia2: 183 };
+const port = { a: [142, 71] as Point, b: [142, 167] as Point };
+const lane = { ia1: 71, ia2: 167 };
 
-const head = (from: Point): Point[] => [from, [185, from[1]], [185, Y], [218, Y], [GATE, Y]];
-const routes = {
-  ia1: [...head(port.a), [422, Y], [456, Y], [456, lane.ia1], [482, lane.ia1]] as Point[],
-  ia2: [...head(port.b), [422, Y], [456, Y], [456, lane.ia2], [482, lane.ia2]] as Point[],
-  no: [...head(port.b).slice(0, 4), [372, Y]] as Point[],
-};
+const head = (from: Point): Point[] => [from, [161, from[1]], [161, Y], [180, Y], [GATE, Y]];
+const toLane = (y: number): Point[] => [[460, Y], [480, Y], [480, y], [494, y]];
 
 const length = (points: Point[], upto = points.length - 1) =>
   points.slice(1, upto + 1).reduce((sum, [x, y], index) => sum + Math.hypot(x - points[index][0], y - points[index][1]), 0);
 
 /** Tarjeta: ventana [inicio, salida], llegada al destino y el instante en que alcanza la compuerta. */
-function card(id: string, route: Point[], start: number, arrive: number, out: number, tone: "signal" | "cool" | "bone") {
-  const total = length(route);
-  const atGate = route.length > 5 ? length(route, 4) / total : 1;
-  const gate = start + atGate * (arrive - start);
-  return { id, route, at: [start, out] as [number, number], hold: (out - arrive) / (out - start), gate, arrive, tone };
+function card(index: number, start: number, arrive: number, out: number) {
+  const item = ops[index];
+  const project = agents[item.agent].project;
+  const blocked = item.to === "bloqueada";
+  const route: Point[] = blocked ? [...head(port[project]).slice(0, 4), [GATE - 40, Y]] : [...head(port[project]), ...toLane(lane[item.to as "ia1" | "ia2"])];
+  const gate = blocked ? arrive : start + (length(route, 4) / length(route)) * (arrive - start);
+  return { item, project, route, at: [start, out] as [number, number], hold: (out - arrive) / (out - start), gate, arrive };
 }
 
-const cards = [
-  card("op-012", routes.ia1, 0.03, 0.27, 0.29, "signal"),
-  card("op-013", routes.ia2, 0.33, 0.57, 0.59, "cool"),
-  card("op-015", routes.no, 0.62, 0.75, 0.88, "bone"),
-];
+const cards = [card(0, 0.02, 0.26, 0.28), card(1, 0.31, 0.55, 0.57), card(2, 0.6, 0.73, 0.88)];
 
-const ledger = [
-  { id: "op-012", project: "A", to: "Proveedor IA 1", at: cards[0].arrive + 0.015, ok: true },
-  { id: "op-013", project: "B", to: "Proveedor IA 2", at: cards[1].arrive + 0.015, ok: true },
-  { id: "op-015", project: "B", to: "política", at: cards[2].gate + 0.04, ok: false },
-];
+const ledgerAt = (index: number) => Number((cards[index].item.to === "bloqueada" ? cards[index].gate + 0.04 : cards[index].arrive + 0.015).toFixed(3));
+
+/** Fila "última" del broker: la última operación resuelta, en gris, siempre visible (también al empezar el ciclo). */
+const lastStates = [cards[2], cards[0], cards[1], cards[2]];
+const LAST_ROW = 1.4; // em
+export const previewCss = keyframes(
+  "sops-p-last",
+  "transform",
+  stair(
+    [
+      { at: ledgerAt(0), value: `translateY(${-LAST_ROW}em)` },
+      { at: ledgerAt(1), value: `translateY(${-2 * LAST_ROW}em)` },
+      { at: ledgerAt(2), value: `translateY(${-3 * LAST_ROW}em)` },
+    ],
+    "translateY(0em)",
+  ),
+);
 
 const wires = [
   orth(head(port.a).slice(0, 4), 8),
   orth(head(port.b).slice(0, 4), 8),
-  orth([[422, Y], [456, Y], [456, lane.ia1], [490, lane.ia1]], 8),
-  orth([[422, Y], [456, Y], [456, lane.ia2], [490, lane.ia2]], 8),
+  orth([[460, Y], [480, Y], [480, lane.ia1], [500, lane.ia1]], 8),
+  orth([[460, Y], [480, Y], [480, lane.ia2], [500, lane.ia2]], 8),
 ];
-const open = [
-  orth([[GATE, Y], [456, Y], [456, lane.ia1], [490, lane.ia1]], 8),
-  orth([[GATE, Y], [456, Y], [456, lane.ia2], [490, lane.ia2]], 8),
-];
+const open = {
+  ia1: orth([[GATE, Y], [480, Y], [480, lane.ia1], [500, lane.ia1]], 8),
+  ia2: orth([[GATE, Y], [480, Y], [480, lane.ia2], [500, lane.ia2]], 8),
+};
 
 function Lamp({ label, state }: { label: string; state?: "ok" | "no" }) {
   return (
-    <span className="flex items-center gap-[0.5em]">
+    <span className="flex items-center gap-[0.35em]">
       <span className={cx(s.lamp, state === "ok" && s.lampOk, state === "no" && s.lampNo)}>{state === "ok" ? "✓" : state === "no" ? "✕" : ""}</span>
       <span className={cx(s.mono, state === "no" ? "text-rose" : state === "ok" ? "text-signal" : "text-fog")}>{label}</span>
     </span>
+  );
+}
+
+function Lamps({ verdict }: { verdict?: "ok" | "no" }) {
+  return (
+    <>
+      <Lamp label="permisos" state={verdict && "ok"} />
+      <Lamp label="alcance" state={verdict} />
+    </>
   );
 }
 
@@ -103,51 +120,54 @@ function Svg({ children }: { children: React.ReactNode }) {
   );
 }
 
-const lampBox = cx(s.pCap, "flex flex-col justify-between !normal-case !tracking-normal");
+const lampRow = cx(s.pCap, s.pLamps, "flex items-center gap-[0.9em] !normal-case !tracking-normal");
+const lineRow = cx(s.pCap, "flex items-center gap-[0.6em] !normal-case !tracking-normal");
 
 export function Preview() {
   return (
     <div className={s.preview} aria-hidden="true" data-live data-cycle={CYCLE}>
+      <style dangerouslySetInnerHTML={{ __html: previewCss }} />
       <div className={s.pStage}>
         <Svg>
-          <rect x="6" y="48" width="430" height="180" rx="10" className={s.boundary} />
+          <rect x="4" y="17" width="470" height="196" rx="10" className={s.boundary} />
           {wires.map((d) => (
             <path key={d} d={d} className={s.wire} />
           ))}
         </Svg>
 
-        <At b={[20, 10, 400, 26]} className={cx(s.pText, "flex items-center gap-[0.6em] font-medium text-bone")}>
-          <span className="live-dot" />
-          <span className={s.mono}>salvaops</span>
-          <span className={cap()}>
-            consola<span className={s.pWide}> de orquestación</span>
-          </span>
-        </At>
-        <At b={[440, 10, 180, 26]} className={cap("flex items-center justify-end")}>
-          <span className={s.pWide}>broker activo</span>
-        </At>
-        <At b={[18, 37, 260, 20]} className="flex items-center">
+        <At b={[14, 6, 300, 22]} className="flex items-center">
           <span className={cx(s.boundaryChip, s.pCap, "h-full")}>
-            local-first<span className={s.pWide}> · en tu equipo</span>
+            local-first<span className={s.pWide}>&nbsp;· en tu equipo</span>
           </span>
         </At>
 
         {(["a", "b"] as const).map((id) => (
-          <At key={id} b={nodes[id]} className={cx(s.sandbox, "flex flex-col justify-center px-[0.9em]", s.pText)}>
+          <At key={id} b={nodes[id]} className={cx(s.sandbox, "flex flex-col justify-center px-[0.5em]", s.pText)}>
             <span className="font-medium whitespace-nowrap text-bone">Proyecto {id.toUpperCase()}</span>
             <span className={cx(s.pCap, "mt-[0.3em] !normal-case !tracking-normal text-signal")}>2 agentes</span>
           </At>
         ))}
 
         <At b={nodes.broker} className={s.node}>
-          <div className="flex items-center justify-between px-[0.8em] pt-[0.6em]">
+          <div className="flex items-center justify-between px-[0.8em] pt-[0.45em]">
             <span className={cap("text-bone")}>Broker</span>
             <span className={cap(s.pWide)}>política</span>
           </div>
         </At>
-        <At b={lamps} className={lampBox}>
-          <Lamp label="permisos" />
-          <Lamp label="alcance" />
+        <At b={lamps} className={lampRow}>
+          <Lamps />
+        </At>
+        <At b={last} className={lineRow}>
+          <span className="text-fog">última</span>
+          <span className={s.pLastView}>
+            <span className={cx(s.pLastStack, s.timeline)} style={{ animation: `sops-p-last ${CYCLE}ms linear infinite` }}>
+              {lastStates.map(({ item }, index) => (
+                <span key={index} className={cx(s.mono, "block text-fog")}>
+                  {item.id} {item.to === "bloqueada" ? "✕" : "✓"}
+                </span>
+              ))}
+            </span>
+          </span>
         </At>
 
         {(["ia1", "ia2"] as const).map((id) => (
@@ -158,74 +178,85 @@ export function Preview() {
         ))}
 
         <Svg>
-          <rect x="218" y={Y - 11} width="204" height="22" className={s.track} />
-          <path d={`M224 ${Y}H416`} className={s.ticks} />
-          <path d={`M${GATE} ${Y - 28}V${Y - 14}M${GATE} ${Y + 14}V${Y + 28}`} className={s.post} />
+          <rect x="180" y={Y - 11} width="280" height="22" className={s.track} />
+          <path d={`M186 ${Y}H454`} className={s.ticks} />
+          <path d={`M${GATE} ${Y - 26}V${Y - 14}M${GATE} ${Y + 14}V${Y + 26}`} className={s.post} />
         </Svg>
 
-        {cards.slice(0, 2).map((item, index) => (
-          <Step key={item.id} at={[Number((item.gate - 0.012).toFixed(3)), Number((item.arrive + 0.02).toFixed(3))]} fx="fade" rm="hide" className={s.layer}>
-            <Svg>
-              <path d={open[index]} className={index === 0 ? s.laneSignal : s.laneCool} />
-            </Svg>
-            <At b={inspect} className={cx(s.pCap, s.cover, s.pWideFlex, "items-center gap-[0.6em] !normal-case !tracking-normal")}>
-              <span className={cx(s.mono, "text-gold-300")}>{item.id}</span>
-              <span className={index === 0 ? "text-signal" : "text-cool"}>→ IA {index + 1}</span>
-            </At>
-            <At b={lamps} className={cx(lampBox, s.cover)}>
-              <Lamp label="permisos" state="ok" />
-              <Lamp label="alcance" state="ok" />
-            </At>
-          </Step>
-        ))}
-        <Step at={[Number((cards[2].gate - 0.02).toFixed(3)), cards[2].at[1]]} fx="fade" className={s.layer}>
-          <Svg>
-            <path d={`M${GATE} ${Y - 11}V${Y + 11}`} className={s.barrier} />
-          </Svg>
-          <At b={inspect} className={cx(s.pCap, s.cover, s.pWideFlex, "items-center gap-[0.6em] !normal-case !tracking-normal")}>
-            <span className={cx(s.mono, "text-gold-300")}>op-015</span>
-            <span className="text-rose">bloqueada</span>
-          </At>
-          <At b={lamps} className={cx(lampBox, s.cover)}>
-            <Lamp label="permisos" state="ok" />
-            <Lamp label="alcance" state="no" />
-          </At>
-        </Step>
+        {cards.map(({ item, gate, arrive, at }) => {
+          const blocked = item.to === "bloqueada";
+          const target = blocked ? null : (item.to as "ia1" | "ia2");
+          return (
+            <Step
+              key={item.id}
+              at={[Number((gate - (blocked ? 0.02 : 0.012)).toFixed(3)), Number((blocked ? at[1] : arrive + 0.03).toFixed(3))]}
+              fx="fade"
+              rm={blocked ? undefined : "hide"}
+              className={s.layer}
+            >
+              <Svg>
+                {target ? (
+                  <path d={open[target]} className={target === "ia1" ? s.laneSignal : s.laneCool} />
+                ) : (
+                  <>
+                    <path d={`M${GATE} ${Y - 11}V${Y + 11}`} className={s.barrier} />
+                    <rect x={GATE - 72} y={Y - 13} width="64" height="26" rx="6" className={cx(s.ring, "motion-only")} />
+                  </>
+                )}
+              </Svg>
+              {target && <At b={nodes[target]} className={cx(s.receive, target === "ia2" && s.receiveCool)} />}
+              <At b={inspect} className={cx(lineRow, s.cover)}>
+                <span className={cx(s.mono, "text-gold-300")}>{item.id}</span>
+                {target ? <span className={target === "ia1" ? "text-signal" : "text-cool"}>→ IA {target === "ia1" ? "1" : "2"}</span> : <span className="text-rose">bloqueada</span>}
+              </At>
+              <At b={lamps} className={cx(lampRow, s.cover)}>
+                <Lamps verdict={blocked ? "no" : "ok"} />
+              </At>
+            </Step>
+          );
+        })}
 
-        <At b={[20, 238, 600, 156]} className={cx(s.pane, "overflow-hidden")}>
-          <div className="flex items-center justify-between border-b border-line px-[2.5%] py-[1.4%]">
+        <At b={[10, 212, 620, 184]} className={cx(s.pane, "overflow-hidden")}>
+          <div className="flex items-center justify-between border-b border-line px-[2.5%] py-[1.1%]">
             <span className={cap("text-bone")}>Libro de evidencia</span>
             <span className={cap()}>solo agregar</span>
           </div>
-          <ol className="flex flex-col gap-[0.4em] px-[2.5%] py-[1.6%]">
-            <li className={cx(s.pRow, s.pWideRow, "opacity-50")}>
-              <span className={s.chain} />
-              <span className="text-gold-400">op-011</span>
-              <span className="truncate text-mist">Proyecto A · Proveedor IA 1</span>
-              <span className="text-signal">✓</span>
-            </li>
-            {ledger.map((entry) => (
-              <Step key={entry.id} as="li" at={[Number(entry.at.toFixed(3)), 0.95]} fx="up" className={s.pRow}>
-                <span className={cx(s.chain, entry.ok ? s.chainNew : s.chainNo)} />
-                <span className="text-gold-300">{entry.id}</span>
-                <span className="truncate text-bone">
-                  Proyecto {entry.project} · <span className={entry.ok ? "text-mist" : "text-rose"}>{entry.to}</span>
+          <ol className="flex flex-col gap-[0.25em] px-[2.5%] py-[1.2%]">
+            {history.map((entry, index) => (
+              <li key={entry.id} className={cx(s.pRow, index === 0 && s.pWideRow, "opacity-50")}>
+                <span className={s.chain} />
+                <span className="text-gold-400">{entry.id}</span>
+                <span className="truncate text-mist">
+                  Proyecto {entry.project} · Proveedor {entry.to}
                 </span>
-                <span className={entry.ok ? "text-signal" : "text-rose"}>{entry.ok ? "✓" : "✕ bloqueada"}</span>
-              </Step>
+                <span className="text-signal">✓</span>
+              </li>
             ))}
+            {cards.map(({ item, project }, index) => {
+              const ok = item.to !== "bloqueada";
+              return (
+                <Step key={item.id} as="li" at={[ledgerAt(index), 0.97]} fx="fade" min={0.5} className={s.pRow}>
+                  <span className={cx(s.chain, ok ? s.chainNew : s.chainNo)} />
+                  <span className="text-gold-300">{item.id}</span>
+                  <span className="truncate text-bone">
+                    Proyecto {project.toUpperCase()} · <span className={ok ? "text-mist" : "text-rose"}>{ok ? `Proveedor IA ${item.to === "ia1" ? 1 : 2}` : "política"}</span>
+                  </span>
+                  <span className={ok ? "text-signal" : "text-rose"}>{ok ? "✓" : "✕ bloqueada"}</span>
+                </Step>
+              );
+            })}
           </ol>
         </At>
 
         <PacketLayer>
-          {cards.map((item) => (
+          {cards.map(({ item, route, at, hold }) => (
             <span key={item.id} className={cx(s.card, s.pCard)} style={{ "--op": `"${item.id.slice(3)}"` } as CSSProperties}>
               <Packet
-                route={item.route}
+                route={route}
                 size={[W, H]}
-                at={item.at}
-                hold={Number(item.hold.toFixed(4))}
-                className={cx(s.op, item.tone === "cool" && s.cool, item.tone === "bone" && s.neutral)}
+                at={at}
+                hold={Number(hold.toFixed(4))}
+                className={cx(s.op, item.to === "ia2" && s.cool, item.to === "bloqueada" && s.neutral)}
               />
             </span>
           ))}

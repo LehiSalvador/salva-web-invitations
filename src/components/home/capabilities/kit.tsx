@@ -7,14 +7,21 @@ import styles from "./CapabilityVisuals.module.css";
  * Kit común de los visuales de "Qué hacemos": misma retícula, mismos paneles, misma tipografía
  * y el mismo riel de fases con cabezal. Cada visual es una escena [data-live] con su propio ciclo.
  *
- * Escenario: caja de alto fijo por punto de quiebre (166 px en mobile, 244 px desde @lg), así las capas
- * de paquetes nunca dependen del alto del visor (que cambia al expandir la descripción de cada pestaña).
+ * - La estructura (marcos, paneles, mensajes) es estática y persiste entre ciclos; solo los estados se reinician.
+ * - Los estados finales duran hasta END (fin del ciclo): el desenlace se sostiene y el reinicio es breve.
+ * - Escenario de alto fijo por variante (ver .stage en el CSS): 166/186 px en mobile, 244 px desde @lg y 300 px
+ *   cuando el visor es alto (1024 px). Las capas de paquetes nunca dependen del alto variable del visor.
+ * - Texto: nunca truncate con leading-none (recorta tildes y descendentes); usar TRUNC.
  */
+
+export const END = 1;
 
 export type Phase = { label: string; at: [number, number] };
 
-/** Etiqueta mono pequeña: ≥10 px reales en mobile. */
+/** Etiqueta mono pequeña (≥10 px reales en mobile). Sin overflow: puede ir con leading-none. */
 export const MICRO = "font-mono text-[10px] uppercase leading-none tracking-[0.1em]";
+/** Recorte de una línea sin comerse tildes ni descendentes. */
+export const TRUNC = "truncate leading-[1.35]";
 /** Panel fino del sistema visual. */
 export const PANEL = "rounded-[3px] border border-line-strong bg-ink-900/90";
 
@@ -28,30 +35,49 @@ export const linePath = (points: Point[]) => `M${points.map((point) => point.joi
 
 export function Scene({ cycle, phases, children }: { cycle: number; phases: Phase[]; children: ReactNode }) {
   return (
-    <div data-live data-cycle={cycle} aria-hidden="true" className={`${styles.scene} @container absolute inset-0 overflow-hidden`}>
-      <div className="flex h-full flex-col justify-center gap-3 p-3 @lg:gap-3.5 @lg:px-5 @lg:py-3">
-        <div className="relative h-[166px] w-full shrink-0 @lg:h-[244px]">{children}</div>
+    <div
+      data-live
+      data-cycle={cycle}
+      aria-hidden="true"
+      className={`${styles.scene} absolute inset-0 overflow-hidden`}
+      style={{ "--cycle": `${cycle}ms` } as CSSProperties}
+    >
+      <div className="flex h-full flex-col justify-center gap-2 p-3 @lg:gap-3 @lg:px-5 @lg:py-3">
+        <div className={`${styles.stage} relative w-full shrink-0`}>{children}</div>
         <Rail phases={phases} />
       </div>
     </div>
   );
 }
 
-/** Riel de fases: cada tramo mide lo que dura su fase y un cabezal lo recorre al ritmo del ciclo. */
+/**
+ * Riel de fases: cada tramo mide lo que dura su fase y un cabezal lo recorre al ritmo del ciclo.
+ * Desde @lg muestra las cuatro fases (atenuadas) y resalta la activa; en mobile es una línea de estado
+ * con la fase actual. Con movimiento reducido queda resaltada la última fase (el desenlace).
+ */
 function Rail({ phases }: { phases: Phase[] }) {
   const start = phases[0].at[0];
   const end = phases[phases.length - 1].at[1];
+  const label = "block truncate font-mono text-[10px] leading-[1.35] tracking-[0.06em] uppercase";
   return (
-    <div className="relative hidden shrink-0 @lg:block">
+    <div className="relative shrink-0">
       <div className="h-px bg-line-strong" />
-      <div className="grid" style={{ gridTemplateColumns: phases.map((phase) => `${((phase.at[1] - phase.at[0]) * 100).toFixed(2)}fr`).join(" ") }}>
+      <div className="grid @max-lg:grid-cols-1!" style={{ gridTemplateColumns: phases.map((phase) => `${((phase.at[1] - phase.at[0]) * 100).toFixed(2)}fr`).join(" ") }}>
         {phases.map((phase, index) => (
-          <Step key={phase.label} at={phase.at} fx="fade" min={0.34} className="relative min-w-0 pt-2 pr-2">
-            <span className="absolute inset-x-0 -top-px h-px bg-signal" />
-            <span className="block truncate font-mono text-[10px] leading-none tracking-[0.06em] text-bone uppercase">
-              <span className="text-signal">0{index + 1}</span> {phase.label}
+          <div key={phase.label} className="relative min-w-0 @max-lg:col-start-1 @max-lg:row-start-1">
+            <span className={`${label} hidden pt-1.5 pr-2 text-fog/80 @lg:block`}>
+              0{index + 1} {phase.label}
             </span>
-          </Step>
+            <Step at={phase.at} fx="fade" rm={index < phases.length - 1 ? "hide" : undefined} className="pt-1.5 pr-2 @lg:absolute @lg:inset-0">
+              <span className="absolute inset-x-0 -top-px hidden h-px bg-signal @lg:block" />
+              <span className={`${label} flex items-center gap-1.5 text-bone`}>
+                <span className="size-[5px] shrink-0 rounded-full bg-signal @lg:hidden" />
+                <span className="truncate">
+                  <span className="text-signal">0{index + 1}</span> {phase.label}
+                </span>
+              </span>
+            </Step>
+          </div>
         ))}
       </div>
       <div className="absolute inset-x-0 -top-0.5 h-[5px]">
@@ -64,7 +90,13 @@ function Rail({ phases }: { phases: Phase[] }) {
 }
 
 /** Cables de un diagrama normalizado (0–100 en ambos ejes): el trazo no se deforma al estirarse. */
-export function Wires({ paths, className = "" }: { paths: { d: string; tone?: "faint" | "line" | "signal" | "gold"; dashed?: boolean }[]; className?: string }) {
+export function Wires({
+  paths,
+  className = "",
+}: {
+  paths: { d: string; tone?: "faint" | "line" | "signal" | "gold" | "bone"; dashed?: boolean }[];
+  className?: string;
+}) {
   return (
     <svg viewBox="0 0 100 100" preserveAspectRatio="none" className={`absolute inset-0 size-full overflow-visible ${className}`} fill="none">
       {paths.map(({ d, tone = "faint", dashed }) => (
@@ -75,13 +107,14 @@ export function Wires({ paths, className = "" }: { paths: { d: string; tone?: "f
 }
 
 /** Avatar genérico (silueta), sin nombres ni fotos. */
-export function Avatar({ tone = "signal", className = "" }: { tone?: "signal" | "gold" | "cool" | "bone"; className?: string }) {
+export function Avatar({ tone = "signal", className = "", children }: { tone?: "signal" | "gold" | "cool" | "bone"; className?: string; children?: ReactNode }) {
   return (
     <span className={`${styles.avatar} ${styles[`avatar_${tone}`]} ${className}`}>
       <svg viewBox="0 0 16 16" aria-hidden="true">
         <circle cx="8" cy="6.2" r="2.6" />
         <path d="M3.4 13.6c.7-2.4 2.5-3.7 4.6-3.7s3.9 1.3 4.6 3.7" />
       </svg>
+      {children}
     </span>
   );
 }

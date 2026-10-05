@@ -47,7 +47,7 @@ function Chrome() {
           </span>
         </span>
       </span>
-      <span className="label hidden shrink-0 text-fog md:inline">tienda del cliente · sesión simulada</span>
+      <span className="label hidden shrink-0 text-fog md:inline lg:hidden xl:inline">tienda del cliente · sesión simulada</span>
     </div>
   );
 }
@@ -79,7 +79,7 @@ function StoreHeader() {
 
 function Catalog() {
   return (
-    <Step at={[0, T.view2 + 0.012]} fx="left" rm="hide" className="absolute inset-0">
+    <div className={styles.view}>
       <div className={`${styles.box} ${styles.titleRow}`} style={box(L.catalogTitle)}>
         <span className={styles.title}>Gorras</span>
         <span className={`${styles.tl} text-fog`}>Colección</span>
@@ -104,21 +104,21 @@ function Catalog() {
       <Step at={[T.decoy - 0.012, T.decoyOut + 0.012]} fx="scale" rm="hide" className={`${styles.box} ${styles.hover}`} style={box(L.card(DECOY))}>
         <span className={styles.hoverChip}>Vista rápida</span>
       </Step>
-      <Step at={[T.target - 0.01, T.view2]} fx="scale" rm="hide" className={`${styles.box} ${styles.picked}`} style={box(L.card(TARGET))}>
+      <Step at={[T.target - 0.01, T.view2 + 0.02]} fx="scale" rm="hide" className={`${styles.box} ${styles.picked}`} style={box(L.card(TARGET))}>
         <span className={styles.pickedChip}>Ver producto →</span>
       </Step>
-    </Step>
+    </div>
   );
 }
 
 function Product() {
   return (
-    <Step at={[T.view2 - 0.008, T.reset]} fx="right" className="absolute inset-0">
+    <Step at={[T.view2 - 0.006, T.reset]} fx="fade" className={`${styles.view} ${styles.viewOpaque}`}>
       <div className={`${styles.box} ${styles.tl} flex items-center gap-2 text-fog`} style={box(L.crumb)}>
         Gorras <span className="text-line-strong">/</span> <span className="text-mist">Gorra {target.id}</span>
       </div>
       <div className={`${styles.box} ${styles.stageBox}`} style={box(L.turntable)}>
-        <Cap3D color={target.color} />
+        <Cap3D color={target.color} spin={A.spin} />
         <span className={styles.viewChip}>
           <i className={styles.viewDot} /> Vista 360°
         </span>
@@ -153,16 +153,16 @@ function Product() {
           {talla}
         </span>
       ))}
-      <Step at={[T.click2, T.reset]} fx="scale" className={`${styles.box} ${styles.chipSize} ${styles.chipSizeOn}`} style={box(L.talla(1))}>
+      <span className={`${styles.box} ${styles.chipSize} ${styles.chipSizeOn} ${A.sizeOn}`} style={box(L.talla(1))}>
         M
-      </Step>
+      </span>
       <div className={`${styles.box} ${styles.button}`} style={box(L.add)}>
         Agregar al carrito
       </div>
-      <Step at={[T.click3 + 0.004, T.reset]} fx="fade" className={`${styles.box} ${styles.button} ${styles.buttonDone}`} style={box(L.add)}>
+      <span className={`${styles.box} ${styles.button} ${styles.buttonDone} ${A.added}`} style={box(L.add)}>
         <Icon name="check" /> Agregado al carrito
-      </Step>
-      <div className={`${styles.box} ${styles.tl} hidden text-fog sm:block`} style={box(L.fine)}>
+      </span>
+      <div className={`${styles.box} ${styles.tl} ${styles.fine} hidden text-fog sm:block`} style={box(L.fine)}>
         Envío a domicilio · Cambios fáciles
       </div>
     </Step>
@@ -222,9 +222,9 @@ function Drawer() {
       <div className={`${styles.box} ${styles.button} ${styles.buttonLight}`} style={box(D.confirm)}>
         Confirmar pedido
       </div>
-      <Step at={[T.confirmed, T.out + 0.03]} fx="scale" className={`${styles.box} ${styles.button} ${styles.buttonOk}`} style={box(D.confirm)}>
+      <span className={`${styles.box} ${styles.button} ${styles.buttonOk} ${A.confirmed}`} style={box(D.confirm)}>
         <Icon name="check" /> Pedido confirmado
-      </Step>
+      </span>
       <div className={`${styles.box} ${styles.receiptClip}`} style={box(D.receipt)}>
         <div className={`${styles.receiptFeed} ${A.print}`}>
           <Receipt />
@@ -262,9 +262,9 @@ export function StoreWindow() {
     <div className={styles.window}>
       <Chrome />
       <div className={styles.viewport}>
-        <StoreHeader />
         <Catalog />
         <Product />
+        <StoreHeader />
         <Step at={[T.drawer, T.out]} fx="fade" className={`${styles.box} ${styles.scrim}`} style={box(L.scrim)} />
         <Drawer />
         <CursorLayer />

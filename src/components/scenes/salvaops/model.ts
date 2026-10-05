@@ -57,7 +57,7 @@ export const layout = {
   inspectTop: { d: [308, 80, 212, 118] as Box, m: [22, 232, 126, 114] as Box },
   inspectLow: { d: [308, 246, 212, 92] as Box, m: [214, 232, 128, 114] as Box },
   /** Cola del broker (D: pie del panel; M: cabecera, a la derecha del canal). */
-  queue: { d: [308, 348, 212, 48] as Box, m: [198, 209, 144, 18] as Box },
+  queue: { d: [308, 354, 212, 44] as Box, m: [198, 209, 144, 18] as Box },
   gate: { d: [548, 36, 136, 372] as Box, m: [12, 366, 336, 88] as Box },
   lamps: {
     permisos: { d: [556, 112, 124, 58] as Box, m: [20, 394, 120, 48] as Box },
@@ -214,7 +214,12 @@ export const packetsM = ops.map((item) => ({ op: item, ...schedule(routeM(item.a
 export const dispatch = (index: number) => packetsD[index].at[0];
 
 /** Inspector del broker (y agente resaltado): desde el despacho hasta que la tarjeta cruza la compuerta. */
-export const inspectWindow = (item: Op, index: number): [number, number] => [round(Math.max(0.004, dispatch(index) - 0.004)), round(item.gate + 0.025)];
+export const inspectWindow = (item: Op, index: number): [number, number] => {
+  const start = Math.max(0.004, dispatch(index) - 0.004);
+  // La bloqueada sigue en el inspector mientras espera en la compuerta, hasta que se despacha la siguiente.
+  const next = index + 1 < ops.length ? dispatch(index + 1) - 0.008 : 1;
+  return [round(start), round(item.to === "bloqueada" ? Math.min(item.gate + 0.06, next) : item.gate + 0.025)];
+};
 
 /** Veredicto de la compuerta: lámparas, carril abierto, proveedor que recibe o barrera y sello. */
 export const verdictWindow = (item: Op): [number, number] => [round(item.gate - 0.004), round(item.to === "bloqueada" ? item.out + 0.01 : item.end + 0.04)];

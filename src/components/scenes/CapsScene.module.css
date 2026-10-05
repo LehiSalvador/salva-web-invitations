@@ -159,7 +159,19 @@
   container-type: inline-size;
   background:
     radial-gradient(120% 70% at 30% 40%, rgb(111 214 176 / 0.035), transparent 60%),
-    rgb(6 8 9 / 0.55);
+    #090c0d;
+}
+
+.view {
+  position: absolute;
+  inset: 0;
+}
+
+/* La vista entrante tapa a la saliente: nunca se mezclan dos maquetaciones. */
+.viewOpaque {
+  background:
+    radial-gradient(120% 70% at 30% 40%, rgb(111 214 176 / 0.035), transparent 60%),
+    #090c0d;
 }
 
 .box {
@@ -196,8 +208,9 @@
   justify-content: space-between;
   gap: 12px;
   padding: 0 4%;
+  z-index: 2;
   border-bottom: 1px solid var(--color-line);
-  background: rgb(11 15 16 / 0.6);
+  background: #0b0f10;
 }
 
 .wordmark {
@@ -428,6 +441,11 @@
   white-space: nowrap;
 }
 
+.fine {
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+}
+
 .desc {
   font-size: clamp(11px, 1.2cqw, 14px);
   line-height: 1.5;
@@ -510,14 +528,17 @@
 }
 
 .scrim {
+  z-index: 3;
   background: rgb(6 8 9 / 0.62);
 }
 
 /* ---------- cajón del carrito y comprobante ---------- */
 
 .drawer {
+  /* Oculto más allá de su propia sombra, para que no oscurezca la vista de producto. */
   --hide-x: 0%;
-  --hide-y: 104%;
+  --hide-y: calc(100% + 80px);
+  z-index: 3;
   border-top: 1px solid var(--color-line-strong);
   border-radius: 14px 14px 0 0;
   background: var(--color-ink-900);
@@ -741,8 +762,9 @@
   height: 28px;
   margin: -14px 0 0 -14px;
   border-radius: 50%;
-  border: 1.5px solid rgb(238 235 228 / 0.85);
-  background: rgb(238 235 228 / 0.2);
+  border: 1.5px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.28);
+  box-shadow: 0 0 0 2px rgb(6 8 9 / 0.75);
 }
 
 .ripple {
@@ -773,6 +795,7 @@
 /* ---------- panel de automatizaciones ---------- */
 
 .auto {
+  --row: 50px;
   position: relative;
   display: grid;
   min-width: 0;
@@ -903,13 +926,16 @@
 
 .pipe {
   position: relative;
+  height: calc(var(--row) * 4);
 }
 
 .rail,
 .railFill {
   position: absolute;
+  top: calc(var(--row) / 2);
   left: 15px;
   width: 1px;
+  height: calc(var(--row) * 3);
   background: var(--color-line-strong);
 }
 
@@ -920,6 +946,7 @@
 
 .row {
   display: grid;
+  height: var(--row);
   grid-template-columns: 30px minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 10px;
@@ -960,16 +987,28 @@
   color: var(--color-fog);
 }
 
-.done {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 6px;
-  padding: 8px 12px;
-  border: 1px solid rgb(111 214 176 / 0.3);
-  background: rgb(111 214 176 / 0.06);
-  font-size: 12.5px;
-  color: var(--color-bone);
+/* Estado del flujo: esperando → ejecutando → completado (ticker sincronizado con el ciclo). */
+.flow {
+  display: block;
+  height: 36px;
+  overflow: hidden;
+  border: 1px solid var(--color-line);
+  background: rgb(16 21 26 / 0.5);
+  font-size: 12px;
+}
+
+.flow .ticker > span {
+  height: 34px;
+  padding: 0 12px;
+  white-space: nowrap;
+}
+
+.flowIdle {
+  flex: none;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  border: 1px solid currentColor;
 }
 
 .log {
@@ -1001,6 +1040,11 @@
   display: flex;
   flex-direction: column;
   will-change: transform;
+}
+
+.logPrev {
+  color: var(--color-fog);
+  opacity: 0.75;
 }
 
 .logLine {
@@ -1120,18 +1164,9 @@
   top: 0;
   left: 0;
   transform-style: preserve-3d;
-  transform: rotateY(-32deg);
-  animation: cap-spin 14s linear infinite;
+  /* Estado estático (reduced motion / sin JS): frente a tres cuartos, igual que SPIN_BASE. */
+  transform: rotateY(-48deg);
   will-change: transform;
-}
-
-@keyframes cap-spin {
-  from {
-    transform: rotateY(-32deg);
-  }
-  to {
-    transform: rotateY(328deg);
-  }
 }
 
 .panel {
@@ -1151,8 +1186,9 @@
   overflow: visible;
 }
 
+/* Contraste suave entre anillos (luz cenital); los gajos alternos apenas cambian de tono. */
 .tier0 {
-  --fill: color-mix(in oklab, var(--cap) 80%, #000);
+  --fill: color-mix(in oklab, var(--cap) 90%, #000);
 }
 
 .tier1 {
@@ -1160,32 +1196,28 @@
 }
 
 .tier2 {
-  --fill: color-mix(in oklab, var(--cap) 90%, #fff);
-}
-
-.tier3 {
-  --fill: color-mix(in oklab, var(--cap) 78%, #fff);
+  --fill: color-mix(in oklab, var(--cap) 92%, #fff);
 }
 
 .alt.tier0 {
-  --fill: color-mix(in oklab, var(--cap) 70%, #000);
+  --fill: color-mix(in oklab, var(--cap) 84%, #000);
 }
 
 .alt.tier1 {
-  --fill: color-mix(in oklab, var(--cap) 88%, #000);
+  --fill: color-mix(in oklab, var(--cap) 94%, #000);
 }
 
 .alt.tier2 {
   --fill: color-mix(in oklab, var(--cap) 97%, #fff);
 }
 
-.alt.tier3 {
-  --fill: color-mix(in oklab, var(--cap) 86%, #fff);
+.panelFlat {
+  background: var(--fill);
 }
 
 .panelFace {
   fill: var(--fill);
-  stroke: rgb(238 235 228 / 0.3);
+  stroke: rgb(238 235 228 / 0.22);
   stroke-width: 1;
   stroke-linejoin: round;
   vector-effect: non-scaling-stroke;
@@ -1226,7 +1258,7 @@
 }
 
 .brimFace {
-  fill: color-mix(in oklab, var(--cap) 86%, #000);
+  fill: color-mix(in oklab, var(--cap) 94%, #000);
   stroke: rgb(238 235 228 / 0.32);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
@@ -1358,13 +1390,16 @@
   height: 26px;
   margin: -13px 0 0 -13px;
   border-radius: 50%;
-  border: 1.5px solid rgb(238 235 228 / 0.85);
-  background: rgb(238 235 228 / 0.22);
+  border: 1.5px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.28);
+  box-shadow: 0 0 0 2px rgb(6 8 9 / 0.75);
 }
 
 .pvProduct {
   position: absolute;
   inset: 0;
+  /* Opaca: tapa el catálogo (capa base) sin mezclar las dos vistas. */
+  background: #0a0e0f;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
@@ -1470,8 +1505,9 @@
   height: 28px;
   margin: -14px 0 0 -14px;
   border-radius: 50%;
-  border: 1.5px solid var(--color-bone);
-  background: rgb(238 235 228 / 0.2);
+  border: 1.5px solid var(--color-signal);
+  background: rgb(111 214 176 / 0.28);
+  box-shadow: 0 0 0 2px rgb(6 8 9 / 0.75);
 }
 
 .pvToast {
@@ -1548,6 +1584,7 @@
 
 .pvTriggerLabel {
   display: block;
+  font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--color-fog);
@@ -1572,12 +1609,30 @@
 }
 
 .pvRow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 13px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 8px;
-  font-size: clamp(10px, 1.5cqw, 12.5px);
-  line-height: 1.2;
+  column-gap: 8px;
+  font-family: var(--font-mono);
+  font-size: clamp(10.5px, 1.6cqw, 11.5px);
+  line-height: 1.25;
   color: var(--color-mist);
+}
+
+.pvRowName {
+  min-width: 0;
+}
+
+.pvState {
+  display: block;
+  height: 14px;
+  overflow: hidden;
+  font-size: 10.5px;
+}
+
+.pvState .ticker > span {
+  height: 14px;
+  justify-content: flex-end;
 }
 
 .pvNode {
@@ -1590,17 +1645,6 @@
   background: var(--color-ink-900);
 }
 
-.pvCheck {
-  position: absolute;
-  inset: -1px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--color-signal);
-  font-size: 9px;
-  font-weight: 700;
-  color: var(--color-ink-950);
-}
 
 /* ---------- breakpoints ---------- */
 
@@ -1646,7 +1690,7 @@
   }
 
   .drawer {
-    --hide-x: 104%;
+    --hide-x: calc(100% + 80px);
     --hide-y: 0%;
     border-top: 0;
     border-left: 1px solid var(--color-line-strong);
@@ -1682,7 +1726,7 @@
   }
 
   .pipe,
-  .done {
+  .flow {
     grid-column: 1;
   }
 
@@ -1704,20 +1748,49 @@
     padding: 9px 12px;
     letter-spacing: 0.12em;
   }
-}
 
-@media (width >= 80rem) {
+  /* Panel al lado del visor desde 64rem. */
   .layout {
-    grid-template-columns: minmax(0, 1fr) 336px;
-    column-gap: 40px;
+    grid-template-columns: minmax(0, 1fr) 292px;
+    column-gap: 36px;
     align-items: start;
   }
 
+  .viewport {
+    aspect-ratio: 16 / 10.4;
+  }
+
+  .row {
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+  }
+
+  .row > .rowIcon {
+    display: none;
+  }
+
   .auto {
+    --row: 44px;
     display: flex;
     height: 100%;
     flex-direction: column;
-    gap: 12px;
+    gap: 10px;
+    padding: 12px;
+  }
+
+  .autoHead {
+    padding-bottom: 10px;
+  }
+
+  .trigger {
+    padding: 8px 10px;
+  }
+
+  .flow {
+    font-size: 11.5px;
+  }
+
+  .flow .ticker > span {
+    padding: 0 10px;
   }
 
   .log {
@@ -1725,26 +1798,23 @@
     min-height: 0;
     flex: 1;
     flex-direction: column;
-    padding-top: 12px;
+    align-self: stretch;
+    padding-top: 10px;
     border-top: 1px solid var(--color-line);
   }
 
-  .log {
-    align-self: stretch;
-  }
-
   .logWindow {
-    min-height: 64px;
+    min-height: 40px;
     flex: 1;
     height: auto !important;
   }
 
   .connector {
-    --emit-x: 40px;
+    --emit-x: 36px;
     --emit-y: 0px;
-    top: 86px;
-    left: -41px;
-    width: 40px;
+    top: 82px;
+    left: -37px;
+    width: 36px;
     height: 1px;
   }
 
@@ -1766,6 +1836,54 @@
   .connectorLine::after {
     right: -3px;
     left: auto;
+  }
+}
+
+@media (width >= 80rem) {
+  .layout {
+    grid-template-columns: minmax(0, 1fr) 336px;
+    column-gap: 40px;
+  }
+
+  .viewport {
+    aspect-ratio: 16 / 9.5;
+  }
+
+  .row {
+    grid-template-columns: 30px 28px minmax(0, 1fr) auto;
+  }
+
+  .row > .rowIcon {
+    display: grid;
+  }
+
+  .auto {
+    --row: 50px;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .autoHead {
+    padding-bottom: 12px;
+  }
+
+  .trigger {
+    padding: 10px 12px;
+  }
+
+  .flow {
+    font-size: 12px;
+  }
+
+  .flow .ticker > span {
+    padding: 0 12px;
+  }
+
+  .connector {
+    --emit-x: 40px;
+    top: 86px;
+    left: -41px;
+    width: 40px;
   }
 }
 
@@ -1795,6 +1913,45 @@
     bottom: 6px;
     left: 6px;
     padding: 5px 8px;
+  }
+
+  .pvPanel {
+    padding: 8px 7px;
+  }
+
+  .pvPanelTitle {
+    letter-spacing: 0.02em;
+  }
+
+  .pvPanel {
+    gap: 5px;
+  }
+
+  .pvTrigger {
+    padding: 4px 6px;
+  }
+
+  .pvTriggerLabel {
+    display: none;
+  }
+
+  /* Filas en dos líneas: nombre corto arriba y estado debajo. */
+  .pvRow {
+    grid-template-columns: 13px minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    column-gap: 7px;
+  }
+
+  .pvNode {
+    grid-row: 1 / span 2;
+  }
+
+  .pvState {
+    grid-column: 2;
+  }
+
+  .pvState .ticker > span {
+    justify-content: flex-start;
   }
 }
 

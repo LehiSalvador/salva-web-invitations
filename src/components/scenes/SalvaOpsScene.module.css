@@ -226,6 +226,9 @@
 }
 
 .provider {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 8px 8px 8px 10px;
 }
 
@@ -235,18 +238,87 @@
   }
 }
 
-.status {
+/* Cola del broker: una pila de estados que se desplaza (un solo keyframe). */
+.queue {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   justify-content: flex-end;
+  gap: 8px;
 }
 
-.brokerFoot {
-  border-top: 1px solid var(--color-line);
-  padding-top: 10px;
+.queueLabel {
+  flex: none;
 }
 
-/* Lámpara de la compuerta. */
+.queueView {
+  height: 1.45em;
+  overflow: hidden;
+  line-height: 1.45em;
+}
+
+.queueStack {
+  display: block;
+}
+
+.queueRow {
+  height: 1.45em;
+  white-space: nowrap;
+}
+
+@media (min-width: 48rem) {
+  .queue {
+    align-items: flex-start;
+    justify-content: flex-start;
+    border-top: 1px solid var(--color-line);
+    padding-top: 8px;
+  }
+}
+
+@container (min-width: 820px) {
+  .queue {
+    flex-direction: column;
+    gap: 6px;
+    padding-top: 10px;
+  }
+}
+
+/* Brazo de la compuerta: pivota en el extremo izquierdo; en horizontal cuelga del poste superior. */
+.armWrap {
+  transform-origin: 0 0;
+}
+
+@media (min-width: 48rem) {
+  .armWrap {
+    rotate: 90deg;
+  }
+}
+
+.arm {
+  position: absolute;
+  left: 0;
+  top: -1.5px;
+  width: 100%;
+  height: 3px;
+  border-radius: 2px;
+  background: rgb(226 236 232 / 0.55);
+  transform-origin: 1.5px 50%;
+}
+
+.armOn {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--color-signal);
+  opacity: 0;
+}
+
+/* Las líneas de tiempo CSS solo corren con la escena en pantalla; sin JS queda el estado estático. */
+:global([data-live]:not([data-inview])) .timeline,
+:global([data-live]:not([data-inview])) .arm,
+:global([data-live]:not([data-inview])) .armOn {
+  animation-name: none !important;
+}
+
 .lamp {
   display: grid;
   place-items: center;
@@ -330,6 +402,12 @@
   border-color: rgb(143 184 216 / 0.6);
 }
 
+/* Cuerpo del proveedor mientras recibe: renglones al pie, donde el estado base no tiene texto. */
+.receiveBody {
+  justify-content: flex-end;
+  line-height: 1.4;
+}
+
 .stamp {
   display: flex;
   flex-direction: column;
@@ -339,10 +417,11 @@
   border-radius: 4px;
   background: rgb(26 14 16 / 0.96);
   color: var(--color-rose);
+  padding: 4px 8px;
   font-family: var(--font-mono);
   font-size: 10px;
-  letter-spacing: 0.04em;
-  line-height: 1.25;
+  letter-spacing: 0;
+  line-height: 1.3;
   text-transform: uppercase;
   text-align: center;
   white-space: nowrap;
@@ -350,20 +429,26 @@
 
 /* Tarjeta fija de la operación bloqueada: solo en la vista estática (sin movimiento). */
 .stillCard {
+  position: absolute;
+  left: 0;
+  top: 0;
   display: none;
-  align-items: center;
-  justify-content: center;
+  width: max-content;
+  translate: -50% -50%;
   border: 1px solid var(--color-bone);
   border-radius: 4px;
   background: var(--color-ink-850);
+  padding: 2px 7px;
   font-family: var(--font-mono);
   font-size: 10.5px;
+  line-height: 1.2;
+  white-space: nowrap;
   color: var(--color-bone);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .stillCard {
-    display: flex;
+    display: block;
   }
 }
 
@@ -410,13 +495,6 @@
   stroke: rgb(226 236 232 / 0.4);
   stroke-width: 3;
   stroke-linecap: round;
-  vector-effect: non-scaling-stroke;
-}
-
-.beam {
-  stroke: rgb(226 236 232 / 0.38);
-  stroke-width: 1;
-  stroke-dasharray: 2 3;
   vector-effect: non-scaling-stroke;
 }
 
@@ -586,7 +664,7 @@
   opacity: 0.5;
 }
 
-@media (min-width: 48rem) and (max-width: 79.99rem) {
+@media (max-width: 79.99rem) {
   .rowDetail {
     display: none;
   }
@@ -602,7 +680,9 @@
 /* ───────────── Terminal ───────────── */
 
 .term {
-  background: rgb(5 7 8 / 0.9);
+  --term-bg: #050708;
+  background: var(--term-bg);
+  container-type: inline-size;
 }
 
 .termBody {
@@ -613,16 +693,44 @@
   color: var(--color-mist);
 }
 
+.termView {
+  position: relative;
+  overflow: hidden;
+}
+
+.termScroll {
+  position: relative;
+}
+
+/* Cubierta con el cursor: baja un renglón por cada línea impresa y tapa las que aún no salen. */
+.termCover {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  background: var(--term-bg);
+}
+
 .termLine {
   display: block;
-  white-space: pre-wrap;
-  overflow-wrap: anywhere;
-  padding-left: 2ch;
-  text-indent: -2ch;
+  height: 1.62em;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .termOut {
-  padding-left: 4ch;
+  padding-left: 2ch;
+}
+
+.termWide {
+  display: none;
+}
+
+@container (min-width: 560px) {
+  .termWide {
+    display: inline;
+  }
 }
 
 .cursor {
@@ -707,6 +815,23 @@
   white-space: nowrap;
 }
 
+/* Lámparas un poco más chicas en la vista previa: caben en fila aun en 350 px. */
+.pLamps .lamp {
+  width: 13px;
+  height: 13px;
+}
+
+.pLastView {
+  display: inline-block;
+  height: 1.4em;
+  overflow: hidden;
+  line-height: 1.4em;
+}
+
+.pLastStack {
+  display: block;
+}
+
 .pCard .op :global(.packet__body) {
   font-size: clamp(10px, 1.7cqw, 11.5px);
 }
@@ -721,16 +846,13 @@
   display: none;
 }
 
-/* El escenario mobile (estrecho) muestra la etiqueta del broker: es ancho de sobra. */
-@media (width < 48rem) {
-  .wideFlex {
-    display: inline-flex;
-  }
-}
-
 @container (min-width: 820px) {
   .wide {
     display: inline;
+  }
+
+  .narrow {
+    display: none;
   }
 
   .wideBlock {

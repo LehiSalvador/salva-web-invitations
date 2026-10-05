@@ -41,7 +41,6 @@
 .sent,
 .laneName,
 .laneSub,
-.laneIdle,
 .badge,
 .laneCardMeta,
 .laneOld,
@@ -447,12 +446,6 @@
   border-radius: 5px;
 }
 
-.laneIdle {
-  font-size: 10px;
-  color: var(--fog);
-  opacity: 0.45;
-}
-
 .laneCard {
   position: absolute;
   inset: -1px;
@@ -576,9 +569,10 @@
     12px 12px 0 0 rgb(111 214 176 / 0.06);
 }
 
+/* Tablet: el núcleo conserva la escala del escritorio (~1.4 px por unidad) para que la órbita siga circular. */
 @media (min-width: 48rem) and (max-width: 63.99rem) {
   .core {
-    max-width: 560px;
+    max-width: 420px;
     width: 100%;
     margin: 0 auto;
   }
@@ -624,10 +618,15 @@
   text-transform: none;
 }
 
-/* Tarjeta en proceso: ventana de 76 px; la tira avanza 88 px por mensaje. */
+/* Tarjeta en proceso: ventana de --card px; la tira avanza --pitch px por mensaje (tarjeta + 12 px). */
+.core {
+  --card: 76px;
+  --pitch: 88px;
+}
+
 .cardSlot {
   position: relative;
-  height: 76px;
+  height: var(--card);
   margin: 12px 12px 11px;
   overflow: hidden;
   border-radius: 6px;
@@ -643,7 +642,7 @@
 .cardIdle,
 .card {
   flex: none;
-  height: 76px;
+  height: var(--card);
   border-radius: 6px;
 }
 
@@ -881,7 +880,7 @@
   color: var(--fog);
 }
 
-.chips + .blockLabel {
+.dataLabel {
   margin-top: 9px;
 }
 
@@ -1027,12 +1026,12 @@
 }
 
 .busLabelLeft {
-  transform: translate(-100%, -50%) rotate(-90deg) translate(50%, -13px);
+  transform: translate(-100%, -50%) rotate(-90deg) translate(50%, -17px);
   transform-origin: 100% 50%;
 }
 
 .busLabelRight {
-  transform: translate(0, -50%) rotate(90deg) translate(-50%, -13px);
+  transform: translate(0, -50%) rotate(90deg) translate(-50%, -17px);
   transform-origin: 0 50%;
 }
 
@@ -1299,6 +1298,33 @@
   border: 1px solid rgb(220 197 154 / 0.6);
   border-left: 2px solid var(--gold);
   border-radius: 2px;
+}
+
+/* Mobile: núcleo compacto (sin cabecera ni datos extraídos), tarjeta de dos líneas y registro de cuatro. */
+@media (max-width: 47.99rem) {
+  .core {
+    --card: 60px;
+    --pitch: 72px;
+  }
+
+  .coreHead,
+  .cardMeta,
+  .dataLabel,
+  .dataLine {
+    display: none;
+  }
+
+  .chat {
+    margin: 6px 10px 7px;
+  }
+
+  .mlink {
+    height: 26px;
+  }
+
+  .logView {
+    height: 80px;
+  }
 }
 
 /* Vista estática (sin JS o con movimiento reducido): solo el estado final, sin estados intermedios encimados. */

@@ -144,7 +144,6 @@ function Lane({ index }: { index: number }) {
       </div>
       <div className={s.laneBody}>
         <div className={s.laneSlot}>
-          <span className={s.laneIdle}>en espera</span>
           {message && (
             <Step at={win(message.times.dock - 0.05, END)} fx="left" className={s.laneCard}>
               <span className={s.laneCardTop}>
@@ -183,7 +182,7 @@ function Core() {
 
       {/* Tarjeta en proceso: una tira que avanza al llegar cada mensaje (la anterior sale por arriba). */}
       <div className={s.cardSlot}>
-        <div data-atn="card" className={s.cardStrip} style={vars({ "--final": `${FINAL.card}px` })}>
+        <div data-atn="card" className={s.cardStrip} style={vars({ "--final": FINAL.card })}>
           <div className={s.cardIdle}>esperando mensajes</div>
           {MESSAGES.map((message) => (
             <div key={message.op} className={s.card}>
@@ -245,7 +244,7 @@ function Core() {
             </span>
           ))}
         </div>
-        <span className={s.blockLabel}>Datos extraídos</span>
+        <span className={`${s.blockLabel} ${s.dataLabel}`}>Datos extraídos</span>
         <span className={s.dataLine} />
         {MESSAGES.map((message) => (
           <Step
@@ -266,7 +265,7 @@ function Core() {
                 ),
               )}
             </span>
-            <span className={`${s.blockLabel} invisible`}>Datos extraídos</span>
+            <span className={`${s.blockLabel} ${s.dataLabel} invisible`}>Datos extraídos</span>
             <span className={`${s.dataLine} ${s.dataOn}`}>{message.data}</span>
           </Step>
         ))}

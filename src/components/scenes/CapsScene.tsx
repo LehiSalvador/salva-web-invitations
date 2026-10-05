@@ -5,7 +5,7 @@ import { Automations } from "./caps/Automations";
 import { Cap3D } from "./caps/Cap3D";
 import { CapArt } from "./caps/CapArt";
 import { lastLine, StoreWindow } from "./caps/Store";
-import { A, CYCLE, products, sceneCss, TARGET } from "./caps/timeline";
+import { A, CYCLE, P, PA, PREVIEW_CYCLE, previewCss, products, sceneCss, TARGET } from "./caps/timeline";
 
 /*
  * Salva Exclusive Caps: simulación del recorrido de compra en la tienda en línea de un negocio cliente.
@@ -14,6 +14,7 @@ import { A, CYCLE, products, sceneCss, TARGET } from "./caps/timeline";
  */
 
 const css = sceneCss();
+const pvCss = previewCss();
 const stages = ["Catálogo", "Producto", "Pedido", "Automatizaciones"];
 
 function Tracker() {
@@ -64,15 +65,21 @@ export function CapsScene() {
 
 /* ---------- Vista previa (showcase y tarjetas del índice) ---------- */
 
-const PREVIEW_CYCLE = 9000;
-const P = { pick: 0.17, view2: 0.3, add: 0.49, toast: 0.58, rows: [0.64, 0.7, 0.76, 0.82], out: 0.95 };
-const previewRows = ["Pedido registrado", "Confirmación enviada", "Inventario actualizado", "Envío preparado"];
+const previewRows = [
+  ["Pedido registrado", "Registro"],
+  ["Confirmación enviada", "Confirmación"],
+  ["Inventario actualizado", "Inventario"],
+  ["Envío preparado", "Envío"],
+];
 const target = products[TARGET];
 
 /** Vista previa compacta: catálogo → producto → pedido confirmado, con las automatizaciones al lado. */
 export function CapsPreview() {
   return (
     <div data-live data-cycle={PREVIEW_CYCLE} aria-hidden="true" className={styles.preview}>
+      <style href="caps-preview-timeline" precedence="default">
+        {pvCss}
+      </style>
       <div className={styles.pvStore}>
         <div className={styles.pvChrome}>
           <span className="flex gap-1">
@@ -83,26 +90,27 @@ export function CapsPreview() {
           <span className="truncate">exclusive-caps · tienda</span>
         </div>
         <div className={styles.pvView}>
-          <Step at={[0, P.view2]} fx="left" rm="hide" className={styles.pvGrid}>
+          {/* El catálogo es la capa base; el producto entra encima con fondo opaco y al final se retira. */}
+          <div className={styles.pvGrid}>
             {products.map((product, index) => (
               <span key={product.id} className={styles.pvCard}>
                 <CapArt color={product.color} />
                 <span className={styles.pvName}>Gorra {product.id}</span>
                 {index === TARGET && (
-                  <Step at={[P.pick, P.view2]} fx="scale" rm="hide" className={styles.pvPicked}>
+                  <Step at={[P.pick, P.view2 + 0.03]} fx="scale" rm="hide" className={styles.pvPicked}>
                     <span className={styles.pvTap} />
                   </Step>
                 )}
               </span>
             ))}
-          </Step>
-          <Step at={[P.view2, P.out]} fx="right" className={styles.pvProduct}>
+          </div>
+          <Step at={[P.view2, P.out]} fx="fade" className={styles.pvProduct}>
             <span className={styles.pvTurntable}>
-              <Cap3D color={target.color} />
+              <Cap3D color={target.color} spin={PA.spin} simple />
             </span>
             <span className={styles.pvInfo}>
               <span className={styles.pvTitle}>
-                Gorra {target.id} <span className="text-mist">· {target.name}</span>
+                Gorra {target.id} <span className="whitespace-nowrap text-mist">· {target.name}</span>
               </span>
               <span className={styles.pvSwatches}>
                 {products.map((product, index) => (
@@ -117,10 +125,8 @@ export function CapsPreview() {
               <span className={styles.pvButton}>
                 <span className={styles.pvLong}>Agregar al carrito</span>
                 <span className={styles.pvShort}>Agregar</span>
-                <Step at={[P.add, P.out]} fx="fade" className={styles.pvButtonDone}>
-                  ✓ Agregado
-                </Step>
-                <Step at={[P.add - 0.02, P.add + 0.06]} fx="pop" rm="hide" className={styles.pvTapRing} />
+                <span className={`${styles.pvButtonDone} ${PA.added}`}>✓ Agregado</span>
+                <Step at={[P.add - 0.03, P.add + 0.05]} fx="pop" rm="hide" className={styles.pvTapRing} />
               </span>
             </span>
           </Step>
@@ -143,14 +149,19 @@ export function CapsPreview() {
           confirmado
         </span>
         <span className={styles.pvRows}>
-          {previewRows.map((row, index) => (
-            <span key={row} className={styles.pvRow}>
-              <span className={styles.pvNode}>
-                <Step at={[P.rows[index], P.out]} fx="pop" className={styles.pvCheck}>
-                  ✓
-                </Step>
+          {previewRows.map(([long, short], index) => (
+            <span key={long} className={styles.pvRow}>
+              <span className={styles.pvNode} />
+              <span className={styles.pvRowName}>
+                <span className={styles.pvLong}>{long}</span>
+                <span className={styles.pvShort}>{short}</span>
               </span>
-              <span className="min-w-0">{row}</span>
+              <span className={styles.pvState}>
+                <span className={`${styles.ticker} ${PA.row(index)}`} style={lastLine(2)}>
+                  <span className="text-fog">espera</span>
+                  <span className="text-signal">✓ listo</span>
+                </span>
+              </span>
             </span>
           ))}
         </span>

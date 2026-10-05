@@ -243,6 +243,14 @@ export const LOG: { tag: "ui" | "cart" | "api" | "auto" | "ok"; text: string; at
   { tag: "ok", text: "flujo completado", at: T.done },
 ];
 
+/** Líneas previas al ciclo (estado del sistema): llenan la ventana del registro desde el inicio. */
+export const PRE_LOG: { tag: "sys"; text: string }[] = [
+  { tag: "sys", text: "conexión con inventario" },
+  { tag: "sys", text: "plantilla de correo lista" },
+  { tag: "sys", text: "4 automatizaciones activas" },
+  { tag: "sys", text: "esperando pedidos" },
+];
+
 export const LOG_ROWS = 5;
 export const LOG_LINE = 20;
 
@@ -339,6 +347,35 @@ function emitFrames(): Frame[] {
   ];
 }
 
+/** Cambio de estado casi instantáneo (sin mezclar dos etiquetas encimadas): aparece en `on`, se va en `off`. */
+function swapFrames(on: number, off: number, cycle = CYCLE): Frame[] {
+  const quick = 90 / cycle;
+  return [
+    [0, "opacity:0"],
+    [on, "opacity:0", OUT],
+    [on + quick, "opacity:1"],
+    [off - quick * 2, "opacity:1", "ease-in"],
+    [off, "opacity:0"],
+    [1, "opacity:0"],
+  ];
+}
+
+/*
+ * Giro de la tornamesa: una vuelta por ciclo. Mientras se elige talla y se agrega al carrito, la gorra
+ * deriva lento con el frente a tres cuartos; después acelera y completa la vuelta (ya bajo el cajón).
+ */
+export const SPIN_BASE = -48;
+
+function spinFrames(view: number, settle: number): Frame[] {
+  const start = SPIN_BASE - 22 - 120;
+  return [
+    [0, `transform:rotateY(${start}deg)`, LIN],
+    [view, `transform:rotateY(${SPIN_BASE - 22}deg)`, LIN],
+    [settle, `transform:rotateY(${SPIN_BASE + 10}deg)`, "cubic-bezier(.4,0,.9,.6)"],
+    [1, `transform:rotateY(${start + 360}deg)`],
+  ];
+}
+
 function pipeFrames(): Frame[] {
   return [
     [0, "transform:scaleY(0);opacity:1"],
@@ -369,6 +406,11 @@ export const A = {
   log: "capsx-a capsx-log",
   pipe: "capsx-a capsx-pipe",
   emit: "capsx-a capsx-emit",
+  flow: "capsx-a capsx-flow",
+  spin: "capsx-a capsx-spin",
+  sizeOn: "capsx-a capsx-size",
+  added: "capsx-a capsx-added",
+  confirmed: "capsx-a capsx-confirmed",
 };
 
 const vars = (layout: "w" | "m") =>
@@ -395,10 +437,40 @@ export function sceneCss() {
     ["capsx-log", logFrames()],
     ["capsx-pipe", pipeFrames()],
     ["capsx-emit", emitFrames()],
+    ["capsx-flow", tickerFrames([T.trigger, T.done], 3)],
+    ["capsx-spin", spinFrames(T.view2, T.add)],
+    ["capsx-size", swapFrames(T.click2, T.reset)],
+    ["capsx-added", swapFrames(T.click3 + 0.003, T.reset)],
+    ["capsx-confirmed", swapFrames(T.confirmed, T.out + 0.03)],
   ];
   return [
     `.capsx-layer{${vars("m")}}@media (width>=40rem){.capsx-layer{${vars("w")}}}`,
     ...anims.map(([name, frames]) => `${keyframes(name, frames)}.${name}{animation:${name} ${CYCLE}ms linear infinite}`),
+    "@media (prefers-reduced-motion:reduce),(scripting:none){.capsx-a{animation:none!important}}",
+  ].join("");
+}
+
+/* ---------- vista previa (showcase y tarjetas) ---------- */
+
+export const PREVIEW_CYCLE = 9000;
+
+/** Vista previa: catálogo → producto → pedido confirmado; todo resuelto al menos 1 s antes de reiniciar. */
+export const P = { pick: 0.15, view2: 0.25, add: 0.43, toast: 0.52, rows: [0.58, 0.635, 0.69, 0.745], out: 0.985 } as const;
+
+export const PA = {
+  spin: "capsx-a capsx-pvspin",
+  added: "capsx-a capsx-pvadded",
+  row: (index: number) => `capsx-a capsx-pvst${index}`,
+};
+
+export function previewCss() {
+  const anims: [string, Frame[]][] = [
+    ["capsx-pvspin", spinFrames(P.view2, P.add)],
+    ["capsx-pvadded", swapFrames(P.add, P.out, PREVIEW_CYCLE)],
+    ...P.rows.map((start, index): [string, Frame[]] => [`capsx-pvst${index}`, tickerFrames([start], 2, 0.95)]),
+  ];
+  return [
+    ...anims.map(([name, frames]) => `${keyframes(name, frames)}.${name}{animation:${name} ${PREVIEW_CYCLE}ms linear infinite}`),
     "@media (prefers-reduced-motion:reduce),(scripting:none){.capsx-a{animation:none!important}}",
   ].join("");
 }

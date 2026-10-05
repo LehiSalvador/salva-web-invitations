@@ -308,8 +308,8 @@ export const CHAT = { inH: 28, outH: 42, gap: 6 };
 export const CHAT_STOPS = [0, -(CHAT.inH + CHAT.gap), -(CHAT.inH + CHAT.outH + CHAT.gap * 2)];
 /** Estado en la cabecera del hilo: en línea → escribiendo → procesando → respondido. */
 export const STATUS_H = 14;
-/** Tarjeta en proceso del núcleo: una por mensaje, con 12 px de separación. */
-export const CARD_PITCH = 76 + 12;
+/** Tarjeta en proceso del núcleo: una por mensaje; el paso (alto + separación) vive en la variable CSS --pitch. */
+const pitch = (k: number) => `calc(var(--pitch) * ${-k})`;
 /** Puntos de "escribiendo": separación entre puntos. */
 export const DOT_STEP = 6;
 
@@ -324,7 +324,7 @@ function frames(list: [number, string][]) {
   return sorted.map(([seconds, css]) => `${pct(Math.min(seconds, SECONDS))}{${css}}`).join("");
 }
 
-const ty = (px: number, opacity = 1) => `transform:translate3d(0,${px}px,0);opacity:${opacity}`;
+const ty = (y: number | string, opacity = 1) => `transform:translate3d(0,${typeof y === "number" ? `${y}px` : y},0);opacity:${opacity}`;
 
 /** Elemento que se enciende en varias ventanas del ciclo (solo opacidad). */
 function litKeyframes(name: string, windows: [number, number][]) {
@@ -338,7 +338,7 @@ function litKeyframes(name: string, windows: [number, number][]) {
  * Tira que avanza por posiciones (translateY) en momentos dados y, al final del ciclo, se desvanece y vuelve
  * a la primera posición. `stops`: [segundo, desplazamiento en px].
  */
-function stripKeyframes(name: string, start: number, stops: [number, number][], move = 0.45) {
+function stripKeyframes(name: string, start: number | string, stops: [number, number | string][], move = 0.45) {
   const list: [number, string][] = [[0, ty(start)]];
   let current = start;
   for (const [at, offset] of stops) {
@@ -366,7 +366,7 @@ function typingKeyframes(name: string, from: number, to: number) {
 /** Ventanas en que cada nodo del pipeline está encendido (uno por mensaje). */
 export const NODE_WINDOWS: [number, number][][] = [
   MESSAGES.map((m) => [m.times.n1 - 0.12, m.times.n1 + 0.62]),
-  MESSAGES.map((m) => [m.times.orbitIn - 0.1, m.times.orbitOut + 0.2]),
+  MESSAGES.map((m) => [m.times.orbitIn - 0.1, m.times.orbitOut + 0.3]),
   MESSAGES.map((m) => [m.times.n3 - 0.12, m.times.n3 + 0.62]),
   MESSAGES.map((m) => [m.times.n4 - 0.12, m.times.n4 + 0.7]),
 ];
@@ -380,13 +380,13 @@ const statusStops = (m: Message): [number, number][] => [
   [m.times.bubble + 0.2, -STATUS_H * 2],
   [m.times.replyArrive - 0.05, -STATUS_H * 3],
 ];
-const cardStops: [number, number][] = MESSAGES.map((m, index) => [m.times.portIn - 0.15, -(index + 1) * CARD_PITCH]);
+const cardStops: [number, string][] = MESSAGES.map((m, index) => [m.times.portIn - 0.15, pitch(index + 1)]);
 
 /** Valores finales (vista estática): el estado completo al terminar el ciclo. */
 export const FINAL = {
   chat: CHAT_STOPS[2],
   status: -STATUS_H * 3,
-  card: -MESSAGES.length * CARD_PITCH,
+  card: pitch(MESSAGES.length),
 };
 
 const EASE = "cubic-bezier(0.16,1,0.3,1)";
@@ -395,7 +395,7 @@ const run = (selector: string, name: string, easing = EASE) => `[data-atn="${sel
 export const SCENE_CSS = [
   ...NODE_WINDOWS.map((windows, index) => litKeyframes(`atn-node-${index}`, windows)),
   logKeyframes(),
-  stripKeyframes("atn-card", 0, cardStops, 0.55),
+  stripKeyframes("atn-card", pitch(0), cardStops, 0.55),
   ...MESSAGES.map((m) => stripKeyframes(`atn-chat-${m.index}`, 0, chatStops(m))),
   ...MESSAGES.map((m) => stripKeyframes(`atn-status-${m.index}`, 0, statusStops(m), 0.35)),
   ...MESSAGES.map((m) => typingKeyframes(`atn-dots-${m.index}`, m.times.typing, m.times.bubble)),

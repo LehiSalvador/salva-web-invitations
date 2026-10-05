@@ -3,8 +3,9 @@ import { Packet, PacketLayer } from "@/components/motion/Packet";
 import { Step } from "@/components/motion/Step";
 import styles from "../CapsScene.module.css";
 import { lastLine } from "./Store";
-import { A, LOG, LOG_LINE, LOG_ROWS, RUN, T } from "./timeline";
+import { A, LOG, LOG_LINE, LOG_ROWS, PRE_LOG, RUN, T } from "./timeline";
 
+/* Coordenadas del riel en unidades de fila (la altura real de fila sale de --row en CSS). */
 const ROW = 50;
 const PIPE = ROW * 4;
 
@@ -15,7 +16,8 @@ const automations = [
   { title: "Envío preparado", detail: "Guía y empaque", icon: "M1.5 4.5h8v7h-8zM9.5 7h3l2 2.2v2.3h-5M4.5 12.8a1.2 1.2 0 1 0 0-.1M12 12.8a1.2 1.2 0 1 0 0-.1" },
 ];
 
-const TAGS: Record<(typeof LOG)[number]["tag"], string> = {
+const TAGS: Record<(typeof LOG)[number]["tag"] | "sys", string> = {
+  sys: "text-fog",
   ui: "text-fog",
   cart: "text-gold-300",
   api: "text-cool",
@@ -81,9 +83,9 @@ export function Automations() {
         </span>
       </div>
 
-      <div className={styles.pipe} style={{ height: PIPE }}>
-        <span className={styles.rail} style={{ top: ROW / 2, height: PIPE - ROW }} />
-        <span className={`${styles.railFill} ${A.pipe}`} style={{ top: ROW / 2, height: PIPE - ROW }} />
+      <div className={styles.pipe}>
+        <span className={styles.rail} />
+        <span className={`${styles.railFill} ${A.pipe}`} />
         <div className="absolute top-0 left-0 h-full w-[30px]">
           <PacketLayer>
             <Packet
@@ -98,7 +100,7 @@ export function Automations() {
           </PacketLayer>
         </div>
         {automations.map((item, index) => (
-          <div key={item.title} className={styles.row} style={{ height: ROW, "--i": index } as CSSProperties}>
+          <div key={item.title} className={styles.row} style={{ "--i": index } as CSSProperties}>
             <span className={styles.node} />
             <span className={styles.rowIcon}>
               <Glyph d={item.icon} />
@@ -112,9 +114,19 @@ export function Automations() {
         ))}
       </div>
 
-      <Step at={[T.done, T.out]} fx="up" className={styles.done}>
-        <span className="text-signal">✓</span> Flujo completado <span className="text-fog">· sin pasos manuales</span>
-      </Step>
+      <div className={styles.flow}>
+        <span className={`${styles.ticker} ${A.flow}`} style={lastLine(3)}>
+          <span className="text-fog">
+            <i className={styles.flowIdle} /> Esperando pedido · se dispara al confirmar
+          </span>
+          <span className="text-cool">
+            <i className={styles.runDot} /> Ejecutando flujo del pedido
+          </span>
+          <span className="text-bone">
+            <span className="text-signal">✓</span> Flujo completado <span className="text-fog">· sin pasos manuales</span>
+          </span>
+        </span>
+      </div>
 
       <div className={styles.log}>
         <div className={`${styles.tl} flex items-center justify-between text-fog`}>
@@ -123,6 +135,12 @@ export function Automations() {
         </div>
         <div className={styles.logWindow} style={{ height: LOG_ROWS * LOG_LINE }}>
           <div className={`${styles.logColumn} ${A.log}`}>
+            {PRE_LOG.map((event) => (
+              <span key={event.text} className={`${styles.logLine} ${styles.logPrev}`} style={{ height: LOG_LINE }}>
+                <span className={`${styles.logTag} ${TAGS[event.tag]}`}>{event.tag}</span>
+                <span className="truncate">{event.text}</span>
+              </span>
+            ))}
             {LOG.map((event) => (
               <span key={event.text} className={styles.logLine} style={{ height: LOG_LINE }}>
                 <span className={`${styles.logTag} ${TAGS[event.tag]}`}>{event.tag}</span>
