@@ -7,6 +7,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     { url: `${base}/`, changeFrequency: "monthly", priority: 1 },
     { url: `${base}/proyectos`, changeFrequency: "monthly", priority: 0.8 },
+    ...["/docs/salvaops/vercel", "/docs/salvaops/soporte"].map((path) => ({ url: `${base}${path}`, changeFrequency: "yearly" as const, priority: 0.6 })),
     ...projects.map((project) => ({ url: `${base}${projectHref(project)}`, changeFrequency: "monthly" as const, priority: 0.7 })),
   ];
 }
